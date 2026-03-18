@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.5] - 2026-03-19
+
+### Fixed
+- Make `pw_property` CPT public for GenerateBlocks/Gutenberg Dynamic Tag picker discovery
+- Ensure search engine indexing behavior follows WordPress Settings -> Reading ("Discourage search engines from indexing this site") via `blog_public`
+
+### Changed
+- Replace Production/Development badge with a Search engine indexing ON/OFF indicator based on the actual `blog_public` value
+
 ## [0.3.4] - 2026-03-19
 
 ### Fixed
