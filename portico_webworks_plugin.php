@@ -20,9 +20,6 @@ function pw_apply_install_defaults() {
 		return;
 	}
 
-	// Settings -> Reading: "Discourage search engines from indexing this site" (checked => blog_public = 0)
-	update_option('blog_public', 0);
-
 	// Settings -> Media: "Organize my uploads into month- and year-based folders" (checked => uploads_use_yearmonth_folders = 1)
 	update_option('uploads_use_yearmonth_folders', 0);
 
@@ -30,19 +27,6 @@ function pw_apply_install_defaults() {
 }
 
 register_activation_hook(PW_PLUGIN_FILE, 'pw_apply_install_defaults');
-
-function pw_pre_option_blog_public($value) {
-	// Only affect front-end; keep WP admin/DB settings consistent.
-	if (function_exists('is_admin') && is_admin()) {
-		return $value;
-	}
-
-	$site_mode = get_option('pw_site_mode', 'development');
-	$target_blog_public = $site_mode === 'production' ? 1 : 0;
-	return (int) $target_blog_public;
-}
-
-add_filter('pre_option_blog_public', 'pw_pre_option_blog_public', 99);
 
 require_once __DIR__ . '/includes/admin-page.php';
 require_once __DIR__ . '/includes/property-post-type.php';

@@ -50,28 +50,7 @@ add_action('admin_init', function () {
 	register_setting('pw_settings', 'pw_property_base', array(
 		'sanitize_callback' => 'pw_sanitize_property_base',
 	));
-
-	register_setting('pw_settings', 'pw_site_mode', array(
-		'sanitize_callback' => function ($v) {
-			return $v === 'production' ? 'production' : 'development';
-		},
-		'default' => 'development',
-	));
 });
-
-add_action('update_option_pw_site_mode', function ($old_value, $value) {
-	$mode = $value === 'production' ? 'production' : 'development';
-	$target_blog_public = $mode === 'production' ? 1 : 0; // 0 => discourage indexing, 1 => allow.
-
-	$current = get_option('blog_public', 1);
-	$current = is_numeric($current) ? (int) $current : 1;
-
-	if ($current === (int) $target_blog_public) {
-		return;
-	}
-
-	update_option('blog_public', (int) $target_blog_public);
-}, 10, 2);
 
 function pw_render_root_page() {
 	if (!current_user_can('manage_options')) {
@@ -100,15 +79,16 @@ function pw_render_root_page() {
 	echo '<img class="pw-logo" src="' . esc_url(pw_logo_url()) . '" alt="" />';
 	echo '<div class="pw-brand-text">';
 	echo '<div class="pw-title">' . esc_html(pw_title()) . '</div>';
-	$site_mode = get_option('pw_site_mode', 'development');
+	$blog_public = get_option('blog_public', 1);
+	$blog_public = is_numeric($blog_public) ? (int) $blog_public : 1;
+	$indexing_on = $blog_public === 1;
 	$ver = pw_version();
 	if ($ver !== '') {
 		echo '<div class="pw-version">v' . esc_html($ver) . '</div>';
 	}
 
-	$is_prod = $site_mode === 'production';
-	$mode_label = $is_prod ? 'Production' : 'Development';
-	$mode_class = $is_prod ? 'is-production' : 'is-development';
+	$mode_label = $indexing_on ? 'Search engine indexing ON' : 'Search engine indexing OFF';
+	$mode_class = $indexing_on ? 'is-production' : 'is-development';
 	echo '<div class="pw-mode ' . esc_attr($mode_class) . '">' . esc_html($mode_label) . '</div>';
 	echo '</div>';
 	echo '</div>';
@@ -172,14 +152,15 @@ function pw_render_root_page() {
 		settings_fields('pw_settings');
 
 		$current_mode = esc_attr($mode);
-		$site_mode = esc_attr(get_option('pw_site_mode', 'development'));
+		$blog_public = get_option('blog_public', 1);
+		$blog_public = is_numeric($blog_public) ? (int) $blog_public : 1;
+		$indexing_on = $blog_public === 1;
 		echo '<table class="form-table" role="presentation"><tbody>';
 		echo '<tr>';
-		echo '<th scope="row">Site Mode</th>';
+		echo '<th scope="row">Search Engine Indexing</th>';
 		echo '<td>';
-		echo '<label style="margin-right:16px"><input type="radio" name="pw_site_mode" value="development"' . checked($site_mode, 'development', false) . ' /> Development</label>';
-		echo '<label><input type="radio" name="pw_site_mode" value="production"' . checked($site_mode, 'production', false) . ' /> Production</label>';
-		echo '<p class="description">Development keeps search engines discouraged from indexing. Production allows indexing.</p>';
+		echo '<strong>' . esc_html($indexing_on ? 'ON' : 'OFF') . '</strong>';
+		echo '<p class="description">Controlled by WordPress Settings -> Reading -> "Discourage search engines from indexing this site".</p>';
 		echo '</td>';
 		echo '</tr>';
 		echo '<tr>';

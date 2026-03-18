@@ -22,7 +22,7 @@ function pw_register_property_post_type() {
 				'not_found_in_trash' => 'No properties found in Trash',
 				'all_items' => 'All Properties',
 			),
-			'public' => false,
+			'public' => true,
 			'show_ui' => true,
 			'show_in_menu' => false,
 			'show_in_admin_bar' => false,

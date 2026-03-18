@@ -4,10 +4,12 @@
 
 ### Fixed
 - Register `_pw_property_profile` meta for `pw_property` CPT so REST dynamic data discovery works
-- Ensure `pw_site_mode` updates front-end indexing behavior via `pre_option_blog_public`
+- Make `pw_property` CPT public for GenerateBlocks/Gutenberg Dynamic Tag picker discovery
+- Ensure search engine indexing behavior follows WordPress Settings -> Reading ("Discourage search engines from indexing this site") via `blog_public`
 
 ### Changed
 - Show Production/Development badge in the Portico Webworks admin header
+- Replace Production/Development badge with a Search engine indexing ON/OFF indicator based on the actual `blog_public` value
 
 ## [0.3.3] - 2026-03-19
 
