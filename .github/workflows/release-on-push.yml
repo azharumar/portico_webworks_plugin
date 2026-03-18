@@ -1,0 +1,129 @@
+name: Release on Push
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - portico_webworks_plugin.php
+      - CHANGELOG.md
+      - admin-preview.html
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-on-push-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create tag + GitHub release
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $pluginFile = "portico_webworks_plugin.php"
+          $changelogFile = "CHANGELOG.md"
+
+          $pluginPhp = Get-Content -LiteralPath $pluginFile -Raw
+          if ($pluginPhp -notmatch 'define\(\s*''PW_VERSION''\s*,\s*''([^'']+)''\s*\)') {
+            throw "Could not find PW_VERSION define() in $pluginFile"
+          }
+
+          $version = $matches[1].Trim()
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            throw "PW_VERSION was empty"
+          }
+
+          $tag = "v$version"
+
+          if ($tag -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') {
+            Write-Host "Skipping release: tag '$tag' does not match vX.Y.Z"
+            exit 0
+          }
+
+          $changelog = Get-Content -LiteralPath $changelogFile -Raw
+          $escapedVersion = [regex]::Escape($version)
+          $sectionPattern = "(?ms)^## \[$escapedVersion\] - .*?(?=^## \[|\z)"
+          if ($changelog -notmatch $sectionPattern) {
+            Write-Host "Skipping release: CHANGELOG has no section for [$version]"
+            exit 0
+          }
+
+          $section = $matches[0]
+          $bulletMatches = [regex]::Matches($section, "(?m)^- .+$")
+          $bullets = @()
+          foreach ($m in $bulletMatches) {
+            $bullets += $m.Value.TrimEnd()
+          }
+
+          if ($bullets.Count -eq 0) {
+            Write-Host "Skipping release: no change bullets found for [$version]"
+            exit 0
+          }
+
+          $body = "## Changes`n`n" + ($bullets -join "`n")
+
+          $headers = @{
+            Authorization = "Bearer $env:GITHUB_TOKEN"
+            Accept = "application/vnd.github+json"
+            "X-GitHub-Api-Version" = "2022-11-28"
+          }
+
+          function Test-GitTagExists([string]$TagName) {
+            $encoded = [Uri]::EscapeDataString($TagName)
+            $uri = "https://api.github.com/repos/$env:REPO/git/ref/tags/$encoded"
+            try {
+              Invoke-RestMethod -Method Get -Uri $uri -Headers $headers -ErrorAction Stop | Out-Null
+              return $true
+            }
+            catch {
+              return $false
+            }
+          }
+
+          function Test-ReleaseExists([string]$TagName) {
+            $encoded = [Uri]::EscapeDataString($TagName)
+            $uri = "https://api.github.com/repos/$env:REPO/releases/tags/$encoded"
+            try {
+              Invoke-RestMethod -Method Get -Uri $uri -Headers $headers -ErrorAction Stop | Out-Null
+              return $true
+            }
+            catch {
+              return $false
+            }
+          }
+
+          if (-not (Test-GitTagExists -TagName $tag)) {
+            git tag -a $tag -m $tag
+            git push origin $tag
+          }
+
+          if (Test-ReleaseExists -TagName $tag) {
+            Write-Host "Release already exists for $tag; skipping creation"
+            exit 0
+          }
+
+          $releaseUri = "https://api.github.com/repos/$env:REPO/releases"
+          $payload = @{
+            tag_name = $tag
+            name = $tag
+            body = $body
+            draft = $false
+            prerelease = $false
+          }
+
+          $payloadJson = $payload | ConvertTo-Json -Depth 4 -Compress
+          Invoke-RestMethod -Method Post -Uri $releaseUri -Headers $headers -ContentType "application/json" -Body $payloadJson | Out-Null
+
+          Write-Host "Created GitHub release for $tag"
+
