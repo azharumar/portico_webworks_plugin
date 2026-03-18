@@ -34,7 +34,7 @@ function pw_register_property_post_type() {
 
 		// always on
 		'show_ui'            => true,
-		'show_in_menu'       => true,
+		'show_in_menu'       => pw_admin_page_slug(),
 		'show_in_admin_bar'  => true,
 		'show_in_rest'       => true,
 		'rest_base'          => 'pw-properties',

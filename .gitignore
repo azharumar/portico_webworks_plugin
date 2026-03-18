@@ -1,5 +1,7 @@
 node_modules/
-vendor/
+/vendor/
+!/vendor/cmb2/
+!/vendor/cmb2/**
 *.log
 .DS_Store
 .idea/

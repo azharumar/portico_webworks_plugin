@@ -10,10 +10,18 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
+define( 'PW_DEP_ACTIVE',        'active' );
+define( 'PW_DEP_INSTALLED',     'installed' );
+define( 'PW_DEP_NOT_INSTALLED', 'not_installed' );
+
+function pw_can_manage_deps() {
+	return current_user_can( 'install_plugins' );
+}
+
 function pw_get_dependencies() {
 	$plugin_dir = plugin_dir_path(PW_PLUGIN_FILE);
 
-	return array(
+	$deps = array(
 		array(
 			'name'       => 'GeneratePress',
 			'slug'       => 'generatepress',
@@ -65,6 +73,8 @@ function pw_get_dependencies() {
 			'required'   => true,
 		),
 	);
+
+	return apply_filters( 'pw_dependencies', $deps );
 }
 
 function pw_dep_status($dep) {
@@ -74,32 +84,32 @@ function pw_dep_status($dep) {
 	if ($dep['type'] === 'theme') {
 		$theme = wp_get_theme($dep['slug']);
 		if (!$theme->exists()) {
-			return 'not_installed';
+			return PW_DEP_NOT_INSTALLED;
 		}
 		$active_theme = wp_get_theme();
 		if ($active_theme->get_stylesheet() === $dep['slug'] || $active_theme->get_template() === $dep['slug']) {
-			return 'active';
+			return PW_DEP_ACTIVE;
 		}
-		return 'installed';
+		return PW_DEP_INSTALLED;
 	}
 
 	if (!empty($dep['file'])) {
 		$installed = file_exists(WP_PLUGIN_DIR . '/' . $dep['file']);
 		if (!$installed) {
-			return 'not_installed';
+			return PW_DEP_NOT_INSTALLED;
 		}
 		if (is_plugin_active($dep['file'])) {
-			return 'active';
+			return PW_DEP_ACTIVE;
 		}
-		return 'installed';
+		return PW_DEP_INSTALLED;
 	}
 
-	return 'not_installed';
+	return PW_DEP_NOT_INSTALLED;
 }
 
 function pw_all_deps_satisfied() {
 	foreach (pw_get_dependencies() as $dep) {
-		if (pw_dep_status($dep) !== 'active') {
+		if (pw_dep_status($dep) !== PW_DEP_ACTIVE) {
 			return false;
 		}
 	}
@@ -114,7 +124,7 @@ add_action('pw_admin_notices', function () {
 		return;
 	}
 
-	if (!current_user_can('install_plugins')) {
+	if (!pw_can_manage_deps()) {
 		echo '<div class="notice notice-warning"><p>';
 		echo '<strong>Portico Webworks</strong> requires additional plugins and a theme to function. ';
 		echo 'Please ask a site administrator to complete the setup.';
@@ -145,7 +155,7 @@ add_filter('pw_admin_tabs', function ($tabs) {
 // ---------------------------------------------------------------------------
 add_action('pw_render_tab_dependencies', function () {
 	$deps = pw_get_dependencies();
-	$can_install = current_user_can('install_plugins') && current_user_can('activate_plugins');
+	$can_install = pw_can_manage_deps() && current_user_can('activate_plugins');
 	$can_theme   = current_user_can('switch_themes') && current_user_can('install_themes');
 
 	echo '<div class="pw-card" style="max-width:980px">';
@@ -161,8 +171,8 @@ add_action('pw_render_tab_dependencies', function () {
 
 	foreach ($deps as $dep) {
 		$status = pw_dep_status($dep);
-		$badge_color = $status === 'active' ? '#1e8e3e' : ($status === 'installed' ? '#e8a200' : '#b32d15');
-		$badge_label = $status === 'active' ? 'Active' : ($status === 'installed' ? 'Installed' : 'Not Installed');
+		$badge_color = $status === PW_DEP_ACTIVE ? '#1e8e3e' : ($status === PW_DEP_INSTALLED ? '#e8a200' : '#b32d15');
+		$badge_label = $status === PW_DEP_ACTIVE ? 'Active' : ($status === PW_DEP_INSTALLED ? 'Installed' : 'Not Installed');
 		$source_label = $dep['source'] === 'bundled' ? 'Bundled ZIP' : 'WordPress.org';
 
 		echo '<tr data-pw-dep="' . esc_attr($dep['slug']) . '">';
@@ -172,9 +182,9 @@ add_action('pw_render_tab_dependencies', function () {
 		echo '<td><span class="pw-dep-badge" style="display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;color:#fff;background:' . $badge_color . '">' . esc_html($badge_label) . '</span></td>';
 		echo '<td>';
 
-		if ($status === 'active') {
+		if ($status === PW_DEP_ACTIVE) {
 			echo '<span style="color:#1e8e3e;font-weight:600;font-size:13px">&#10003; Ready</span>';
-		} elseif ($status === 'installed') {
+		} elseif ($status === PW_DEP_INSTALLED) {
 			$can = ($dep['type'] === 'theme') ? $can_theme : $can_install;
 			if ($can) {
 				echo '<button class="button pw-dep-action" data-slug="' . esc_attr($dep['slug']) . '" data-action="activate">Activate</button>';
@@ -289,7 +299,7 @@ add_action('admin_footer', function () {
 add_action('wp_ajax_portico_dep_action', function () {
 	check_ajax_referer('portico_dep_action');
 
-	if (!current_user_can('install_plugins') || !current_user_can('activate_plugins')) {
+	if (!pw_can_manage_deps() || !current_user_can('activate_plugins')) {
 		wp_send_json_error(array('message' => 'Insufficient permissions.'));
 	}
 
@@ -310,7 +320,7 @@ add_action('wp_ajax_portico_dep_action', function () {
 
 	$status = pw_dep_status($dep);
 
-	if ($status === 'active') {
+	if ($status === PW_DEP_ACTIVE) {
 		wp_send_json_success(array('message' => $dep['name'] . ' is already active.'));
 	}
 
@@ -321,7 +331,7 @@ add_action('wp_ajax_portico_dep_action', function () {
 	require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 	// Install if not present.
-	if ($status === 'not_installed') {
+	if ($status === PW_DEP_NOT_INSTALLED) {
 		if ($dep['type'] === 'theme') {
 			$result = pw_install_theme($dep);
 		} else {

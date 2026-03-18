@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0] - 2026-03-19
+
+### Added
+- Bundle CMB2 as a vendored library (`vendor/cmb2/`); suppress its admin menu via `cmb2_menus` filter
+- CMB2 meta box forms for all child CPTs: `pw_feature`, `pw_room_type`, `pw_restaurant`, `pw_spa`, `pw_meeting_room`, `pw_amenity`, `pw_policy`
+- `pw_property_options()` helper to populate property selector fields
+- `composer.json` for managing bundled Composer dependencies
+
+### Changed
+- Refactor `dependencies.php`: registry filterable via `pw_dependencies` filter
+- Extract `PW_DEP_ACTIVE`, `PW_DEP_INSTALLED`, `PW_DEP_NOT_INSTALLED` status constants
+- Extract `pw_can_manage_deps()` capability helper; replace all inline `current_user_can('install_plugins')` calls
+
 ## [0.3.9] - 2026-03-19
 
 ### Added

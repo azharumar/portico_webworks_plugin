@@ -22,7 +22,33 @@ add_action('admin_menu', function () {
 		'dashicons-building',
 		58
 	);
-});
+
+	add_submenu_page(
+		pw_admin_page_slug(),
+		'Portico Webworks',
+		'Overview',
+		'manage_options',
+		pw_admin_page_slug(),
+		'pw_render_root_page'
+	);
+}, 10);
+
+add_action('admin_menu', function () {
+	$cpt_slugs = [
+		'pw_property',
+		'pw_feature',
+		'pw_room_type',
+		'pw_restaurant',
+		'pw_spa',
+		'pw_meeting_room',
+		'pw_amenity',
+		'pw_policy',
+	];
+
+	foreach ($cpt_slugs as $cpt) {
+		remove_submenu_page(pw_admin_page_slug(), 'post-new.php?post_type=' . $cpt);
+	}
+}, 999);
 
 function pw_title() {
 	return 'Portico Webworks Hotel Website Manager';

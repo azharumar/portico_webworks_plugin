@@ -8,6 +8,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Shared CPT config
 // ---------------------------------------------------------------------------
 
+function pw_cpt_labels( $singular, $plural ) {
+	return [
+		'name'               => $plural,
+		'singular_name'      => $singular,
+		'menu_name'          => $plural,
+		'add_new_item'       => 'Add New ' . $singular,
+		'edit_item'          => 'Edit ' . $singular,
+		'new_item'           => 'New ' . $singular,
+		'view_item'          => 'View ' . $singular,
+		'search_items'       => 'Search ' . $plural,
+		'not_found'          => 'No ' . strtolower( $plural ) . ' found',
+		'not_found_in_trash' => 'No ' . strtolower( $plural ) . ' found in trash',
+		'all_items'          => 'All ' . $plural,
+	];
+}
+
 function pw_child_cpt_defaults() {
 	return [
 		'public'             => false,
@@ -35,41 +51,41 @@ function pw_register_child_post_types() {
 	$defaults = pw_child_cpt_defaults();
 
 	register_post_type( 'pw_feature', array_merge( $defaults, [
-		'label'      => 'Features',
+		'labels'     => pw_cpt_labels( 'Feature', 'Features' ),
 		'menu_icon'  => 'dashicons-tag',
 	] ) );
 
 	register_post_type( 'pw_room_type', array_merge( $defaults, [
-		'label'      => 'Room Types',
+		'labels'     => pw_cpt_labels( 'Room Type', 'Room Types' ),
 		'menu_icon'  => 'dashicons-bed',
 		'taxonomies' => [ 'pw_bed_type', 'pw_view_type' ],
 	] ) );
 
 	register_post_type( 'pw_restaurant', array_merge( $defaults, [
-		'label'      => 'Restaurants',
+		'labels'     => pw_cpt_labels( 'Restaurant', 'Restaurants' ),
 		'menu_icon'  => 'dashicons-food',
 		'taxonomies' => [ 'pw_meal_period' ],
 	] ) );
 
 	register_post_type( 'pw_spa', array_merge( $defaults, [
-		'label'      => 'Spas',
+		'labels'     => pw_cpt_labels( 'Spa', 'Spas' ),
 		'menu_icon'  => 'dashicons-heart',
 		'taxonomies' => [ 'pw_treatment_type' ],
 	] ) );
 
 	register_post_type( 'pw_meeting_room', array_merge( $defaults, [
-		'label'      => 'Meeting Rooms',
+		'labels'     => pw_cpt_labels( 'Meeting Room', 'Meeting Rooms' ),
 		'menu_icon'  => 'dashicons-groups',
 		'taxonomies' => [ 'pw_av_equipment' ],
 	] ) );
 
 	register_post_type( 'pw_amenity', array_merge( $defaults, [
-		'label'      => 'Amenities',
+		'labels'     => pw_cpt_labels( 'Amenity', 'Amenities' ),
 		'menu_icon'  => 'dashicons-star-filled',
 	] ) );
 
 	register_post_type( 'pw_policy', array_merge( $defaults, [
-		'label'      => 'Policies',
+		'labels'     => pw_cpt_labels( 'Policy', 'Policies' ),
 		'menu_icon'  => 'dashicons-media-text',
 	] ) );
 }

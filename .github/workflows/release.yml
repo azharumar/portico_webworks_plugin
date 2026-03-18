@@ -25,7 +25,8 @@ jobs:
             --exclude='.cursor' \
             --exclude='.gitignore' \
             --exclude='node_modules' \
-            --exclude='vendor' \
+            --exclude='vendor/composer' \
+            --exclude='vendor/autoload.php' \
             --exclude='*.log' \
             --exclude='.DS_Store' \
             --exclude='.idea' \

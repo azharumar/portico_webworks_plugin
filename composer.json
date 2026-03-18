@@ -1,0 +1,11 @@
+{
+    "name": "porticowebworks/portico-webworks-plugin",
+    "description": "Portico Webworks Hotel Website Manager",
+    "type": "wordpress-plugin",
+    "require": {
+        "cmb2/cmb2": "^2.11"
+    },
+    "config": {
+        "vendor-dir": "vendor"
+    }
+}
