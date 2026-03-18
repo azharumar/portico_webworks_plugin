@@ -50,7 +50,28 @@ add_action('admin_init', function () {
 	register_setting('pw_settings', 'pw_property_base', array(
 		'sanitize_callback' => 'pw_sanitize_property_base',
 	));
+
+	register_setting('pw_settings', 'pw_site_mode', array(
+		'sanitize_callback' => function ($v) {
+			return $v === 'production' ? 'production' : 'development';
+		},
+		'default' => 'development',
+	));
 });
+
+add_action('update_option_pw_site_mode', function ($old_value, $value) {
+	$mode = $value === 'production' ? 'production' : 'development';
+	$target_blog_public = $mode === 'production' ? 1 : 0; // 0 => discourage indexing, 1 => allow.
+
+	$current = get_option('blog_public', 1);
+	$current = is_numeric($current) ? (int) $current : 1;
+
+	if ($current === (int) $target_blog_public) {
+		return;
+	}
+
+	update_option('blog_public', (int) $target_blog_public);
+}, 10, 2);
 
 function pw_render_root_page() {
 	if (!current_user_can('manage_options')) {
@@ -99,6 +120,7 @@ function pw_render_root_page() {
 		echo '<div class="pw-footer">';
 		echo '<a class="pw-footer-link" href="' . esc_url($footer_link) . '" target="_blank" rel="noopener noreferrer">© ' . esc_html(gmdate('Y')) . ' Portico Webworks</a>';
 		echo '</div>';
+		do_action('pw_admin_notices');
 		echo '</div>';
 		return;
 	}
@@ -130,6 +152,7 @@ function pw_render_root_page() {
 		echo '<div class="pw-footer">';
 		echo '<a class="pw-footer-link" href="' . esc_url($footer_link) . '" target="_blank" rel="noopener noreferrer">© ' . esc_html(gmdate('Y')) . ' Portico Webworks</a>';
 		echo '</div>';
+		do_action('pw_admin_notices');
 		echo '</div>';
 		return;
 	}
@@ -143,7 +166,16 @@ function pw_render_root_page() {
 		settings_fields('pw_settings');
 
 		$current_mode = esc_attr($mode);
+		$site_mode = esc_attr(get_option('pw_site_mode', 'development'));
 		echo '<table class="form-table" role="presentation"><tbody>';
+		echo '<tr>';
+		echo '<th scope="row">Site Mode</th>';
+		echo '<td>';
+		echo '<label style="margin-right:16px"><input type="radio" name="pw_site_mode" value="development"' . checked($site_mode, 'development', false) . ' /> Development</label>';
+		echo '<label><input type="radio" name="pw_site_mode" value="production"' . checked($site_mode, 'production', false) . ' /> Production</label>';
+		echo '<p class="description">Development keeps search engines discouraged from indexing. Production allows indexing.</p>';
+		echo '</td>';
+		echo '</tr>';
 		echo '<tr>';
 		echo '<th scope="row">Property Mode</th>';
 		echo '<td>';
@@ -183,6 +215,7 @@ function pw_render_root_page() {
 		echo '<div class="pw-footer">';
 		echo '<a class="pw-footer-link" href="' . esc_url($footer_link) . '" target="_blank" rel="noopener noreferrer">© ' . esc_html(gmdate('Y')) . ' Portico Webworks</a>';
 		echo '</div>';
+		do_action('pw_admin_notices');
 		echo '</div>';
 		return;
 	}
@@ -230,6 +263,7 @@ function pw_render_root_page() {
 	echo '<div class="pw-footer">';
 	echo '<a class="pw-footer-link" href="' . esc_url($footer_link) . '" target="_blank" rel="noopener noreferrer">© ' . esc_html(gmdate('Y')) . ' Portico Webworks</a>';
 	echo '</div>';
+	do_action('pw_admin_notices');
 	echo '</div>';
 }
 

@@ -24,7 +24,6 @@ jobs:
             --exclude='.gitignore' \
             --exclude='node_modules' \
             --exclude='vendor' \
-            --exclude='*.zip' \
             --exclude='*.log' \
             --exclude='.DS_Store' \
             --exclude='.idea' \

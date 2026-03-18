@@ -107,9 +107,9 @@ function pw_all_deps_satisfied() {
 }
 
 // ---------------------------------------------------------------------------
-// Admin notice when dependencies are missing
+// Admin notices (rendered at the bottom of PW admin pages)
 // ---------------------------------------------------------------------------
-add_action('admin_notices', function () {
+add_action('pw_admin_notices', function () {
 	if (pw_all_deps_satisfied()) {
 		return;
 	}

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.2] - 2026-03-19
+
+### Added
+- `Site Mode` toggle in admin (updates `blog_public` for indexing)
+- `sync-version.ps1` to sync WordPress header and `admin-preview.html` from `PW_VERSION`
+- Collapsible `Property Profile` sections using `details/summary`
+
+### Changed
+- Updated `pw_property` admin menu/labels (“Properties” naming)
+- Dependency installer missing-dependency notice now renders via `pw_admin_notices`
+- GitHub release packaging now includes bundled `*.zip` assets
+
 ## [0.3.1] - 2026-03-18
 
 ### Added

@@ -109,7 +109,9 @@ function pw_render_property_metabox($post) {
 	wp_nonce_field('pw_save_property_profile', 'pw_property_profile_nonce');
 
 	foreach ($sections as $section_key => $section_meta) {
-		echo '<h3>' . esc_html($section_meta['label']) . '</h3>';
+		$is_open = $section_key === 'identity';
+		echo '<details class="pw-property-profile-section" ' . ($is_open ? 'open' : '') . '>';
+		echo '<summary>' . esc_html($section_meta['label']) . '</summary>';
 		echo '<table class="form-table" role="presentation"><tbody>';
 
 		foreach ($fields as $key => $field) {
@@ -139,6 +141,7 @@ function pw_render_property_metabox($post) {
 		}
 
 		echo '</tbody></table>';
+		echo '</details>';
 	}
 }
 
