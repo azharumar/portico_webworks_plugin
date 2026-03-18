@@ -2,13 +2,17 @@
 /**
  * Plugin Name: Portico Webworks
  * Description: Portico Webworks plugin.
- * Version: 0.1.0
+ * Version: 0.1.1
  * Author: Portico Webworks
  * Author URI: https://porticowebworks.com
  */
 
 if (!defined('ABSPATH')) {
 	exit;
+}
+
+function portico_webworks_logo_url() {
+	return plugins_url('logo.svg', __FILE__);
 }
 
 add_action('admin_menu', function () {
@@ -18,7 +22,7 @@ add_action('admin_menu', function () {
 		'manage_options',
 		'portico-webworks',
 		'portico_webworks_render_root_page',
-		'dashicons-admin-generic',
+		portico_webworks_logo_url(),
 		58
 	);
 
@@ -38,7 +42,7 @@ function portico_webworks_render_root_page() {
 	}
 
 	echo '<div class="wrap">';
-	echo '<h1>Portico Webworks</h1>';
+	echo '<h1><img alt="" src="' . esc_url(portico_webworks_logo_url()) . '" style="height: 28px; width: 28px; vertical-align: middle; margin-right: 8px;" />Portico Webworks</h1>';
 	echo '<p>Select an option from the submenu.</p>';
 	echo '</div>';
 }
@@ -49,7 +53,7 @@ function portico_webworks_render_settings_page() {
 	}
 
 	echo '<div class="wrap">';
-	echo '<h1>Settings</h1>';
+	echo '<h1><img alt="" src="' . esc_url(portico_webworks_logo_url()) . '" style="height: 28px; width: 28px; vertical-align: middle; margin-right: 8px;" />Settings</h1>';
 	echo '<p>Portico Webworks settings will go here.</p>';
 	echo '</div>';
 }
