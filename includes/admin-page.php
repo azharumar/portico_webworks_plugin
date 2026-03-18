@@ -52,6 +52,23 @@ add_action('admin_init', function () {
 	));
 });
 
+function pw_maybe_flush_property_rewrites($old_value, $value) {
+	if ($old_value === $value) {
+		return;
+	}
+
+	if (!function_exists('flush_rewrite_rules')) {
+		return;
+	}
+
+	// This runs only when the plugin admin changes the options; flushing is needed
+	// so rewrite rules update immediately after switching modes/bases.
+	flush_rewrite_rules();
+}
+
+add_action('update_option_pw_property_mode', 'pw_maybe_flush_property_rewrites', 10, 2);
+add_action('update_option_pw_property_base', 'pw_maybe_flush_property_rewrites', 10, 2);
+
 function pw_render_root_page() {
 	if (!current_user_can('manage_options')) {
 		return;

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.7] - 2026-03-19
+
+### Fixed
+- Override `is_post_type_viewable` for pw_property so GenerateBlocks discovers it in single-property mode
+
 ## [0.3.6] - 2026-03-19
 
 ### Removed
