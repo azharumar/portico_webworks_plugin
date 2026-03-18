@@ -15,6 +15,9 @@ jobs:
         with:
           ref: ${{ github.event.release.tag_name }}
 
+      - name: Install Composer dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader
+
       - name: Create plugin ZIP
         run: |
           PLUGIN_SLUG="portico_webworks_plugin"

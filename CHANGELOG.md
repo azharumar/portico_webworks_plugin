@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.1] - 2026-03-19
+
+### Fixed
+- Release workflow now runs `composer install --no-dev` before zipping, ensuring `vendor/cmb2/` is included in the plugin package
+
 ## [0.4.0] - 2026-03-19
 
 ### Added
