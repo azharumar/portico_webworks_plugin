@@ -4,8 +4,11 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-function pw_property_meta_map() {
-	return [
+function pw_get_property_profile( $property_id = null ) {
+	$id = $property_id ?? pw_get_current_property_id();
+	if ( ! $id ) return [];
+
+	$keys = [
 		'legal_name'         => '_pw_legal_name',
 		'brand_name'         => '_pw_brand_name',
 		'slug'               => '_pw_slug',
@@ -25,22 +28,10 @@ function pw_property_meta_map() {
 		'social_youtube'     => '_pw_social_youtube',
 		'default_template'   => '_pw_default_template',
 	];
-}
 
-function pw_get_property_profile($property_id = null) {
-	if (empty($property_id) || !is_numeric($property_id)) {
-		$property_id = pw_get_current_property_id();
-	}
-
-	if (is_wp_error($property_id) || empty($property_id)) {
-		return [];
-	}
-
-	$id      = (int) $property_id;
 	$profile = [];
-
-	foreach (pw_property_meta_map() as $label => $meta_key) {
-		$profile[$label] = get_post_meta($id, $meta_key, true);
+	foreach ( $keys as $label => $meta_key ) {
+		$profile[ $label ] = get_post_meta( (int) $id, $meta_key, true );
 	}
 
 	return $profile;
@@ -172,6 +163,33 @@ function pw_get_current_property_id() {
 
 function pw_get_current_property_profile() {
 	return pw_get_property_profile(null);
+}
+
+function pw_get_child_posts( $cpt, $property_id ) {
+	return get_posts( [
+		'post_type'      => $cpt,
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'meta_query'     => [
+			[
+				'key'   => '_pw_property_id',
+				'value' => (int) $property_id,
+			],
+		],
+	] );
+}
+
+function pw_get_room_features( $room_type_id ) {
+	$feature_ids = get_post_meta( (int) $room_type_id, '_pw_features', true );
+	if ( empty( $feature_ids ) || ! is_array( $feature_ids ) ) return [];
+
+	return get_posts( [
+		'post_type'      => 'pw_feature',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'post__in'       => $feature_ids,
+		'orderby'        => 'post__in',
+	] );
 }
 
 add_action('template_redirect', function () {

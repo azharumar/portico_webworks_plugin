@@ -5,56 +5,52 @@ if (!defined('ABSPATH')) {
 }
 
 function pw_register_property_post_type() {
-	$mode = get_option('pw_property_mode', 'single');
-	$is_multi = $mode === 'multi';
+	$is_multi      = get_option( 'pw_property_mode' ) === 'multi';
+	$property_base = get_option( 'pw_property_base', 'properties' );
 
-	$property_base = 'properties';
-	if (function_exists('pw_property_base')) {
-		$property_base = pw_property_base();
-	} else {
-		$base = get_option('pw_property_base', 'properties');
-		$base = is_string($base) ? trim($base) : 'properties';
-		$base = trim($base, '/');
-		$property_base = sanitize_title($base !== '' ? $base : 'properties');
-	}
+	register_post_type( 'pw_property', [
+		'labels' => [
+			'name'               => 'Properties',
+			'singular_name'      => 'Property',
+			'menu_name'          => 'Properties',
+			'add_new_item'       => 'Add New Property',
+			'edit_item'          => 'Edit Property',
+			'new_item'           => 'New Property',
+			'view_item'          => 'View Property',
+			'search_items'       => 'Search Properties',
+			'not_found'          => 'No properties found',
+			'not_found_in_trash' => 'No properties found in trash',
+			'all_items'          => 'All Properties',
+		],
 
-	register_post_type(
-		'pw_property',
-		array(
-			'labels' => array(
-				'name' => 'Properties',
-				'singular_name' => 'Property',
-				'menu_name' => 'Properties',
-				'add_new_item' => 'Add New Property',
-				'edit_item' => 'Edit Property',
-				'new_item' => 'New Property',
-				'view_item' => 'View Property',
-				'search_items' => 'Search Properties',
-				'not_found' => 'No properties found',
-				'not_found_in_trash' => 'No properties found in trash',
-				'all_items' => 'All Properties',
-			),
-		'public'             => true,
+		// mode-dependent
+		'public'             => $is_multi,
 		'publicly_queryable' => $is_multi,
-			'show_ui'            => true,
-			'show_in_menu'       => true,
-			'show_in_admin_bar'  => $is_multi,
-			'show_in_nav_menus'  => $is_multi,
-			'show_in_rest'       => true,
-			'rest_base'          => 'pw-properties',
+		'show_in_nav_menus'  => $is_multi,
+		'rewrite'            => $is_multi
+			? [ 'slug' => $property_base, 'with_front' => false ]
+			: false,
+		'query_var'          => $is_multi,
 
-			'rewrite'            => $is_multi
-				? array('slug' => $property_base, 'with_front' => false)
-				: false,
-			'query_var'          => $is_multi,
-			'has_archive'        => false,
-			'hierarchical'       => false,
+		// always on
+		'show_ui'            => true,
+		'show_in_menu'       => true,
+		'show_in_admin_bar'  => true,
+		'show_in_rest'       => true,
+		'rest_base'          => 'pw-properties',
+		'has_archive'        => false,
+		'hierarchical'       => false,
+		'menu_icon'          => 'dashicons-building',
+		'menu_position'      => 25,
 
-			'supports'           => [ 'title', 'editor', 'thumbnail', 'revisions', 'custom-fields' ],
-			'capability_type' => 'post',
-			'menu_position' => 58,
-		)
-	);
+		// no editor — property is a data store, not a page
+		'supports'           => [ 'title', 'thumbnail', 'revisions', 'custom-fields' ],
+
+		'can_export'         => true,
+		'delete_with_user'   => false,
+		'capability_type'    => 'post',
+		'map_meta_cap'       => true,
+	] );
 }
 
 function pw_register_property_post_meta() {

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.9] - 2026-03-19
+
+### Added
+- Register child CPTs: `pw_room_type`, `pw_restaurant`, `pw_spa`, `pw_meeting_room`, `pw_amenity`, `pw_policy`, `pw_feature` — all nested under the Portico Webworks admin menu
+- Register taxonomies: `pw_bed_type`, `pw_view_type` on `pw_room_type`; `pw_meal_period` on `pw_restaurant`; `pw_treatment_type` on `pw_spa`; `pw_av_equipment` on `pw_meeting_room`
+- Register post meta for all child CPTs with full REST schema (scalar, boolean, integer, array, and operating hours object array)
+- Add `pw_get_child_posts()` and `pw_get_room_features()` helper functions
+
 ## [0.3.8] - 2026-03-19
 
 ### Changed
@@ -27,7 +35,7 @@
 ## [0.3.4] - 2026-03-19
 
 ### Fixed
-- Register `_pw_property_profile` meta for `pw_property` CPT so REST dynamic data discovery works
+- Register property profile meta for `pw_property` CPT so REST dynamic data discovery works
 - Make `pw_property` CPT public for GenerateBlocks/Gutenberg Dynamic Tag picker discovery
 - Ensure search engine indexing behavior follows WordPress Settings -> Reading ("Discourage search engines from indexing this site") via `blog_public`
 
@@ -40,7 +48,7 @@
 ### Added
 - Expose `pw_property` CPT to the WordPress REST API for GenerateBlocks/page-builder discovery
 - Expose `pw_property` profile fields (e.g. `property_name`, `email`, `instagram`) via REST for dynamic content
-- Register `_pw_property_profile` meta for REST reads
+- Register property profile meta for REST reads
 
 ## [0.3.2] - 2026-03-19
 
