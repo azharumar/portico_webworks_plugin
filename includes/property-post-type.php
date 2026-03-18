@@ -58,93 +58,52 @@ function pw_register_property_post_type() {
 }
 
 function pw_register_property_post_meta() {
-	register_post_meta( 'pw_property', '_pw_legal_name', [
-		'type'         => 'string',
-		'single'       => true,
-		'show_in_rest' => true,
-	] );
+	$string_keys = [
+		'_pw_legal_name',
+		'_pw_brand_name',
+		'_pw_slug',
+		'_pw_address_line_1',
+		'_pw_address_line_2',
+		'_pw_city',
+		'_pw_country',
+		'_pw_phone',
+		'_pw_email',
+		'_pw_social_facebook',
+		'_pw_social_instagram',
+		'_pw_social_tripadvisor',
+		'_pw_social_linkedin',
+		'_pw_social_youtube',
+		'_pw_default_template',
+	];
 
-	register_post_meta( 'pw_property', '_pw_brand_name', [
-		'type'         => 'string',
-		'single'       => true,
-		'show_in_rest' => true,
-	] );
+	foreach ( $string_keys as $key ) {
+		register_post_meta( 'pw_property', $key, [
+			'type'         => 'string',
+			'single'       => true,
+			'show_in_rest' => true,
+			'default'      => '',
+		] );
+	}
 
-	register_post_meta( 'pw_property', '_pw_slug', [
-		'type'         => 'string',
+	register_post_meta( 'pw_property', '_pw_star_rating', [
+		'type'         => 'integer',
 		'single'       => true,
 		'show_in_rest' => true,
-	] );
-
-	register_post_meta( 'pw_property', '_pw_address_line_1', [
-		'type'         => 'string',
-		'single'       => true,
-		'show_in_rest' => true,
-	] );
-
-	register_post_meta( 'pw_property', '_pw_address_line_2', [
-		'type'         => 'string',
-		'single'       => true,
-		'show_in_rest' => true,
-	] );
-
-	register_post_meta( 'pw_property', '_pw_city', [
-		'type'         => 'string',
-		'single'       => true,
-		'show_in_rest' => true,
-	] );
-
-	register_post_meta( 'pw_property', '_pw_country', [
-		'type'         => 'string',
-		'single'       => true,
-		'show_in_rest' => true,
+		'default'      => 0,
 	] );
 
 	register_post_meta( 'pw_property', '_pw_lat', [
 		'type'         => 'number',
 		'single'       => true,
 		'show_in_rest' => true,
+		'default'      => 0,
 	] );
 
 	register_post_meta( 'pw_property', '_pw_lng', [
 		'type'         => 'number',
 		'single'       => true,
 		'show_in_rest' => true,
-	] );
-
-	register_post_meta( 'pw_property', '_pw_phone', [
-		'type'         => 'string',
-		'single'       => true,
-		'show_in_rest' => true,
-	] );
-
-	register_post_meta( 'pw_property', '_pw_email', [
-		'type'         => 'string',
-		'single'       => true,
-		'show_in_rest' => true,
-	] );
-
-	register_post_meta( 'pw_property', '_pw_star_rating', [
-		'type'         => 'integer',
-		'single'       => true,
-		'show_in_rest' => true,
-	] );
-
-	register_post_meta( 'pw_property', '_pw_social_links', [
-		'type'         => 'array',
-		'single'       => true,
-		'show_in_rest' => [
-			'schema' => [
-				'type'  => 'array',
-				'items' => [ 'type' => 'string' ],
-			],
-		],
-	] );
-
-	register_post_meta( 'pw_property', '_pw_default_template', [
-		'type'         => 'string',
-		'single'       => true,
-		'show_in_rest' => true,
+		'default'      => 0,
 	] );
 }
 

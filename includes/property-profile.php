@@ -15,94 +15,33 @@ function pw_property_sections() {
 }
 
 function pw_property_fields() {
-	return array(
-		'property_name' => array('section' => 'identity', 'label' => 'Property Name', 'type' => 'text', 'placeholder' => 'e.g. The Grand Pavilion', 'help' => 'Public-facing name shown to guests.'),
-		'property_short_name' => array('section' => 'identity', 'label' => 'Property Short Name', 'type' => 'text', 'placeholder' => 'e.g. Grand Pavilion', 'help' => 'Shortened name for tight layouts (headers, nav, etc.).'),
-		'abbreviation' => array('section' => 'identity', 'label' => 'Abbreviation', 'type' => 'text', 'placeholder' => 'e.g. TGP', 'help' => 'Internal shorthand (optional).'),
-		'legal_name' => array('section' => 'identity', 'label' => 'Legal Name (Company)', 'type' => 'text', 'placeholder' => 'e.g. Grand Pavilion Hospitality Pvt Ltd', 'help' => 'For invoices, contracts, and compliance.'),
-		'tax_id' => array('section' => 'identity', 'label' => 'Tax ID', 'type' => 'text', 'placeholder' => 'e.g. GSTIN / VAT / EIN', 'help' => 'Use the format required in your jurisdiction.'),
+	return [
+		'_pw_brand_name'         => ['section' => 'identity', 'label' => 'Brand Name',    'type' => 'text',   'placeholder' => 'e.g. The Grand Pavilion', 'help' => 'Public-facing name shown to guests.'],
+		'_pw_legal_name'         => ['section' => 'identity', 'label' => 'Legal Name',    'type' => 'text',   'placeholder' => 'e.g. Grand Pavilion Hospitality Pvt Ltd', 'help' => 'For invoices, contracts, and compliance.'],
+		'_pw_slug'               => ['section' => 'identity', 'label' => 'Slug',          'type' => 'text',   'placeholder' => 'e.g. grand-pavilion', 'help' => 'Used for URL routing in multi-property mode.'],
+		'_pw_star_rating'        => ['section' => 'identity', 'label' => 'Star Rating',   'type' => 'number', 'placeholder' => '1–5', 'help' => 'Hotel star classification (1–5).'],
+		'_pw_default_template'   => ['section' => 'identity', 'label' => 'Default Template', 'type' => 'text', 'placeholder' => 'e.g. default', 'help' => 'Template slug for front-end rendering.'],
 
-		'address_line_1' => array('section' => 'address', 'label' => 'Address Line 1', 'type' => 'text', 'placeholder' => 'Street address, building, etc.'),
-		'address_line_2' => array('section' => 'address', 'label' => 'Address Line 2', 'type' => 'text', 'placeholder' => 'Area, landmark (optional)'),
-		'city' => array('section' => 'address', 'label' => 'City', 'type' => 'text', 'placeholder' => 'e.g. Kochi'),
-		'state' => array('section' => 'address', 'label' => 'State', 'type' => 'text', 'placeholder' => 'e.g. Kerala'),
-		'postal_code' => array('section' => 'address', 'label' => 'Postal Code', 'type' => 'text', 'placeholder' => 'e.g. 682001'),
+		'_pw_address_line_1'     => ['section' => 'address',  'label' => 'Address Line 1', 'type' => 'text',  'placeholder' => 'Street address, building, etc.'],
+		'_pw_address_line_2'     => ['section' => 'address',  'label' => 'Address Line 2', 'type' => 'text',  'placeholder' => 'Area, landmark (optional)'],
+		'_pw_city'               => ['section' => 'address',  'label' => 'City',           'type' => 'text',  'placeholder' => 'e.g. Kochi'],
+		'_pw_country'            => ['section' => 'address',  'label' => 'Country',        'type' => 'text',  'placeholder' => 'e.g. IN', 'help' => 'ISO 3166-1 alpha-2 code.'],
 
-		'phone' => array('section' => 'contact', 'label' => 'Phone No.', 'type' => 'tel', 'placeholder' => 'e.g. +91 484 123 4567', 'help' => 'Main front desk / reservations number.'),
-		'mobile' => array('section' => 'contact', 'label' => 'Mobile No.', 'type' => 'tel', 'placeholder' => 'e.g. +91 98765 43210', 'help' => 'Optional backup mobile contact.'),
-		'whatsapp' => array('section' => 'contact', 'label' => 'WhatsApp No.', 'type' => 'tel', 'placeholder' => 'e.g. +91 98765 43210', 'help' => 'Number used for WhatsApp chats. Include country code.'),
-		'email' => array('section' => 'contact', 'label' => 'Email ID', 'type' => 'email', 'placeholder' => 'e.g. reservations@yourhotel.com', 'help' => 'Inbox for guest enquiries and reservations.'),
+		'_pw_phone'              => ['section' => 'contact',  'label' => 'Phone No.',      'type' => 'tel',   'placeholder' => 'e.g. +91 484 123 4567', 'help' => 'Main front desk / reservations number.'],
+		'_pw_email'              => ['section' => 'contact',  'label' => 'Email',          'type' => 'email', 'placeholder' => 'e.g. reservations@yourhotel.com', 'help' => 'Inbox for guest enquiries and reservations.'],
 
-		'latitude' => array('section' => 'geo', 'label' => 'Latitude', 'type' => 'text', 'placeholder' => 'e.g. 9.9312', 'help' => 'Example: 9.9312'),
-		'longitude' => array('section' => 'geo', 'label' => 'Longitude', 'type' => 'text', 'placeholder' => 'e.g. 76.2673', 'help' => 'Example: 76.2673'),
+		'_pw_lat'                => ['section' => 'geo',      'label' => 'Latitude',       'type' => 'text',  'placeholder' => 'e.g. 9.9312'],
+		'_pw_lng'                => ['section' => 'geo',      'label' => 'Longitude',      'type' => 'text',  'placeholder' => 'e.g. 76.2673'],
 
-		'instagram' => array('section' => 'social', 'label' => 'Instagram', 'type' => 'url', 'placeholder' => 'https://instagram.com/yourhandle'),
-		'facebook' => array('section' => 'social', 'label' => 'Facebook', 'type' => 'url', 'placeholder' => 'https://facebook.com/yourpage'),
-		'youtube' => array('section' => 'social', 'label' => 'YouTube', 'type' => 'url', 'placeholder' => 'https://youtube.com/@yourchannel'),
-		'linkedin' => array('section' => 'social', 'label' => 'LinkedIn', 'type' => 'url', 'placeholder' => 'https://linkedin.com/company/yourcompany'),
-		'tripadvisor' => array('section' => 'social', 'label' => 'Tripadvisor', 'type' => 'url', 'placeholder' => 'https://tripadvisor.com/...'),
-		'twitter' => array('section' => 'social', 'label' => 'Twitter (X)', 'type' => 'url', 'placeholder' => 'https://x.com/yourhandle'),
-		'google_business' => array('section' => 'social', 'label' => 'Google My Business', 'type' => 'url', 'placeholder' => 'https://g.page/...'),
-	);
-}
-
-function pw_sanitize_property_profile($input) {
-	$defaults = pw_property_profile_defaults();
-	if (!is_array($input)) {
-		return $defaults;
-	}
-
-	$out = $defaults;
-
-	$text_fields = array(
-		'property_name',
-		'property_short_name',
-		'abbreviation',
-		'legal_name',
-		'tax_id',
-		'address_line_1',
-		'address_line_2',
-		'city',
-		'state',
-		'postal_code',
-		'phone',
-		'mobile',
-		'whatsapp',
-		'latitude',
-		'longitude',
-	);
-
-	foreach ($text_fields as $k) {
-		if (isset($input[$k])) {
-			$out[$k] = sanitize_text_field(wp_unslash($input[$k]));
-		}
-	}
-
-	if (isset($input['email'])) {
-		$out['email'] = sanitize_email(wp_unslash($input['email']));
-	}
-
-	$url_fields = array(
-		'instagram',
-		'facebook',
-		'youtube',
-		'linkedin',
-		'tripadvisor',
-		'twitter',
-		'google_business',
-	);
-
-	foreach ($url_fields as $k) {
-		if (isset($input[$k])) {
-			$out[$k] = esc_url_raw(wp_unslash($input[$k]));
-		}
-	}
-
-	return $out;
+		'_pw_social_facebook'    => ['section' => 'social',   'label' => 'Facebook',       'type' => 'url',   'placeholder' => 'https://facebook.com/yourpage'],
+		'_pw_social_instagram'   => ['section' => 'social',   'label' => 'Instagram',      'type' => 'url',   'placeholder' => 'https://instagram.com/yourhandle'],
+		'_pw_social_youtube'     => ['section' => 'social',   'label' => 'YouTube',        'type' => 'url',   'placeholder' => 'https://youtube.com/@yourchannel'],
+		'_pw_social_linkedin'    => ['section' => 'social',   'label' => 'LinkedIn',       'type' => 'url',   'placeholder' => 'https://linkedin.com/company/yourcompany'],
+		'_pw_social_tripadvisor' => ['section' => 'social',   'label' => 'Tripadvisor',    'type' => 'url',   'placeholder' => 'https://tripadvisor.com/...'],
+	];
 }
 
 function pw_render_property_metabox($post) {
-	$profile = pw_get_property_profile($post->ID);
 	$sections = pw_property_sections();
 	$fields = pw_property_fields();
 
@@ -112,33 +51,32 @@ function pw_render_property_metabox($post) {
 		$is_open = $section_key === 'identity';
 		echo '<details class="pw-property-profile-section" ' . ($is_open ? 'open' : '') . '>';
 		echo '<summary>' . esc_html($section_meta['label']) . '</summary>';
-		pw_render_property_profile_section_fields($profile, $fields, $section_key);
+		pw_render_property_profile_section_fields($post->ID, $fields, $section_key);
 		echo '</details>';
 	}
 }
 
-function pw_render_property_profile_section_fields($profile, $fields, $section_key) {
+function pw_render_property_profile_section_fields($post_id, $fields, $section_key) {
 	echo '<table class="form-table" role="presentation"><tbody>';
 
-	foreach ($fields as $key => $field) {
+	foreach ($fields as $meta_key => $field) {
 		if ($field['section'] !== $section_key) {
 			continue;
 		}
 
-		$label = $field['label'];
-		$type = isset($field['type']) ? $field['type'] : 'text';
-		$placeholder = isset($field['placeholder']) ? $field['placeholder'] : '';
-		$help = isset($field['help']) ? $field['help'] : '';
-
-		$name = 'pw_property_profile[' . $key . ']';
-		$val = isset($profile[$key]) ? $profile[$key] : '';
+		$label       = $field['label'];
+		$type        = $field['type'] ?? 'text';
+		$placeholder = $field['placeholder'] ?? '';
+		$help        = $field['help'] ?? '';
+		$input_name  = ltrim($meta_key, '_');
+		$val         = get_post_meta((int) $post_id, $meta_key, true);
 
 		echo '<tr>';
 		echo '<th scope="row">';
-		echo '<label for="pw-' . esc_attr($key) . '">' . esc_html($label) . '</label>';
+		echo '<label for="pw-' . esc_attr($meta_key) . '">' . esc_html($label) . '</label>';
 		echo '</th>';
 		echo '<td>';
-		echo '<input class="regular-text" id="pw-' . esc_attr($key) . '" name="' . esc_attr($name) . '" type="' . esc_attr($type) . '" value="' . esc_attr($val) . '" placeholder="' . esc_attr($placeholder) . '" />';
+		echo '<input class="regular-text" id="pw-' . esc_attr($meta_key) . '" name="' . esc_attr($input_name) . '" type="' . esc_attr($type) . '" value="' . esc_attr($val) . '" placeholder="' . esc_attr($placeholder) . '" />';
 		if ($help !== '') {
 			echo '<p class="description">' . esc_html($help) . '</p>';
 		}
@@ -150,12 +88,11 @@ function pw_render_property_profile_section_fields($profile, $fields, $section_k
 }
 
 function pw_render_property_profile_section_metabox($post, $section_key) {
-	$profile = pw_get_property_profile($post->ID);
 	$fields = pw_property_fields();
 
 	wp_nonce_field('pw_save_property_profile', 'pw_property_profile_nonce');
 
-	pw_render_property_profile_section_fields($profile, $fields, $section_key);
+	pw_render_property_profile_section_fields($post->ID, $fields, $section_key);
 }
 
 function pw_render_property_profile_identity_metabox($post) {
@@ -220,87 +157,37 @@ function pw_save_property_metabox($post_id) {
 		return;
 	}
 
-	if (!isset($_POST['pw_property_profile']) || !is_array($_POST['pw_property_profile'])) {
-		return;
-	}
+	$fields = pw_property_fields();
 
-	$raw = wp_unslash($_POST['pw_property_profile']);
-	$existing = pw_get_property_profile((int) $post_id);
-	$sanitized = pw_sanitize_property_profile($raw);
+	foreach ($fields as $meta_key => $field) {
+		$post_key = ltrim($meta_key, '_');
 
-	// If a user hides one section via Screen Options, its inputs may not be submitted.
-	// Preserve any keys that weren't actually posted to avoid clearing saved values.
-	$final = $existing;
-	foreach (array_keys($raw) as $key) {
-		if (array_key_exists($key, $sanitized)) {
-			$final[$key] = $sanitized[$key];
+		if (!isset($_POST[$post_key])) {
+			continue;
 		}
-	}
 
-	update_post_meta((int) $post_id, pw_property_meta_key(), $final);
+		$raw  = wp_unslash($_POST[$post_key]);
+		$type = $field['type'] ?? 'text';
+
+		switch ($type) {
+			case 'email':
+				$value = sanitize_email($raw);
+				break;
+			case 'url':
+				$value = esc_url_raw($raw);
+				break;
+			case 'number':
+				$value = is_numeric($raw) ? floatval($raw) : 0;
+				break;
+			default:
+				$value = sanitize_text_field($raw);
+				break;
+		}
+
+		update_post_meta((int) $post_id, $meta_key, $value);
+	}
 }
 
 add_action('save_post_pw_property', 'pw_save_property_metabox');
 
-// ---------------------------------------------------------------------------
-// REST exposure for page builders (GenerateBlocks dynamic content lists)
-// ---------------------------------------------------------------------------
-add_action('rest_api_init', function () {
-	if (!function_exists('register_rest_field')) {
-		return;
-	}
-	if (!function_exists('register_meta')) {
-		return;
-	}
-	if (!function_exists('pw_property_fields') || !function_exists('pw_get_property_profile')) {
-		return;
-	}
-
-	if (function_exists('pw_property_meta_key')) {
-		// Register the meta blob for the actual CPT so REST/discovery can associate it correctly.
-		register_meta('pw_property', pw_property_meta_key(), array(
-			'type' => 'object',
-			'single' => true,
-			'show_in_rest' => true,
-		));
-	}
-
-	$fields = pw_property_fields();
-	if (!is_array($fields) || empty($fields)) {
-		return;
-	}
-
-	foreach ($fields as $key => $field) {
-		register_rest_field('pw_property', $key, array(
-			'get_callback' => function ($object) use ($key) {
-				$property_id = 0;
-
-				if (is_object($object) && isset($object->ID)) {
-					$property_id = (int) $object->ID;
-				} elseif (is_array($object) && isset($object['id'])) {
-					$property_id = (int) $object['id'];
-				}
-
-				if ($property_id <= 0) {
-					return null;
-				}
-
-				$profile = pw_get_property_profile($property_id);
-				if (!is_array($profile) || !array_key_exists($key, $profile)) {
-					return null;
-				}
-
-				$val = $profile[$key];
-				if (is_string($val) && $val === '') {
-					return null;
-				}
-
-				return $val;
-			},
-			'schema' => array(
-				'type' => 'string',
-			),
-		));
-	}
-});
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.8] - 2026-03-19
+
+### Changed
+- Rearchitect pw_property meta from serialized array to flat meta keys for GenerateBlocks dynamic tag access
+
 ## [0.3.7] - 2026-03-19
 
 ### Fixed

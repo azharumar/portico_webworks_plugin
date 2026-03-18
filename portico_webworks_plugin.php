@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Portico Webworks Hotel Website Manager
  * Description: Portico Webworks plugin.
- * Version: 0.3.7
+ * Version: 0.3.8
  * Author: Portico Webworks
  * Author URI: https://porticowebworks.com
  * License: Proprietary (All Rights Reserved) - Unauthorized use by other companies or for any purposes is prohibited without written permission.
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 }
 
 define('PW_PLUGIN_FILE', __FILE__);
-define('PW_VERSION', '0.3.7');
+define('PW_VERSION', '0.3.8');
 
 function pw_apply_install_defaults() {
 	if (get_option('pw_install_defaults_applied', 0)) {

@@ -4,55 +4,46 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-function pw_property_meta_key() {
-	return '_pw_property_profile';
-}
-
-function pw_property_profile_defaults() {
-	return array(
-		'property_name' => '',
-		'property_short_name' => '',
-		'abbreviation' => '',
-		'legal_name' => '',
-		'tax_id' => '',
-		'address_line_1' => '',
-		'address_line_2' => '',
-		'city' => '',
-		'state' => '',
-		'postal_code' => '',
-		'phone' => '',
-		'mobile' => '',
-		'whatsapp' => '',
-		'email' => '',
-		'latitude' => '',
-		'longitude' => '',
-		'instagram' => '',
-		'facebook' => '',
-		'youtube' => '',
-		'linkedin' => '',
-		'tripadvisor' => '',
-		'twitter' => '',
-		'google_business' => '',
-	);
+function pw_property_meta_map() {
+	return [
+		'legal_name'         => '_pw_legal_name',
+		'brand_name'         => '_pw_brand_name',
+		'slug'               => '_pw_slug',
+		'address_line_1'     => '_pw_address_line_1',
+		'address_line_2'     => '_pw_address_line_2',
+		'city'               => '_pw_city',
+		'country'            => '_pw_country',
+		'lat'                => '_pw_lat',
+		'lng'                => '_pw_lng',
+		'phone'              => '_pw_phone',
+		'email'              => '_pw_email',
+		'star_rating'        => '_pw_star_rating',
+		'social_facebook'    => '_pw_social_facebook',
+		'social_instagram'   => '_pw_social_instagram',
+		'social_tripadvisor' => '_pw_social_tripadvisor',
+		'social_linkedin'    => '_pw_social_linkedin',
+		'social_youtube'     => '_pw_social_youtube',
+		'default_template'   => '_pw_default_template',
+	];
 }
 
 function pw_get_property_profile($property_id = null) {
-	$defaults = pw_property_profile_defaults();
-
 	if (empty($property_id) || !is_numeric($property_id)) {
 		$property_id = pw_get_current_property_id();
 	}
 
 	if (is_wp_error($property_id) || empty($property_id)) {
-		return $defaults;
+		return [];
 	}
 
-	$val = get_post_meta((int) $property_id, pw_property_meta_key(), true);
-	if (!is_array($val)) {
-		$val = array();
+	$id      = (int) $property_id;
+	$profile = [];
+
+	foreach (pw_property_meta_map() as $label => $meta_key) {
+		$profile[$label] = get_post_meta($id, $meta_key, true);
 	}
 
-	return array_merge($defaults, $val);
+	return $profile;
 }
 
 function pw_get_all_properties() {
