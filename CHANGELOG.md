@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.5] - 2026-03-18
+
+### Added
+- Property Profile left-side section navigation
+- Per-section Save buttons (Identity, Address, Contact, Geo, Social)
+
+### Fixed
+- Prevent section saves from clearing other Property Profile fields
+
 ## [0.1.4] - 2026-03-18
 
 ### Added
