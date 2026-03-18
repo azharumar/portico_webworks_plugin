@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.8] - 2026-03-18
+
+### Fixed
+- Clean plugin bootstrap file to prevent white screen of death when activating the plugin
+- Tag hotfix releases for 0.1.7 (v0.1.7-hotfix1, v0.1.7-hotfix2)
+
 ## [0.1.7] - 2026-03-18
 
 ### Added
