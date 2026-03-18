@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.6] - 2026-03-18
+
+### Added
+- `admin-preview.html` page for visualising the admin UI without installing the plugin
+
+### Changed
+- Admin UI: keep 2-level navigation (top horizontal tabs + integrated vertical section tabs)
+- Property Profile: integrated left section tabs inside the same card as the form
+
+### Fixed
+- Hide horizontal scrollbar on top tabs
+- Remove redundant “Sections” label and subsection heading/description in Property Profile
+
 ## [0.1.5] - 2026-03-18
 
 ### Added

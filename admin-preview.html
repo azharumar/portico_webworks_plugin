@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Portico Webworks — Admin Preview</title>
+  <style>
+    :root{
+      --bg:#F5F3EE;
+      --surface:#FFFFFF;
+      --card:#FAFAF8;
+      --card2:#F0EDE6;
+      --border:rgba(0,0,0,0.09);
+      --border2:rgba(0,0,0,0.18);
+      --text:#1A1917;
+      --sub:#504D48;
+      --muted:#7F7C7D;
+      --primary:#C92A08;
+      --primaryDark:#A32206;
+      --shadow:0 10px 30px rgba(0,0,0,0.06);
+      --radius:10px;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      --heading: Georgia, serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.4}
+    .wrap{max-width:1180px;margin:0 auto;padding:24px 20px 40px}
+    .h1{display:flex;align-items:center;gap:10px;margin:0 0 14px}
+    .h1 h1{margin:0;font-size:23px;font-weight:600}
+    .hr{height:1px;background:var(--border);margin:10px 0 16px}
+
+    .topTabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin:10px 0 16px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+    .topTabs::-webkit-scrollbar{display:none}
+    .topTab{display:inline-flex;align-items:center;padding:10px 12px;font-size:13px;font-weight:600;color:var(--muted);text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-1px}
+    .topTab:hover{color:var(--text)}
+    .topTab.active{color:var(--text);border-bottom-color:var(--primary)}
+
+    .postbox{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;max-width:980px}
+    .postboxHeader{padding:10px 12px;border-bottom:1px solid var(--border);background:var(--card2)}
+    .postboxHeader h2{margin:0;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--sub)}
+    .inside{padding:0}
+    .split{display:grid;grid-template-columns:260px 1fr;min-height:420px}
+    .vnav{background:var(--surface);border-right:1px solid var(--border);padding:10px}
+    .vtitle{display:none}
+    .vnav a{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:6px;text-decoration:none;color:var(--sub);font-weight:600;position:relative}
+    .vnav a:hover{background:rgba(127,127,125,0.06);color:var(--text)}
+    .vnav a.active{background:rgba(201,42,8,0.10);color:var(--text)}
+    .vnav a.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--primary);border-radius:3px}
+    .vcontent{padding:14px}
+    .vcontent h3{display:none}
+    .desc{margin:0 0 14px;color:var(--muted);font-size:13px}
+
+    table.form{width:100%;border-collapse:collapse}
+    table.form th{width:240px;text-align:left;vertical-align:top;padding:12px 10px 12px 0;font-weight:600}
+    table.form td{padding:8px 0 12px}
+    .input{width:min(420px,100%);max-width:100%;padding:6px 8px;border:1px solid rgba(0,0,0,0.15);border-radius:6px;font-size:14px;background:#fff}
+    .help{margin:6px 0 0;color:var(--muted);font-size:12px}
+    .actions{margin-top:8px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:7px 12px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+    .btnPrimary{background:var(--primary);border-color:var(--primary);color:#fff}
+    .btnPrimary:hover{filter:brightness(0.96)}
+    .hint{margin-top:14px;color:var(--muted);font-size:12px}
+
+    @media (max-width: 960px){
+      .postbox{max-width:none}
+      .split{grid-template-columns:1fr}
+      .vnav{border-right:none;border-bottom:1px solid var(--border)}
+      table.form th{width:180px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="h1">
+      <h1>Portico Webworks</h1>
+    </div>
+    <div class="hr"></div>
+
+    <div class="topTabs" aria-label="Portico Webworks">
+      <a href="#tab-property" class="topTab active" data-top="property">Property Profile</a>
+      <a href="#tab-settings" class="topTab" data-top="settings">Settings</a>
+    </div>
+
+    <section class="postbox" id="panel">
+      <div class="postboxHeader"><h2>Property Profile</h2></div>
+      <div class="inside split" id="app">
+        <nav class="vnav" aria-label="Property Profile Sections">
+          <a href="#identity" data-view="identity" class="active">Identity</a>
+          <a href="#address" data-view="address">Address</a>
+          <a href="#contact" data-view="contact">Contact</a>
+          <a href="#geo" data-view="geo">Geo</a>
+          <a href="#social" data-view="social">Social</a>
+        </nav>
+
+        <div class="vcontent">
+          <p class="desc" id="panelDesc" style="display:none"></p>
+
+          <form id="form">
+            <table class="form" role="presentation">
+              <tbody id="fields"></tbody>
+            </table>
+
+            <div class="actions">
+              <button type="button" class="btn btnPrimary" id="saveBtn">Save Identity</button>
+            </div>
+            <div class="hint">Preview only: this HTML doesn’t save anywhere.</div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const views = {
+      identity: {
+        title: "Identity",
+        desc: "Core property details used across the site and templates.",
+        saveLabel: "Save Identity",
+        fields: [
+          { label: "Property Name", placeholder: "e.g. The Grand Pavilion", help: "Public-facing name shown to guests." },
+          { label: "Property Short Name", placeholder: "e.g. Grand Pavilion", help: "Shortened name for tight layouts (headers, nav, etc.)." },
+          { label: "Abbreviation", placeholder: "e.g. TGP", help: "Internal shorthand (optional)." },
+          { label: "Legal Name (Company)", placeholder: "e.g. Grand Pavilion Hospitality Pvt Ltd", help: "For invoices, contracts, and compliance." },
+          { label: "Tax ID", placeholder: "e.g. GSTIN / VAT / EIN", help: "Use the format required in your jurisdiction." },
+        ],
+      },
+      address: {
+        title: "Address",
+        desc: "Physical location for invoices, maps, and contact pages.",
+        saveLabel: "Save Address",
+        fields: [
+          { label: "Address Line 1", placeholder: "Street address, building, etc." },
+          { label: "Address Line 2", placeholder: "Area, landmark (optional)" },
+          { label: "City", placeholder: "e.g. Kochi" },
+          { label: "State", placeholder: "e.g. Kerala" },
+          { label: "Postal Code", placeholder: "e.g. 682001" },
+        ],
+      },
+      contact: {
+        title: "Contact",
+        desc: "Primary contact details shown to guests.",
+        saveLabel: "Save Contact",
+        fields: [
+          { label: "Phone No.", placeholder: "e.g. +91 484 123 4567", help: "Main front desk / reservations number." },
+          { label: "Mobile No.", placeholder: "e.g. +91 98765 43210", help: "Optional backup mobile contact." },
+          { label: "WhatsApp No.", placeholder: "e.g. +91 98765 43210", help: "Number used for WhatsApp chats. Include country code." },
+          { label: "Email ID", placeholder: "e.g. reservations@yourhotel.com", help: "Inbox for guest enquiries and reservations." },
+        ],
+      },
+      geo: {
+        title: "Geo",
+        desc: "Used for map embeds and directions. Use decimal degrees.",
+        saveLabel: "Save Geo",
+        fields: [
+          { label: "Latitude", placeholder: "e.g. 9.9312", help: "Example: 9.9312" },
+          { label: "Longitude", placeholder: "e.g. 76.2673", help: "Example: 76.2673" },
+        ],
+      },
+      social: {
+        title: "Social",
+        desc: "Full URLs to your profiles/listings.",
+        saveLabel: "Save Social",
+        fields: [
+          { label: "Instagram", placeholder: "https://instagram.com/yourhandle" },
+          { label: "Facebook", placeholder: "https://facebook.com/yourpage" },
+          { label: "YouTube", placeholder: "https://youtube.com/@yourchannel" },
+          { label: "LinkedIn", placeholder: "https://linkedin.com/company/yourcompany" },
+          { label: "Tripadvisor", placeholder: "https://tripadvisor.com/..." },
+          { label: "Twitter (X)", placeholder: "https://x.com/yourhandle" },
+          { label: "Google My Business", placeholder: "https://g.page/..." },
+        ],
+      },
+      settings: {
+        title: "Settings",
+        desc: "",
+        saveLabel: "",
+        fields: [
+          { label: "Coming soon", placeholder: "", help: "Portico Webworks settings will go here." },
+        ],
+      },
+    };
+
+    const elDesc = document.getElementById("panelDesc");
+    const elFields = document.getElementById("fields");
+    const elSave = document.getElementById("saveBtn");
+
+    function render(viewKey){
+      const v = views[viewKey] || views.identity;
+      elDesc.textContent = "";
+      elDesc.style.display = "none";
+
+      elFields.innerHTML = v.fields.map((f, i) => {
+        const id = `f-${viewKey}-${i}`;
+        const help = f.help ? `<div class="help">${escapeHtml(f.help)}</div>` : "";
+        const input = (viewKey === "settings" && f.label === "Coming soon")
+          ? `<div class="help">${escapeHtml(f.help || "")}</div>`
+          : `<input class="input" id="${id}" placeholder="${escapeHtml(f.placeholder || "")}" />${help}`;
+        return `
+          <tr>
+            <th><label for="${id}">${escapeHtml(f.label)}</label></th>
+            <td>${input}</td>
+          </tr>
+        `;
+      }).join("");
+
+      if (v.saveLabel) {
+        elSave.textContent = v.saveLabel;
+        elSave.style.display = "";
+      } else {
+        elSave.style.display = "none";
+      }
+    }
+
+    function setActive(viewKey){
+      document.querySelectorAll(".vnav a[data-view]").forEach(a => {
+        a.classList.toggle("active", a.dataset.view === viewKey);
+      });
+      render(viewKey);
+    }
+
+    function setTop(topKey){
+      document.querySelectorAll(".topTab").forEach(a => {
+        a.classList.toggle("active", a.dataset.top === topKey);
+      });
+      if (topKey === "settings") {
+        document.getElementById("panel").style.display = "none";
+        render("settings");
+      } else {
+        document.getElementById("panel").style.display = "";
+        const current = (location.hash || "#identity").slice(1);
+        setActive(views[current] && current !== "settings" ? current : "identity");
+      }
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    document.querySelectorAll(".vnav a[data-view]").forEach(a => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const key = a.dataset.view;
+        history.replaceState(null, "", `#${key}`);
+        setActive(key);
+      });
+    });
+
+    document.querySelectorAll(".topTab").forEach(a => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        setTop(a.dataset.top);
+      });
+    });
+
+    const initial = (location.hash || "#identity").slice(1);
+    setTop("property");
+    setActive(views[initial] && initial !== "settings" ? initial : "identity");
+  </script>
+</body>
+</html>
+
