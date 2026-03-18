@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.6] - 2026-03-19
+
+### Removed
+- Removed `admin-preview.html` and deleted the `release-on-push` workflow and developer notes as part of streamlining the release process.
+
 ## [0.3.5] - 2026-03-19
 
 ### Fixed
