@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Portico Webworks — Admin Preview</title>
+  <title>Portico Webworks Hotel Website Manager — Admin Preview</title>
   <style>
     :root{
       --bg:#F5F3EE;
@@ -25,8 +25,14 @@
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.4}
     .wrap{max-width:1180px;margin:0 auto;padding:24px 20px 40px}
-    .h1{display:flex;align-items:center;gap:10px;margin:0 0 14px}
-    .h1 h1{margin:0;font-size:23px;font-weight:600}
+    .header{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 10px}
+    .brand{display:flex;align-items:center;gap:10px;min-width:0}
+    .logo{width:26px;height:26px;display:block}
+    .brandText{display:flex;align-items:baseline;gap:10px;min-width:0}
+    .brandTitle{margin:0;font-size:20px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ver{font-size:12px;font-weight:700;color:var(--muted);background:rgba(0,0,0,0.04);border:1px solid var(--border);padding:2px 8px;border-radius:999px}
+    .search input{width:260px;max-width:42vw;border-radius:999px;border:1px solid rgba(0,0,0,0.15);padding:6px 10px;background:var(--surface)}
+    .search input:focus{border-color:var(--border2);box-shadow:0 0 0 1px var(--border2);outline:0}
     .hr{height:1px;background:var(--border);margin:10px 0 16px}
 
     .topTabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin:10px 0 16px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
@@ -40,7 +46,7 @@
     .postboxHeader h2{margin:0;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--sub)}
     .inside{padding:0}
     .split{display:grid;grid-template-columns:260px 1fr;min-height:420px}
-    .vnav{background:var(--surface);border-right:1px solid var(--border);padding:10px}
+    .vnav{background:var(--card2);border-right:1px solid var(--border);padding:10px}
     .vtitle{display:none}
     .vnav a{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:6px;text-decoration:none;color:var(--sub);font-weight:600;position:relative}
     .vnav a:hover{background:rgba(127,127,125,0.06);color:var(--text)}
@@ -53,11 +59,17 @@
     table.form{width:100%;border-collapse:collapse}
     table.form th{width:240px;text-align:left;vertical-align:top;padding:12px 10px 12px 0;font-weight:600}
     table.form td{padding:8px 0 12px}
+    .field{display:inline-flex;align-items:center;gap:8px}
     .input{width:min(420px,100%);max-width:100%;padding:6px 8px;border:1px solid rgba(0,0,0,0.15);border-radius:6px;font-size:14px;background:#fff}
+    .tick{width:18px;height:18px;border-radius:999px;background:#1e8e3e;display:none;position:relative;flex:0 0 auto}
+    .tick:after{content:'';position:absolute;left:5px;top:3px;width:6px;height:10px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(40deg)}
+    .field.valid .tick{display:inline-block}
+    .field.valid .input{border-color:rgba(30,142,62,0.55)}
+    .hit{background:rgba(201,42,8,0.10);box-shadow:0 0 0 2px rgba(201,42,8,0.15);border-radius:6px}
     .help{margin:6px 0 0;color:var(--muted);font-size:12px}
     .actions{margin-top:8px}
     .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:7px 12px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
-    .btnPrimary{background:var(--primary);border-color:var(--primary);color:#fff}
+    .btnPrimary{background:#2271b1;border-color:#2271b1;color:#fff}
     .btnPrimary:hover{filter:brightness(0.96)}
     .hint{margin-top:14px;color:var(--muted);font-size:12px}
 
@@ -66,19 +78,34 @@
       .split{grid-template-columns:1fr}
       .vnav{border-right:none;border-bottom:1px solid var(--border)}
       table.form th{width:180px}
+      .header{flex-direction:column;align-items:flex-start}
+      .search input{width:min(520px,100%);max-width:100%}
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="h1">
-      <h1>Portico Webworks</h1>
+    <div class="header">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+          <path fill="currentColor" d="M32 4c12.15 0 22 9.85 22 22S44.15 48 32 48 10 38.15 10 26 19.85 4 32 4Zm0 46c-13.26 0-24 5.37-24 12v2h48v-2c0-6.63-10.74-12-24-12Z"/>
+        </svg>
+        <div class="brandText">
+          <div class="brandTitle">Portico Webworks Hotel Website Manager</div>
+          <div class="ver">v0.1.6</div>
+        </div>
+      </div>
+      <div class="search">
+        <input id="searchInput" type="search" placeholder="Search fields…" autocomplete="off" />
+      </div>
     </div>
+
     <div class="hr"></div>
 
     <div class="topTabs" aria-label="Portico Webworks">
       <a href="#tab-property" class="topTab active" data-top="property">Property Profile</a>
       <a href="#tab-settings" class="topTab" data-top="settings">Settings</a>
+      <a href="#tab-about" class="topTab" data-top="about">About</a>
     </div>
 
     <section class="postbox" id="panel">
@@ -100,14 +127,25 @@
               <tbody id="fields"></tbody>
             </table>
 
-            <div class="actions">
-              <button type="button" class="btn btnPrimary" id="saveBtn">Save Identity</button>
-            </div>
+              <div class="actions">
+                <button type="button" class="btn btnPrimary" id="saveBtn">Save</button>
+              </div>
             <div class="hint">Preview only: this HTML doesn’t save anywhere.</div>
           </form>
         </div>
       </div>
     </section>
+
+    <section class="postbox" id="aboutPanel" style="display:none">
+      <div class="postboxHeader"><h2>About</h2></div>
+      <div class="inside" style="padding:14px">
+        <p style="margin:0">Portico Webworks Hotel Website Manager helps you manage key hotel website profile details inside WordPress.</p>
+      </div>
+    </section>
+
+    <div style="max-width:980px;margin-top:12px;color:var(--muted);font-size:12px">
+      <a href="https://porticowebworks.com/?utm_source=wp-admin&utm_medium=plugin&utm_campaign=portico_webworks&utm_content=footer" target="_blank" rel="noopener noreferrer" style="color:var(--muted);text-decoration:none">© 2026 Portico Webworks</a>
+    </div>
   </div>
 
   <script>
@@ -115,7 +153,7 @@
       identity: {
         title: "Identity",
         desc: "Core property details used across the site and templates.",
-        saveLabel: "Save Identity",
+        saveLabel: "Save",
         fields: [
           { label: "Property Name", placeholder: "e.g. The Grand Pavilion", help: "Public-facing name shown to guests." },
           { label: "Property Short Name", placeholder: "e.g. Grand Pavilion", help: "Shortened name for tight layouts (headers, nav, etc.)." },
@@ -127,7 +165,7 @@
       address: {
         title: "Address",
         desc: "Physical location for invoices, maps, and contact pages.",
-        saveLabel: "Save Address",
+        saveLabel: "Save",
         fields: [
           { label: "Address Line 1", placeholder: "Street address, building, etc." },
           { label: "Address Line 2", placeholder: "Area, landmark (optional)" },
@@ -139,7 +177,7 @@
       contact: {
         title: "Contact",
         desc: "Primary contact details shown to guests.",
-        saveLabel: "Save Contact",
+        saveLabel: "Save",
         fields: [
           { label: "Phone No.", placeholder: "e.g. +91 484 123 4567", help: "Main front desk / reservations number." },
           { label: "Mobile No.", placeholder: "e.g. +91 98765 43210", help: "Optional backup mobile contact." },
@@ -150,7 +188,7 @@
       geo: {
         title: "Geo",
         desc: "Used for map embeds and directions. Use decimal degrees.",
-        saveLabel: "Save Geo",
+        saveLabel: "Save",
         fields: [
           { label: "Latitude", placeholder: "e.g. 9.9312", help: "Example: 9.9312" },
           { label: "Longitude", placeholder: "e.g. 76.2673", help: "Example: 76.2673" },
@@ -159,15 +197,15 @@
       social: {
         title: "Social",
         desc: "Full URLs to your profiles/listings.",
-        saveLabel: "Save Social",
+        saveLabel: "Save",
         fields: [
-          { label: "Instagram", placeholder: "https://instagram.com/yourhandle" },
-          { label: "Facebook", placeholder: "https://facebook.com/yourpage" },
-          { label: "YouTube", placeholder: "https://youtube.com/@yourchannel" },
-          { label: "LinkedIn", placeholder: "https://linkedin.com/company/yourcompany" },
-          { label: "Tripadvisor", placeholder: "https://tripadvisor.com/..." },
-          { label: "Twitter (X)", placeholder: "https://x.com/yourhandle" },
-          { label: "Google My Business", placeholder: "https://g.page/..." },
+          { label: "Instagram", placeholder: "https://instagram.com/yourhandle", validate: "url" },
+          { label: "Facebook", placeholder: "https://facebook.com/yourpage", validate: "url" },
+          { label: "YouTube", placeholder: "https://youtube.com/@yourchannel", validate: "url" },
+          { label: "LinkedIn", placeholder: "https://linkedin.com/company/yourcompany", validate: "url" },
+          { label: "Tripadvisor", placeholder: "https://tripadvisor.com/...", validate: "url" },
+          { label: "Twitter (X)", placeholder: "https://x.com/yourhandle", validate: "url" },
+          { label: "Google My Business", placeholder: "https://g.page/...", validate: "url" },
         ],
       },
       settings: {
@@ -177,6 +215,12 @@
         fields: [
           { label: "Coming soon", placeholder: "", help: "Portico Webworks settings will go here." },
         ],
+      },
+      about: {
+        title: "About",
+        desc: "",
+        saveLabel: "",
+        fields: [],
       },
     };
 
@@ -194,7 +238,7 @@
         const help = f.help ? `<div class="help">${escapeHtml(f.help)}</div>` : "";
         const input = (viewKey === "settings" && f.label === "Coming soon")
           ? `<div class="help">${escapeHtml(f.help || "")}</div>`
-          : `<input class="input" id="${id}" placeholder="${escapeHtml(f.placeholder || "")}" />${help}`;
+          : `<span class="field"><input class="input" data-label="${escapeHtml(f.label)}" data-validate="${escapeHtml(f.validate || "")}" id="${id}" placeholder="${escapeHtml(f.placeholder || "")}" /><span class="tick" aria-hidden="true"></span></span>${help}`;
         return `
           <tr>
             <th><label for="${id}">${escapeHtml(f.label)}</label></th>
@@ -224,9 +268,14 @@
       });
       if (topKey === "settings") {
         document.getElementById("panel").style.display = "none";
+        document.getElementById("aboutPanel").style.display = "none";
         render("settings");
+      } else if (topKey === "about") {
+        document.getElementById("panel").style.display = "none";
+        document.getElementById("aboutPanel").style.display = "";
       } else {
         document.getElementById("panel").style.display = "";
+        document.getElementById("aboutPanel").style.display = "none";
         const current = (location.hash || "#identity").slice(1);
         setActive(views[current] && current !== "settings" ? current : "identity");
       }
@@ -257,9 +306,61 @@
       });
     });
 
+    function isValidHttpUrl(s){
+      if (!s) return false;
+      try {
+        const u = new URL(s);
+        return u.protocol === "http:" || u.protocol === "https:";
+      } catch { return false; }
+    }
+
+    function updateTicks(){
+      document.querySelectorAll("input[data-validate]").forEach((el) => {
+        const t = el.dataset.validate;
+        if (!t) return;
+        const ok = t === "url" ? isValidHttpUrl(String(el.value||"").trim()) : false;
+        el.closest(".field")?.classList.toggle("valid", ok);
+      });
+    }
+
+    document.addEventListener("input", (e) => {
+      if (!(e.target instanceof HTMLInputElement)) return;
+      if (!e.target.dataset.validate) return;
+      updateTicks();
+    });
+
+    const search = document.getElementById("searchInput");
+    function clearHits(){
+      document.querySelectorAll(".hit").forEach(n => n.classList.remove("hit"));
+    }
+    function jumpToFirstHit(q){
+      const query = String(q||"").trim().toLowerCase();
+      if (!query) return;
+      const inputs = Array.from(document.querySelectorAll("input[data-label]"));
+      const hit = inputs.find(el => (el.dataset.label||"").toLowerCase().includes(query) || (el.placeholder||"").toLowerCase().includes(query));
+      if (!hit) return;
+      const row = hit.closest("tr") || hit;
+      clearHits();
+      row.classList.add("hit");
+      row.scrollIntoView({behavior:"smooth",block:"center"});
+      hit.focus({preventScroll:true});
+    }
+    search?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        setTop("property");
+        jumpToFirstHit(search.value);
+      }
+      if (e.key === "Escape") {
+        search.value = "";
+        clearHits();
+      }
+    });
+
     const initial = (location.hash || "#identity").slice(1);
     setTop("property");
     setActive(views[initial] && initial !== "settings" ? initial : "identity");
+    updateTicks();
   </script>
 </body>
 </html>

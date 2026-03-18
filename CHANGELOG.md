@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.7] - 2026-03-18
+
+### Added
+- Header logo, plugin title, and version badge in the admin page
+- Header search bar to jump to fields inside Property Profile
+- About main tab for the plugin
+
+### Changed
+- Rename plugin to “Portico Webworks Hotel Website Manager”
+- Match admin preview HTML with the new header, search, and About tab layout
+
+### Fixed
+- Social URL fields now validate `http/https` URLs and show a green tick when valid
+- Add footer copyright link with UTM parameters opening in a new tab
+
 ## [0.1.6] - 2026-03-18
 
 ### Added
