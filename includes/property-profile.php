@@ -112,48 +112,93 @@ function pw_render_property_metabox($post) {
 		$is_open = $section_key === 'identity';
 		echo '<details class="pw-property-profile-section" ' . ($is_open ? 'open' : '') . '>';
 		echo '<summary>' . esc_html($section_meta['label']) . '</summary>';
-		echo '<table class="form-table" role="presentation"><tbody>';
-
-		foreach ($fields as $key => $field) {
-			if ($field['section'] !== $section_key) {
-				continue;
-			}
-
-			$label = $field['label'];
-			$type = isset($field['type']) ? $field['type'] : 'text';
-			$placeholder = isset($field['placeholder']) ? $field['placeholder'] : '';
-			$help = isset($field['help']) ? $field['help'] : '';
-
-			$name = 'pw_property_profile[' . $key . ']';
-			$val = isset($profile[$key]) ? $profile[$key] : '';
-
-			echo '<tr>';
-			echo '<th scope="row">';
-			echo '<label for="pw-' . esc_attr($key) . '">' . esc_html($label) . '</label>';
-			echo '</th>';
-			echo '<td>';
-			echo '<input class="regular-text" id="pw-' . esc_attr($key) . '" name="' . esc_attr($name) . '" type="' . esc_attr($type) . '" value="' . esc_attr($val) . '" placeholder="' . esc_attr($placeholder) . '" />';
-			if ($help !== '') {
-				echo '<p class="description">' . esc_html($help) . '</p>';
-			}
-			echo '</td>';
-			echo '</tr>';
-		}
-
-		echo '</tbody></table>';
+		pw_render_property_profile_section_fields($profile, $fields, $section_key);
 		echo '</details>';
 	}
 }
 
+function pw_render_property_profile_section_fields($profile, $fields, $section_key) {
+	echo '<table class="form-table" role="presentation"><tbody>';
+
+	foreach ($fields as $key => $field) {
+		if ($field['section'] !== $section_key) {
+			continue;
+		}
+
+		$label = $field['label'];
+		$type = isset($field['type']) ? $field['type'] : 'text';
+		$placeholder = isset($field['placeholder']) ? $field['placeholder'] : '';
+		$help = isset($field['help']) ? $field['help'] : '';
+
+		$name = 'pw_property_profile[' . $key . ']';
+		$val = isset($profile[$key]) ? $profile[$key] : '';
+
+		echo '<tr>';
+		echo '<th scope="row">';
+		echo '<label for="pw-' . esc_attr($key) . '">' . esc_html($label) . '</label>';
+		echo '</th>';
+		echo '<td>';
+		echo '<input class="regular-text" id="pw-' . esc_attr($key) . '" name="' . esc_attr($name) . '" type="' . esc_attr($type) . '" value="' . esc_attr($val) . '" placeholder="' . esc_attr($placeholder) . '" />';
+		if ($help !== '') {
+			echo '<p class="description">' . esc_html($help) . '</p>';
+		}
+		echo '</td>';
+		echo '</tr>';
+	}
+
+	echo '</tbody></table>';
+}
+
+function pw_render_property_profile_section_metabox($post, $section_key) {
+	$profile = pw_get_property_profile($post->ID);
+	$fields = pw_property_fields();
+
+	wp_nonce_field('pw_save_property_profile', 'pw_property_profile_nonce');
+
+	pw_render_property_profile_section_fields($profile, $fields, $section_key);
+}
+
+function pw_render_property_profile_identity_metabox($post) {
+	pw_render_property_profile_section_metabox($post, 'identity');
+}
+
+function pw_render_property_profile_address_metabox($post) {
+	pw_render_property_profile_section_metabox($post, 'address');
+}
+
+function pw_render_property_profile_contact_metabox($post) {
+	pw_render_property_profile_section_metabox($post, 'contact');
+}
+
+function pw_render_property_profile_geo_metabox($post) {
+	pw_render_property_profile_section_metabox($post, 'geo');
+}
+
+function pw_render_property_profile_social_metabox($post) {
+	pw_render_property_profile_section_metabox($post, 'social');
+}
+
 function pw_add_property_metabox() {
-	add_meta_box(
-		'pw_property_profile',
-		'Property Profile',
-		'pw_render_property_metabox',
-		'pw_property',
-		'normal',
-		'high'
+	$sections = pw_property_sections();
+	$callbacks = array(
+		'identity' => 'pw_render_property_profile_identity_metabox',
+		'address' => 'pw_render_property_profile_address_metabox',
+		'contact' => 'pw_render_property_profile_contact_metabox',
+		'geo' => 'pw_render_property_profile_geo_metabox',
+		'social' => 'pw_render_property_profile_social_metabox',
 	);
+
+	foreach ($sections as $section_key => $section_meta) {
+		$callback = isset($callbacks[$section_key]) ? $callbacks[$section_key] : 'pw_render_property_profile_identity_metabox';
+		add_meta_box(
+			'pw_property_profile_' . $section_key,
+			$section_meta['label'],
+			$callback,
+			'pw_property',
+			'normal',
+			'high'
+		);
+	}
 }
 
 add_action('add_meta_boxes', 'pw_add_property_metabox');
@@ -180,9 +225,81 @@ function pw_save_property_metabox($post_id) {
 	}
 
 	$raw = wp_unslash($_POST['pw_property_profile']);
+	$existing = pw_get_property_profile((int) $post_id);
 	$sanitized = pw_sanitize_property_profile($raw);
-	update_post_meta((int) $post_id, pw_property_meta_key(), $sanitized);
+
+	// If a user hides one section via Screen Options, its inputs may not be submitted.
+	// Preserve any keys that weren't actually posted to avoid clearing saved values.
+	$final = $existing;
+	foreach (array_keys($raw) as $key) {
+		if (array_key_exists($key, $sanitized)) {
+			$final[$key] = $sanitized[$key];
+		}
+	}
+
+	update_post_meta((int) $post_id, pw_property_meta_key(), $final);
 }
 
 add_action('save_post_pw_property', 'pw_save_property_metabox');
+
+// ---------------------------------------------------------------------------
+// REST exposure for page builders (GenerateBlocks dynamic content lists)
+// ---------------------------------------------------------------------------
+add_action('rest_api_init', function () {
+	if (!function_exists('register_rest_field')) {
+		return;
+	}
+	if (!function_exists('register_meta')) {
+		return;
+	}
+	if (!function_exists('pw_property_fields') || !function_exists('pw_get_property_profile')) {
+		return;
+	}
+
+	if (function_exists('pw_property_meta_key')) {
+		register_meta('post', pw_property_meta_key(), array(
+			'type' => 'object',
+			'single' => true,
+			'show_in_rest' => true,
+		));
+	}
+
+	$fields = pw_property_fields();
+	if (!is_array($fields) || empty($fields)) {
+		return;
+	}
+
+	foreach ($fields as $key => $field) {
+		register_rest_field('pw_property', $key, array(
+			'get_callback' => function ($object) use ($key) {
+				$property_id = 0;
+
+				if (is_object($object) && isset($object->ID)) {
+					$property_id = (int) $object->ID;
+				} elseif (is_array($object) && isset($object['id'])) {
+					$property_id = (int) $object['id'];
+				}
+
+				if ($property_id <= 0) {
+					return null;
+				}
+
+				$profile = pw_get_property_profile($property_id);
+				if (!is_array($profile) || !array_key_exists($key, $profile)) {
+					return null;
+				}
+
+				$val = $profile[$key];
+				if (is_string($val) && $val === '') {
+					return null;
+				}
+
+				return $val;
+			},
+			'schema' => array(
+				'type' => 'string',
+			),
+		));
+	}
+});
 

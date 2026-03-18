@@ -26,6 +26,8 @@ function pw_register_property_post_type() {
 			'show_ui' => true,
 			'show_in_menu' => false,
 			'show_in_admin_bar' => false,
+			'show_in_rest' => true,
+			'rest_base' => 'properties',
 			'supports' => array('title'),
 			'capability_type' => 'post',
 			'menu_position' => 58,

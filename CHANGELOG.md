@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3] - 2026-03-19
+
+### Added
+- Expose `pw_property` CPT to the WordPress REST API for GenerateBlocks/page-builder discovery
+- Expose `pw_property` profile fields (e.g. `property_name`, `email`, `instagram`) via REST for dynamic content
+- Register `_pw_property_profile` meta for REST reads
+
 ## [0.3.2] - 2026-03-19
 
 ### Added
