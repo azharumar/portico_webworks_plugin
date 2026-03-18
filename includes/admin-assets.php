@@ -27,13 +27,9 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 .portico-webworks-admin .pw-header{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:6px 0 10px}
 .portico-webworks-admin .pw-brand{display:flex;align-items:center;gap:10px;min-width:0}
 .portico-webworks-admin .pw-logo{width:26px;height:26px;display:block}
-.portico-webworks-admin .pw-brand-text{display:flex;align-items:baseline;gap:10px;min-width:0}
-.portico-webworks-admin .pw-title{font-size:20px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.portico-webworks-admin .pw-brand-text{display:flex;align-items:center;gap:10px;min-width:0}
+.portico-webworks-admin .pw-title{font-size:20px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
 .portico-webworks-admin .pw-version{font-size:12px;font-weight:700;color:var(--muted);background:rgba(0,0,0,0.04);border:1px solid var(--border);padding:2px 8px;border-radius:999px}
-.portico-webworks-admin .pw-header-actions{display:flex;align-items:center;gap:10px}
-.portico-webworks-admin .pw-search{display:flex;align-items:center}
-.portico-webworks-admin .pw-search-input{width:260px;max-width:42vw;border-radius:999px;border:1px solid rgba(0,0,0,0.15);padding:6px 10px;background:var(--surface)}
-.portico-webworks-admin .pw-search-input:focus{border-color:var(--border2);box-shadow:0 0 0 1px var(--border2);outline:0}
 .portico-webworks-admin .pw-tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin:10px 0 16px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
 .portico-webworks-admin .pw-tabs::-webkit-scrollbar{display:none}
 .portico-webworks-admin .pw-tab{display:inline-flex;align-items:center;padding:10px 12px;font-size:13px;font-weight:600;color:var(--muted);text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-1px}
@@ -49,17 +45,31 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 .portico-webworks-admin .pw-card-body input.regular-text:focus{border-color:var(--border2);box-shadow:0 0 0 1px var(--border2)}
 .portico-webworks-admin .pw-field{display:inline-flex;align-items:center;gap:8px}
 .portico-webworks-admin .pw-valid{width:18px;height:18px;border-radius:999px;background:#1e8e3e;display:none;position:relative;flex:0 0 auto}
-.portico-webworks-admin .pw-valid::after{content:'';position:absolute;left:5px;top:3px;width:6px;height:10px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(40deg)}
+.portico-webworks-admin .pw-valid::after{content:'';position:absolute;left:6px;top:3px;width:5px;height:10px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg)}
 .portico-webworks-admin .pw-field.is-valid .pw-valid{display:inline-block}
 .portico-webworks-admin .pw-field.is-valid input{border-color:rgba(30,142,62,0.55)}
-.portico-webworks-admin .pw-hit{background:rgba(201,42,8,0.10);box-shadow:0 0 0 2px rgba(201,42,8,0.15);border-radius:6px}
+.portico-webworks-admin .pw-field.is-invalid .pw-valid{display:inline-block;background:#b32d15}
+.portico-webworks-admin .pw-field.is-invalid .pw-valid::after{
+  left:4px;
+  top:4px;
+  width:10px;
+  height:10px;
+  border:0;
+  transform:none;
+  background:
+    linear-gradient(45deg, transparent 47%, #fff 47%, #fff 53%, transparent 53%),
+    linear-gradient(-45deg, transparent 47%, #fff 47%, #fff 53%, transparent 53%);
+}
+.portico-webworks-admin .pw-field.is-invalid input{border-color:rgba(201,42,8,0.55)}
+.portico-webworks-admin .pw-field.is-invalid input:focus{border-color:rgba(201,42,8,0.65);box-shadow:0 0 0 1px rgba(201,42,8,0.25)}
+.portico-webworks-admin .pw-validation-error{margin:10px 0 0;color:#b32d15;font-size:13px;font-weight:600;display:none}
 
 .portico-webworks-admin .pw-split{display:grid;grid-template-columns:260px 1fr;min-height:420px}
-.portico-webworks-admin .pw-vnav{background:var(--card2);border-right:1px solid var(--border);padding:10px}
-.portico-webworks-admin .pw-vnav a{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:6px;text-decoration:none;color:var(--sub);font-weight:600}
-.portico-webworks-admin .pw-vnav a:hover{background:rgba(127,127,125,0.06);color:var(--text)}
-.portico-webworks-admin .pw-vnav a.is-active{background:rgba(201,42,8,0.10);color:var(--text);position:relative}
-.portico-webworks-admin .pw-vnav a.is-active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--primary);border-radius:3px}
+.portico-webworks-admin .pw-vnav{background:var(--card2);border-right:1px solid var(--border);padding:10px;display:flex;flex-direction:column;gap:6px}
+.portico-webworks-admin .pw-vnav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;text-decoration:none;color:var(--sub);font-weight:650;border:1px solid transparent;transition:background .12s ease,color .12s ease,border-color .12s ease,transform .12s ease}
+.portico-webworks-admin .pw-vnav a:hover{background:rgba(127,127,125,0.08);color:var(--text);transform:translateY(-1px)}
+.portico-webworks-admin .pw-vnav a.is-active{background:rgba(201,42,8,0.12);color:var(--text);border-color:rgba(201,42,8,0.25);position:relative}
+.portico-webworks-admin .pw-vnav a.is-active::before{content:'';position:absolute;left:-1px;top:8px;bottom:8px;width:3px;background:var(--primary);border-radius:3px}
 .portico-webworks-admin .pw-vcontent{padding:14px}
 .portico-webworks-admin .pw-section{display:none}
 .portico-webworks-admin .pw-section.is-active{display:block}
@@ -70,7 +80,6 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 
 @media (max-width: 960px){
   .portico-webworks-admin .pw-header{flex-direction:column;align-items:flex-start}
-  .portico-webworks-admin .pw-search-input{width:min(520px,100%);max-width:100%}
   .portico-webworks-admin .pw-split{grid-template-columns:1fr}
   .portico-webworks-admin .pw-vnav{border-right:none;border-bottom:1px solid var(--border)}
   .portico-webworks-admin .pw-card{max-width:none}
@@ -127,77 +136,165 @@ add_action('admin_footer', function () {
 	      return false;
 	    }
 	  }
-
-	  function updateValidation(el) {
-	    if (!el) return;
-	    const type = el.getAttribute('data-pw-validate');
-	    if (!type) return;
-	    const wrap = el.closest('.pw-field');
+	  function setFieldValidity(input, ok) {
+	    const wrap = input.closest('.pw-field');
 	    if (!wrap) return;
-	    const v = String(el.value || '').trim();
-	    const ok = (type === 'url') ? isValidHttpUrl(v) : false;
-	    wrap.classList.toggle('is-valid', ok);
+	    wrap.classList.toggle('is-valid', !!ok);
+	    wrap.classList.toggle('is-invalid', !ok);
 	  }
 
-	  root.querySelectorAll('input[data-pw-validate]').forEach((el) => {
-	    updateValidation(el);
-	    el.addEventListener('input', () => updateValidation(el));
-	    el.addEventListener('blur', () => updateValidation(el));
-	  });
-
-	  const search = root.querySelector('#pw-search-input');
-	  if (search) {
-	    function clearHits() {
-	      root.querySelectorAll('.pw-hit').forEach(n => n.classList.remove('pw-hit'));
+	  function clearFieldValidity(input) {
+	    setFieldValidity(input, false);
+	    const wrap = input.closest('.pw-field');
+	    if (wrap) {
+	      wrap.classList.remove('is-valid');
+	      wrap.classList.remove('is-invalid');
 	    }
-	    function jumpToFirstHit(q) {
-	      const query = q.trim().toLowerCase();
-	      if (!query) return;
-	      const inputs = Array.from(root.querySelectorAll('input[data-pw-label]'));
-	      const hit = inputs.find((el) => (el.getAttribute('data-pw-label') || '').toLowerCase().includes(query) || (el.getAttribute('placeholder') || '').toLowerCase().includes(query));
-	      if (!hit) return;
+	  }
 
-	      const panel = hit.closest('.pw-section[data-pw-panel]');
-	      if (panel) {
-	        const key = panel.getAttribute('data-pw-panel');
-	        if (key) {
-	          setActive(key);
-	          updateUrl(key);
-	        }
-	      }
+	  function getUrlInputs(form) {
+	    return Array.from(form.querySelectorAll('input[data-pw-validate="url"]'));
+	  }
 
-	      clearHits();
-	      const row = hit.closest('tr') || hit;
-	      row.classList.add('pw-hit');
-	      hit.scrollIntoView({behavior:'smooth',block:'center'});
-	      hit.focus({preventScroll:true});
-	    }
-
-	    search.addEventListener('keydown', (e) => {
-	      if (e.key === 'Enter') {
-	        e.preventDefault();
-	        jumpToFirstHit(search.value || '');
-	      }
-	      if (e.key === 'Escape') {
-	        search.value = '';
-	        clearHits();
-	      }
-	    });
-
-	    if (vnav) {
-	      search.addEventListener('input', () => {
-	        const q = String(search.value || '').trim().toLowerCase();
-	        if (!q) {
-	          links.forEach(a => a.style.display = '');
-	          return;
-	        }
-	        links.forEach((a) => {
-	          const t = (a.textContent || '').trim().toLowerCase();
-	          a.style.display = t.includes(q) ? '' : 'none';
-	        });
+	  async function checkUrl(url) {
+	    const timeoutMs = 7000;
+	    const controller = new AbortController();
+	    const t = setTimeout(() => controller.abort(), timeoutMs);
+	    try {
+	      // Check URLs by actual HTTP response. 2xx-3xx counts as "regular".
+	      const res = await fetch(url, {
+	        method: 'HEAD',
+	        mode: 'cors',
+	        redirect: 'follow',
+	        signal: controller.signal,
 	      });
+	      if (!res || typeof res.status !== 'number') return false;
+
+	      if (res.status >= 200 && res.status < 400) return true;
+
+	      // Some servers block HEAD but allow GET; fall back to GET (CORS required to read status).
+	      if (res.status === 405 || res.status === 501) {
+	        const controller2 = new AbortController();
+	        const t2 = setTimeout(() => controller2.abort(), timeoutMs);
+	        try {
+	          const res2 = await fetch(url, {
+	            method: 'GET',
+	            mode: 'cors',
+	            redirect: 'follow',
+	            cache: 'no-store',
+	            signal: controller2.signal,
+	          });
+	          if (!res2 || typeof res2.status !== 'number') return false;
+	          return res2.status >= 200 && res2.status < 400;
+	        } catch (e2) {
+	          return false;
+	        } finally {
+	          clearTimeout(t2);
+	        }
+	      }
+
+	      return false;
+	    } catch (e) {
+	      // If CORS blocks reading status, try a no-cors GET; if the request succeeds, treat as reachable.
+	      try {
+	        clearTimeout(t);
+	        const controller2 = new AbortController();
+	        const t2 = setTimeout(() => controller2.abort(), timeoutMs);
+	        await fetch(url, {
+	          method: 'GET',
+	          mode: 'no-cors',
+	          redirect: 'follow',
+	          cache: 'no-store',
+	          signal: controller2.signal,
+	        });
+	        clearTimeout(t2);
+	        return true;
+	      } catch (e2) {
+	        return false;
+	      }
+	    } finally {
+	      clearTimeout(t);
 	    }
 	  }
+
+	  function getSubmitElement(e, form) {
+	    if (e && e.submitter) return e.submitter;
+	    return form.querySelector('input[type="submit"], button[type="submit"]');
+	  }
+
+	  function getOrCreateErrorEl(form) {
+	    let el = form.querySelector('.pw-validation-error');
+	    if (el) return el;
+	    const submitEl = form.querySelector('input[type="submit"], button[type="submit"]');
+	    el = document.createElement('div');
+	    el.className = 'pw-validation-error';
+	    el.textContent = 'One or more URLs are not responding. Please fix the highlighted fields and try again.';
+	    if (submitEl && submitEl.parentNode) {
+	      submitEl.insertAdjacentElement('afterend', el);
+	    } else {
+	      form.appendChild(el);
+	    }
+	    return el;
+	  }
+
+	  async function validateUrlsOnSave(form, e) {
+	    const urlInputs = getUrlInputs(form);
+	    const errorEl = getOrCreateErrorEl(form);
+	    errorEl.style.display = 'none';
+
+	    urlInputs.forEach((input) => clearFieldValidity(input));
+
+	    // Allow empty URL fields (social URLs are optional).
+	    const checks = [];
+	    for (const input of urlInputs) {
+	      const raw = String(input.value || '').trim();
+	      if (!raw) {
+	        // Leave empty optional URLs as neutral (no tick).
+	        continue;
+	      }
+	      if (!isValidHttpUrl(raw)) {
+	        setFieldValidity(input, false);
+	        checks.push(false);
+	        continue;
+	      }
+	      checks.push(checkUrl(raw).then(ok => {
+	        setFieldValidity(input, ok);
+	        return ok;
+	      }));
+	    }
+
+	    const results = await Promise.all(checks);
+	    const anyInvalid = results.some(r => r === false);
+	    if (anyInvalid) {
+	      errorEl.style.display = '';
+	      return false;
+	    }
+	    return true;
+	  }
+
+	  root.querySelectorAll('form').forEach((form) => {
+	    form.addEventListener('submit', async (e) => {
+	      if (form.dataset.pwValidating === '1') return;
+	      const urlInputs = getUrlInputs(form);
+	      if (!urlInputs.length) return; // nothing to validate
+
+	      const submitEl = getSubmitElement(e, form);
+	      const originalText = submitEl && 'value' in submitEl ? submitEl.value : (submitEl ? submitEl.textContent : '');
+	      if (submitEl) submitEl.disabled = true;
+	      if (submitEl && 'value' in submitEl) submitEl.value = 'Saving…';
+	      form.dataset.pwValidating = '1';
+
+	      const ok = await validateUrlsOnSave(form, e);
+	      form.dataset.pwValidating = '';
+	      if (submitEl && 'value' in submitEl) submitEl.value = originalText;
+	      if (submitEl) submitEl.disabled = false;
+	      if (!ok) {
+	        e.preventDefault();
+	        return;
+	      }
+	      // Let WordPress/options.php proceed naturally.
+	    });
+	  });
 	})();
 	</script>
 	<?php

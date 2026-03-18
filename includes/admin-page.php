@@ -60,12 +60,6 @@ function portico_webworks_render_root_page() {
 	}
 	echo '</div>';
 	echo '</div>';
-	echo '<div class="pw-header-actions">';
-	echo '<label class="pw-search" for="pw-search-input">';
-	echo '<span class="screen-reader-text">Search</span>';
-	echo '<input id="pw-search-input" class="pw-search-input" type="search" placeholder="Search fields…" autocomplete="off" />';
-	echo '</label>';
-	echo '</div>';
 	echo '</div>';
 
 	$tabs = array(
