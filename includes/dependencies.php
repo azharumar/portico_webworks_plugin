@@ -10,8 +10,8 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-function portico_webworks_get_dependencies() {
-	$plugin_dir = plugin_dir_path(PORTICO_WEBWORKS_PLUGIN_FILE);
+function pw_get_dependencies() {
+	$plugin_dir = plugin_dir_path(PW_PLUGIN_FILE);
 
 	return array(
 		array(
@@ -67,7 +67,7 @@ function portico_webworks_get_dependencies() {
 	);
 }
 
-function portico_webworks_dep_status($dep) {
+function pw_dep_status($dep) {
 	if (!function_exists('is_plugin_active')) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 	}
@@ -97,9 +97,9 @@ function portico_webworks_dep_status($dep) {
 	return 'not_installed';
 }
 
-function portico_webworks_all_deps_satisfied() {
-	foreach (portico_webworks_get_dependencies() as $dep) {
-		if (portico_webworks_dep_status($dep) !== 'active') {
+function pw_all_deps_satisfied() {
+	foreach (pw_get_dependencies() as $dep) {
+		if (pw_dep_status($dep) !== 'active') {
 			return false;
 		}
 	}
@@ -110,7 +110,7 @@ function portico_webworks_all_deps_satisfied() {
 // Admin notice when dependencies are missing
 // ---------------------------------------------------------------------------
 add_action('admin_notices', function () {
-	if (portico_webworks_all_deps_satisfied()) {
+	if (pw_all_deps_satisfied()) {
 		return;
 	}
 
@@ -122,7 +122,7 @@ add_action('admin_notices', function () {
 		return;
 	}
 
-	$page_url = admin_url('admin.php?page=' . urlencode(portico_webworks_admin_page_slug()) . '&tab=dependencies');
+	$page_url = admin_url('admin.php?page=' . urlencode(pw_admin_page_slug()) . '&tab=dependencies');
 	echo '<div class="notice notice-warning"><p>';
 	echo '<strong>Portico Webworks</strong> requires additional plugins and a theme. ';
 	echo '<a href="' . esc_url($page_url) . '">Install required dependencies</a>.';
@@ -132,8 +132,8 @@ add_action('admin_notices', function () {
 // ---------------------------------------------------------------------------
 // Register the Dependencies tab in the existing admin page
 // ---------------------------------------------------------------------------
-add_filter('portico_webworks_admin_tabs', function ($tabs) {
-	if (!portico_webworks_all_deps_satisfied()) {
+add_filter('pw_admin_tabs', function ($tabs) {
+	if (!pw_all_deps_satisfied()) {
 		return array_merge(array('dependencies' => 'Dependencies'), $tabs);
 	}
 	$tabs['dependencies'] = 'Dependencies';
@@ -143,8 +143,8 @@ add_filter('portico_webworks_admin_tabs', function ($tabs) {
 // ---------------------------------------------------------------------------
 // Render the Dependencies tab content
 // ---------------------------------------------------------------------------
-add_action('portico_webworks_render_tab_dependencies', function () {
-	$deps = portico_webworks_get_dependencies();
+add_action('pw_render_tab_dependencies', function () {
+	$deps = pw_get_dependencies();
 	$can_install = current_user_can('install_plugins') && current_user_can('activate_plugins');
 	$can_theme   = current_user_can('switch_themes') && current_user_can('install_themes');
 
@@ -160,7 +160,7 @@ add_action('portico_webworks_render_tab_dependencies', function () {
 	echo '<tbody>';
 
 	foreach ($deps as $dep) {
-		$status = portico_webworks_dep_status($dep);
+		$status = pw_dep_status($dep);
 		$badge_color = $status === 'active' ? '#1e8e3e' : ($status === 'installed' ? '#e8a200' : '#b32d15');
 		$badge_label = $status === 'active' ? 'Active' : ($status === 'installed' ? 'Installed' : 'Not Installed');
 		$source_label = $dep['source'] === 'bundled' ? 'Bundled ZIP' : 'WordPress.org';
@@ -207,7 +207,7 @@ add_action('portico_webworks_render_tab_dependencies', function () {
 // Enqueue dependency tab JS (inline, only on our admin page)
 // ---------------------------------------------------------------------------
 add_action('admin_footer', function () {
-	if (!isset($_GET['page']) || $_GET['page'] !== portico_webworks_admin_page_slug()) {
+	if (!isset($_GET['page']) || $_GET['page'] !== pw_admin_page_slug()) {
 		return;
 	}
 	if (!isset($_GET['tab']) || $_GET['tab'] !== 'dependencies') {
@@ -297,7 +297,7 @@ add_action('wp_ajax_portico_dep_action', function () {
 	$action = isset($_POST['dep_action']) ? sanitize_key($_POST['dep_action']) : '';
 
 	$dep = null;
-	foreach (portico_webworks_get_dependencies() as $d) {
+	foreach (pw_get_dependencies() as $d) {
 		if ($d['slug'] === $slug) {
 			$dep = $d;
 			break;
@@ -308,7 +308,7 @@ add_action('wp_ajax_portico_dep_action', function () {
 		wp_send_json_error(array('message' => 'Unknown dependency.'));
 	}
 
-	$status = portico_webworks_dep_status($dep);
+	$status = pw_dep_status($dep);
 
 	if ($status === 'active') {
 		wp_send_json_success(array('message' => $dep['name'] . ' is already active.'));
@@ -323,9 +323,9 @@ add_action('wp_ajax_portico_dep_action', function () {
 	// Install if not present.
 	if ($status === 'not_installed') {
 		if ($dep['type'] === 'theme') {
-			$result = portico_webworks_install_theme($dep);
+			$result = pw_install_theme($dep);
 		} else {
-			$result = portico_webworks_install_plugin($dep);
+			$result = pw_install_plugin($dep);
 		}
 
 		if (is_wp_error($result)) {
@@ -353,7 +353,7 @@ add_action('wp_ajax_portico_dep_action', function () {
 // ---------------------------------------------------------------------------
 // Installer helpers
 // ---------------------------------------------------------------------------
-function portico_webworks_install_plugin($dep) {
+function pw_install_plugin($dep) {
 	$skin     = new WP_Ajax_Upgrader_Skin();
 	$upgrader = new Plugin_Upgrader($skin);
 
@@ -387,7 +387,7 @@ function portico_webworks_install_plugin($dep) {
 	return true;
 }
 
-function portico_webworks_install_theme($dep) {
+function pw_install_theme($dep) {
 	$skin     = new WP_Ajax_Upgrader_Skin();
 	$upgrader = new Theme_Upgrader($skin);
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.1] - 2026-03-18
+
+### Added
+- Intellectual Property and client deployment notice in the plugin About tab.
+- Multi-property mode support (`pw_property_mode`: `single` or `multi`) and URL-based property resolution.
+
+### Changed
+- Refactored internal code namespace from `portico_webworks_*`/`PORTICO_WEBWORKS_*` to `pw_*`.
+- Updated admin UI and `admin-preview.html` to match the new About/Settings layout.
+
 ## [0.1.8] - 2026-03-18
 
 ### Fixed

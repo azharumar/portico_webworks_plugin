@@ -4,11 +4,11 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-function portico_webworks_property_meta_key() {
+function pw_property_meta_key() {
 	return '_pw_property_profile';
 }
 
-function portico_webworks_property_profile_defaults() {
+function pw_property_profile_defaults() {
 	return array(
 		'property_name' => '',
 		'property_short_name' => '',
@@ -36,18 +36,18 @@ function portico_webworks_property_profile_defaults() {
 	);
 }
 
-function portico_webworks_get_property_profile($property_id = null) {
-	$defaults = portico_webworks_property_profile_defaults();
+function pw_get_property_profile($property_id = null) {
+	$defaults = pw_property_profile_defaults();
 
 	if (empty($property_id) || !is_numeric($property_id)) {
-		$property_id = portico_webworks_get_current_property_id();
+		$property_id = pw_get_current_property_id();
 	}
 
 	if (is_wp_error($property_id) || empty($property_id)) {
 		return $defaults;
 	}
 
-	$val = get_post_meta((int) $property_id, portico_webworks_property_meta_key(), true);
+	$val = get_post_meta((int) $property_id, pw_property_meta_key(), true);
 	if (!is_array($val)) {
 		$val = array();
 	}
@@ -55,7 +55,7 @@ function portico_webworks_get_property_profile($property_id = null) {
 	return array_merge($defaults, $val);
 }
 
-function portico_webworks_get_all_properties() {
+function pw_get_all_properties() {
 	$ids = get_posts(array(
 		'post_type' => 'pw_property',
 		'post_status' => 'any',
@@ -81,19 +81,18 @@ function portico_webworks_get_all_properties() {
 	return $out;
 }
 
-function portico_webworks_property_base() {
-	$base = get_option('portico_webworks_property_base', 'properties');
+function pw_property_base() {
+	$base = get_option('pw_property_base', 'properties');
 	$base = is_string($base) ? trim($base) : 'properties';
 	$base = trim($base, '/');
 	if ($base === '') {
 		$base = 'properties';
 	}
 
-	// Base slug should be path-safe.
 	return sanitize_title($base);
 }
 
-function portico_webworks_resolve_property_id_from_url() {
+function pw_resolve_property_id_from_url() {
 	global $wp;
 
 	$request = '';
@@ -105,7 +104,7 @@ function portico_webworks_resolve_property_id_from_url() {
 		$request = $path ? trim($path, '/') : '';
 	}
 
-	$base = portico_webworks_property_base();
+	$base = pw_property_base();
 	if ($base === '') {
 		return null;
 	}
@@ -139,17 +138,21 @@ function portico_webworks_resolve_property_id_from_url() {
 	return null;
 }
 
-function portico_webworks_get_current_property_id() {
+function pw_get_current_property_id() {
 	static $resolved = null;
 
 	if ($resolved !== null) {
 		return $resolved;
 	}
 
-	$from_url = portico_webworks_resolve_property_id_from_url();
-	if (!empty($from_url)) {
-		$resolved = (int) $from_url;
-		return $resolved;
+	$mode = get_option('pw_property_mode', 'single');
+
+	if ($mode === 'multi') {
+		$from_url = pw_resolve_property_id_from_url();
+		if (!empty($from_url)) {
+			$resolved = (int) $from_url;
+			return $resolved;
+		}
 	}
 
 	$all = get_posts(array(
@@ -160,9 +163,11 @@ function portico_webworks_get_current_property_id() {
 	));
 
 	$cnt = is_array($all) ? count($all) : 0;
-	if ($cnt === 1 && !empty($all[0])) {
-		$resolved = (int) $all[0];
-		return $resolved;
+	if ($cnt >= 1 && !empty($all[0])) {
+		if ($mode === 'single' || $cnt === 1) {
+			$resolved = (int) $all[0];
+			return $resolved;
+		}
 	}
 
 	if ($cnt === 0) {
@@ -174,8 +179,8 @@ function portico_webworks_get_current_property_id() {
 	return $resolved;
 }
 
-function portico_webworks_get_current_property_profile() {
-	return portico_webworks_get_property_profile(null);
+function pw_get_current_property_profile() {
+	return pw_get_property_profile(null);
 }
 
 add_action('template_redirect', function () {
@@ -183,7 +188,12 @@ add_action('template_redirect', function () {
 		return;
 	}
 
-	$property_id = portico_webworks_get_current_property_id();
+	$mode = get_option('pw_property_mode', 'single');
+	if ($mode === 'single') {
+		return;
+	}
+
+	$property_id = pw_get_current_property_id();
 	if (!is_wp_error($property_id)) {
 		return;
 	}

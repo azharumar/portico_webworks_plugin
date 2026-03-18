@@ -4,8 +4,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-function portico_webworks_register_property_post_type() {
-	// Private CPT: front-end URLs are resolved by our own resolver.
+function pw_register_property_post_type() {
 	register_post_type(
 		'pw_property',
 		array(
@@ -25,5 +24,5 @@ function portico_webworks_register_property_post_type() {
 	);
 }
 
-add_action('init', 'portico_webworks_register_property_post_type');
+add_action('init', 'pw_register_property_post_type');
 

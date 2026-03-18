@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-function portico_webworks_property_sections() {
+function pw_property_sections() {
 	return array(
 		'identity' => array('label' => 'Identity'),
 		'address' => array('label' => 'Address'),
@@ -14,7 +14,7 @@ function portico_webworks_property_sections() {
 	);
 }
 
-function portico_webworks_property_fields() {
+function pw_property_fields() {
 	return array(
 		'property_name' => array('section' => 'identity', 'label' => 'Property Name', 'type' => 'text', 'placeholder' => 'e.g. The Grand Pavilion', 'help' => 'Public-facing name shown to guests.'),
 		'property_short_name' => array('section' => 'identity', 'label' => 'Property Short Name', 'type' => 'text', 'placeholder' => 'e.g. Grand Pavilion', 'help' => 'Shortened name for tight layouts (headers, nav, etc.).'),
@@ -46,8 +46,8 @@ function portico_webworks_property_fields() {
 	);
 }
 
-function portico_webworks_sanitize_property_profile($input) {
-	$defaults = portico_webworks_property_profile_defaults();
+function pw_sanitize_property_profile($input) {
+	$defaults = pw_property_profile_defaults();
 	if (!is_array($input)) {
 		return $defaults;
 	}
@@ -101,12 +101,12 @@ function portico_webworks_sanitize_property_profile($input) {
 	return $out;
 }
 
-function portico_webworks_render_property_metabox($post) {
-	$profile = portico_webworks_get_property_profile($post->ID);
-	$sections = portico_webworks_property_sections();
-	$fields = portico_webworks_property_fields();
+function pw_render_property_metabox($post) {
+	$profile = pw_get_property_profile($post->ID);
+	$sections = pw_property_sections();
+	$fields = pw_property_fields();
 
-	wp_nonce_field('portico_webworks_save_property_profile', 'portico_webworks_property_profile_nonce');
+	wp_nonce_field('pw_save_property_profile', 'pw_property_profile_nonce');
 
 	foreach ($sections as $section_key => $section_meta) {
 		echo '<h3>' . esc_html($section_meta['label']) . '</h3>';
@@ -122,15 +122,15 @@ function portico_webworks_render_property_metabox($post) {
 			$placeholder = isset($field['placeholder']) ? $field['placeholder'] : '';
 			$help = isset($field['help']) ? $field['help'] : '';
 
-			$name = 'portico_webworks_property_profile[' . $key . ']';
+			$name = 'pw_property_profile[' . $key . ']';
 			$val = isset($profile[$key]) ? $profile[$key] : '';
 
 			echo '<tr>';
 			echo '<th scope="row">';
-			echo '<label for="portico-webworks-' . esc_attr($key) . '">' . esc_html($label) . '</label>';
+			echo '<label for="pw-' . esc_attr($key) . '">' . esc_html($label) . '</label>';
 			echo '</th>';
 			echo '<td>';
-			echo '<input class="regular-text" id="portico-webworks-' . esc_attr($key) . '" name="' . esc_attr($name) . '" type="' . esc_attr($type) . '" value="' . esc_attr($val) . '" placeholder="' . esc_attr($placeholder) . '" />';
+			echo '<input class="regular-text" id="pw-' . esc_attr($key) . '" name="' . esc_attr($name) . '" type="' . esc_attr($type) . '" value="' . esc_attr($val) . '" placeholder="' . esc_attr($placeholder) . '" />';
 			if ($help !== '') {
 				echo '<p class="description">' . esc_html($help) . '</p>';
 			}
@@ -142,25 +142,25 @@ function portico_webworks_render_property_metabox($post) {
 	}
 }
 
-function portico_webworks_add_property_metabox() {
+function pw_add_property_metabox() {
 	add_meta_box(
-		'portico_webworks_property_profile',
+		'pw_property_profile',
 		'Property Profile',
-		'portico_webworks_render_property_metabox',
+		'pw_render_property_metabox',
 		'pw_property',
 		'normal',
 		'high'
 	);
 }
 
-add_action('add_meta_boxes', 'portico_webworks_add_property_metabox');
+add_action('add_meta_boxes', 'pw_add_property_metabox');
 
-function portico_webworks_save_property_metabox($post_id) {
-	if (!isset($_POST['portico_webworks_property_profile_nonce'])) {
+function pw_save_property_metabox($post_id) {
+	if (!isset($_POST['pw_property_profile_nonce'])) {
 		return;
 	}
 
-	if (!wp_verify_nonce(wp_unslash($_POST['portico_webworks_property_profile_nonce']), 'portico_webworks_save_property_profile')) {
+	if (!wp_verify_nonce(wp_unslash($_POST['pw_property_profile_nonce']), 'pw_save_property_profile')) {
 		return;
 	}
 
@@ -172,14 +172,14 @@ function portico_webworks_save_property_metabox($post_id) {
 		return;
 	}
 
-	if (!isset($_POST['portico_webworks_property_profile']) || !is_array($_POST['portico_webworks_property_profile'])) {
+	if (!isset($_POST['pw_property_profile']) || !is_array($_POST['pw_property_profile'])) {
 		return;
 	}
 
-	$raw = wp_unslash($_POST['portico_webworks_property_profile']);
-	$sanitized = portico_webworks_sanitize_property_profile($raw);
-	update_post_meta((int) $post_id, portico_webworks_property_meta_key(), $sanitized);
+	$raw = wp_unslash($_POST['pw_property_profile']);
+	$sanitized = pw_sanitize_property_profile($raw);
+	update_post_meta((int) $post_id, pw_property_meta_key(), $sanitized);
 }
 
-add_action('save_post_pw_property', 'portico_webworks_save_property_metabox');
+add_action('save_post_pw_property', 'pw_save_property_metabox');
 
