@@ -72,9 +72,17 @@ function portico_webworks_render_root_page() {
 		return;
 	}
 
-	$tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'property';
-	if (!in_array($tab, array('property', 'settings', 'about'), true)) {
-		$tab = 'property';
+	$base_tabs = array(
+		'property' => 'Property Profile',
+		'settings' => 'Settings',
+		'about' => 'About',
+	);
+	$tabs = apply_filters('portico_webworks_admin_tabs', $base_tabs);
+	$valid_keys = array_keys($tabs);
+
+	$tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : '';
+	if (!in_array($tab, $valid_keys, true)) {
+		$tab = $valid_keys[0];
 	}
 
 	echo '<div class="wrap portico-webworks-admin">';
@@ -91,17 +99,22 @@ function portico_webworks_render_root_page() {
 	echo '</div>';
 	echo '</div>';
 
-	$tabs = array(
-		'property' => 'Property Profile',
-		'settings' => 'Settings',
-		'about' => 'About',
-	);
 	echo '<nav class="pw-tabs" aria-label="Portico Webworks">';
 	foreach ($tabs as $key => $label) {
 		$url = admin_url('admin.php?page=' . urlencode(portico_webworks_admin_page_slug()) . '&tab=' . urlencode($key));
 		echo '<a class="pw-tab' . ($tab === $key ? ' is-active' : '') . '" href="' . esc_url($url) . '">' . esc_html($label) . '</a>';
 	}
 	echo '</nav>';
+
+	if (!in_array($tab, array('property', 'settings', 'about'), true)) {
+		do_action('portico_webworks_render_tab_' . $tab);
+		echo '<div class="pw-footer">';
+		$link = 'https://porticowebworks.com/?utm_source=wp-admin&utm_medium=plugin&utm_campaign=portico_webworks&utm_content=footer';
+		echo '<a class="pw-footer-link" href="' . esc_url($link) . '" target="_blank" rel="noopener noreferrer">© ' . esc_html(gmdate('Y')) . ' Portico Webworks</a>';
+		echo '</div>';
+		echo '</div>';
+		return;
+	}
 
 	if ($tab === 'about') {
 		echo '<div class="pw-card">';

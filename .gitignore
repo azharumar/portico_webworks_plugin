@@ -5,6 +5,7 @@ vendor/
 .idea/
 .vscode/
 *.zip
+!assets/zips/*.zip
 wp-config.php
 .cursor/
 
