@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Portico Webworks
  * Description: Portico Webworks plugin.
- * Version: 0.1.3
+ * Version: 0.1.4
  * Author: Portico Webworks
  * Author URI: https://porticowebworks.com
  */
@@ -13,6 +13,54 @@ if (!defined('ABSPATH')) {
 
 function portico_webworks_logo_url() {
 	return plugins_url('logo.svg', __FILE__);
+}
+
+function portico_webworks_admin_assets_url() {
+	return plugins_url('', __FILE__);
+}
+
+add_action('admin_enqueue_scripts', function ($hook_suffix) {
+	if (!isset($_GET['page']) || $_GET['page'] !== portico_webworks_admin_page_slug()) {
+		return;
+	}
+
+	wp_enqueue_style(
+		'portico-webworks-admin-fonts',
+		'https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap',
+		array(),
+		null
+	);
+
+	$css = "
+.portico-webworks-admin{--pw-bg:#F5F3EE;--pw-surface:#FFFFFF;--pw-card:#FAFAF8;--pw-card2:#F0EDE6;--pw-border:rgba(0,0,0,0.09);--pw-border2:rgba(0,0,0,0.18);--pw-text:#1A1917;--pw-sub:#504D48;--pw-muted:#7F7C77;--pw-primary:#C92A08;--pw-primary-dark:#A32206;--pw-secondary:#1E1E1C;font-family:'Inter Tight',system-ui,sans-serif;}
+.portico-webworks-admin{background:transparent}
+.portico-webworks-admin .pw-header{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--pw-surface);border:1px solid var(--pw-border);border-radius:8px;padding:12px 14px;margin:14px 0 10px;}
+.portico-webworks-admin .pw-header-left{display:flex;align-items:center;gap:10px;}
+.portico-webworks-admin .pw-logo{width:28px;height:28px;display:block}
+.portico-webworks-admin .pw-title{font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:20px;color:var(--pw-text);letter-spacing:-0.01em}
+.portico-webworks-admin .pw-badge{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--pw-muted);background:var(--pw-card);border:1px solid var(--pw-border);padding:4px 8px;border-radius:6px;}
+.portico-webworks-admin .pw-tabs{display:flex;gap:6px;border-bottom:1px solid var(--pw-border);padding:0 2px;margin:0 0 14px;overflow-x:auto}
+.portico-webworks-admin .pw-tab{display:inline-flex;align-items:center;padding:10px 12px;font-size:13px;font-weight:600;color:var(--pw-muted);text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-1px}
+.portico-webworks-admin .pw-tab:hover{color:var(--pw-text)}
+.portico-webworks-admin .pw-tab.is-active{color:var(--pw-text);border-bottom-color:var(--pw-primary)}
+.portico-webworks-admin .pw-panel{max-width:1100px}
+.portico-webworks-admin .pw-card{background:var(--pw-card);border:1px solid var(--pw-border);border-radius:10px;overflow:hidden}
+.portico-webworks-admin .pw-card-head{background:var(--pw-card2);border-bottom:1px solid var(--pw-border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.portico-webworks-admin .pw-card-title{font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--pw-sub)}
+.portico-webworks-admin .pw-card-body{padding:16px 14px}
+.portico-webworks-admin .pw-card-body .form-table th{width:240px}
+.portico-webworks-admin .pw-card-body input.regular-text{border-radius:6px;border-color:rgba(0,0,0,0.15)}
+.portico-webworks-admin .pw-card-body input.regular-text:focus{border-color:var(--pw-border2);box-shadow:0 0 0 1px var(--pw-border2)}
+.portico-webworks-admin .pw-btn.button-primary{background:var(--pw-primary);border-color:var(--pw-primary);border-radius:6px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+.portico-webworks-admin .pw-btn.button-primary:hover{background:var(--pw-primary-dark);border-color:var(--pw-primary-dark)}
+";
+	wp_register_style('portico-webworks-admin', false, array(), '0.1.0');
+	wp_enqueue_style('portico-webworks-admin');
+	wp_add_inline_style('portico-webworks-admin', $css);
+});
+
+function portico_webworks_admin_page_slug() {
+	return 'portico-webworks';
 }
 
 function portico_webworks_option_key() {
@@ -107,16 +155,40 @@ function portico_webworks_field_text($args) {
 	$label = $args['label'];
 	$type = isset($args['type']) ? $args['type'] : 'text';
 	$placeholder = isset($args['placeholder']) ? $args['placeholder'] : '';
+	$help = isset($args['help']) ? $args['help'] : '';
 
 	$name = portico_webworks_option_key() . '[' . $key . ']';
 	$val = isset($profile[$key]) ? $profile[$key] : '';
 
 	echo '<label for="portico-webworks-' . esc_attr($key) . '" class="screen-reader-text">' . esc_html($label) . '</label>';
 	echo '<input class="regular-text" id="portico-webworks-' . esc_attr($key) . '" name="' . esc_attr($name) . '" type="' . esc_attr($type) . '" value="' . esc_attr($val) . '" placeholder="' . esc_attr($placeholder) . '" />';
+	if ($help !== '') {
+		echo '<p class="description">' . esc_html($help) . '</p>';
+	}
 }
 
 function portico_webworks_field_url($args) {
 	portico_webworks_field_text(array_merge($args, array('type' => 'url')));
+}
+
+function portico_webworks_section_identity_desc() {
+	echo '<p class="description">Core property details used across the site and templates.</p>';
+}
+
+function portico_webworks_section_address_desc() {
+	echo '<p class="description">Physical location for invoices, maps, and contact pages.</p>';
+}
+
+function portico_webworks_section_contact_desc() {
+	echo '<p class="description">Primary contact details shown to guests.</p>';
+}
+
+function portico_webworks_section_geo_desc() {
+	echo '<p class="description">Used for map embeds and directions. Use decimal degrees.</p>';
+}
+
+function portico_webworks_section_social_desc() {
+	echo '<p class="description">Full URLs to your profiles/listings.</p>';
 }
 
 add_action('admin_menu', function () {
@@ -124,37 +196,10 @@ add_action('admin_menu', function () {
 		'Portico Webworks',
 		'Portico Webworks',
 		'manage_options',
-		'portico-webworks',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_render_root_page',
 		'dashicons-building',
 		58
-	);
-
-	add_submenu_page(
-		'portico-webworks',
-		'Overview',
-		'Overview',
-		'manage_options',
-		'portico-webworks',
-		'portico_webworks_render_root_page'
-	);
-
-	add_submenu_page(
-		'portico-webworks',
-		'Property Profile',
-		'Property Profile',
-		'manage_options',
-		'portico-webworks-property-profile',
-		'portico_webworks_render_property_profile_page'
-	);
-
-	add_submenu_page(
-		'portico-webworks',
-		'Settings',
-		'Settings',
-		'manage_options',
-		'portico-webworks-settings',
-		'portico_webworks_render_settings_page'
 	);
 });
 
@@ -168,220 +213,220 @@ add_action('admin_init', function () {
 	add_settings_section(
 		'portico_webworks_property_identity',
 		'Identity',
-		'__return_null',
-		'portico-webworks-property-profile'
+		'portico_webworks_section_identity_desc',
+		portico_webworks_admin_page_slug()
 	);
 	add_settings_field(
 		'property_name',
 		'Property Name',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_identity',
-		array('key' => 'property_name', 'label' => 'Property Name')
+		array('key' => 'property_name', 'label' => 'Property Name', 'placeholder' => 'e.g. The Grand Pavilion', 'help' => 'Public-facing name shown to guests.')
 	);
 	add_settings_field(
 		'property_short_name',
 		'Property Short Name',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_identity',
-		array('key' => 'property_short_name', 'label' => 'Property Short Name')
+		array('key' => 'property_short_name', 'label' => 'Property Short Name', 'placeholder' => 'e.g. Grand Pavilion', 'help' => 'Shortened name for tight layouts (headers, nav, etc.).')
 	);
 	add_settings_field(
 		'abbreviation',
 		'Abbreviation',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_identity',
-		array('key' => 'abbreviation', 'label' => 'Abbreviation')
+		array('key' => 'abbreviation', 'label' => 'Abbreviation', 'placeholder' => 'e.g. TGP', 'help' => 'Internal shorthand (optional).')
 	);
 	add_settings_field(
 		'legal_name',
-		'Legal Name',
+		'Legal Name (Company)',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_identity',
-		array('key' => 'legal_name', 'label' => 'Legal Name')
+		array('key' => 'legal_name', 'label' => 'Legal Name (Company)', 'placeholder' => 'e.g. Grand Pavilion Hospitality Pvt Ltd', 'help' => 'For invoices, contracts, and compliance.')
 	);
 	add_settings_field(
 		'tax_id',
 		'Tax ID',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_identity',
-		array('key' => 'tax_id', 'label' => 'Tax ID')
+		array('key' => 'tax_id', 'label' => 'Tax ID', 'placeholder' => 'e.g. GSTIN / VAT / EIN', 'help' => 'Use the format required in your jurisdiction.')
 	);
 
 	add_settings_section(
 		'portico_webworks_property_address',
 		'Address',
-		'__return_null',
-		'portico-webworks-property-profile'
+		'portico_webworks_section_address_desc',
+		portico_webworks_admin_page_slug()
 	);
 	add_settings_field(
 		'address_line_1',
 		'Address Line 1',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_address',
-		array('key' => 'address_line_1', 'label' => 'Address Line 1')
+		array('key' => 'address_line_1', 'label' => 'Address Line 1', 'placeholder' => 'Street address, building, etc.')
 	);
 	add_settings_field(
 		'address_line_2',
 		'Address Line 2',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_address',
-		array('key' => 'address_line_2', 'label' => 'Address Line 2')
+		array('key' => 'address_line_2', 'label' => 'Address Line 2', 'placeholder' => 'Area, landmark (optional)')
 	);
 	add_settings_field(
 		'city',
 		'City',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_address',
-		array('key' => 'city', 'label' => 'City')
+		array('key' => 'city', 'label' => 'City', 'placeholder' => 'e.g. Kochi')
 	);
 	add_settings_field(
 		'state',
 		'State',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_address',
-		array('key' => 'state', 'label' => 'State')
+		array('key' => 'state', 'label' => 'State', 'placeholder' => 'e.g. Kerala')
 	);
 	add_settings_field(
 		'postal_code',
 		'Postal Code',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_address',
-		array('key' => 'postal_code', 'label' => 'Postal Code')
+		array('key' => 'postal_code', 'label' => 'Postal Code', 'placeholder' => 'e.g. 682001')
 	);
 
 	add_settings_section(
 		'portico_webworks_property_contact',
 		'Contact',
-		'__return_null',
-		'portico-webworks-property-profile'
+		'portico_webworks_section_contact_desc',
+		portico_webworks_admin_page_slug()
 	);
 	add_settings_field(
 		'phone',
 		'Phone No.',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_contact',
-		array('key' => 'phone', 'label' => 'Phone No.')
+		array('key' => 'phone', 'label' => 'Phone No.', 'type' => 'tel', 'placeholder' => 'e.g. +91 484 123 4567', 'help' => 'Main front desk / reservations number.')
 	);
 	add_settings_field(
 		'mobile',
 		'Mobile No.',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_contact',
-		array('key' => 'mobile', 'label' => 'Mobile No.')
+		array('key' => 'mobile', 'label' => 'Mobile No.', 'type' => 'tel', 'placeholder' => 'e.g. +91 98765 43210', 'help' => 'Optional backup mobile contact.')
 	);
 	add_settings_field(
 		'whatsapp',
 		'WhatsApp No.',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_contact',
-		array('key' => 'whatsapp', 'label' => 'WhatsApp No.')
+		array('key' => 'whatsapp', 'label' => 'WhatsApp No.', 'type' => 'tel', 'placeholder' => 'e.g. +91 98765 43210', 'help' => 'Number used for WhatsApp chats. Include country code.')
 	);
 	add_settings_field(
 		'email',
 		'Email ID',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_contact',
-		array('key' => 'email', 'label' => 'Email ID', 'type' => 'email')
+		array('key' => 'email', 'label' => 'Email ID', 'type' => 'email', 'placeholder' => 'e.g. reservations@yourhotel.com', 'help' => 'Inbox for guest enquiries and reservations.')
 	);
 
 	add_settings_section(
 		'portico_webworks_property_geo',
 		'Geo',
-		'__return_null',
-		'portico-webworks-property-profile'
+		'portico_webworks_section_geo_desc',
+		portico_webworks_admin_page_slug()
 	);
 	add_settings_field(
 		'latitude',
 		'Latitude',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_geo',
-		array('key' => 'latitude', 'label' => 'Latitude', 'placeholder' => 'e.g. 25.2048')
+		array('key' => 'latitude', 'label' => 'Latitude', 'placeholder' => 'e.g. 9.9312', 'help' => 'Example: 9.9312')
 	);
 	add_settings_field(
 		'longitude',
 		'Longitude',
 		'portico_webworks_field_text',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_geo',
-		array('key' => 'longitude', 'label' => 'Longitude', 'placeholder' => 'e.g. 55.2708')
+		array('key' => 'longitude', 'label' => 'Longitude', 'placeholder' => 'e.g. 76.2673', 'help' => 'Example: 76.2673')
 	);
 
 	add_settings_section(
 		'portico_webworks_property_social',
 		'Social',
-		'__return_null',
-		'portico-webworks-property-profile'
+		'portico_webworks_section_social_desc',
+		portico_webworks_admin_page_slug()
 	);
 	add_settings_field(
 		'instagram',
 		'Instagram',
 		'portico_webworks_field_url',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_social',
-		array('key' => 'instagram', 'label' => 'Instagram')
+		array('key' => 'instagram', 'label' => 'Instagram', 'placeholder' => 'https://instagram.com/yourhandle')
 	);
 	add_settings_field(
 		'facebook',
 		'Facebook',
 		'portico_webworks_field_url',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_social',
-		array('key' => 'facebook', 'label' => 'Facebook')
+		array('key' => 'facebook', 'label' => 'Facebook', 'placeholder' => 'https://facebook.com/yourpage')
 	);
 	add_settings_field(
 		'youtube',
 		'YouTube',
 		'portico_webworks_field_url',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_social',
-		array('key' => 'youtube', 'label' => 'YouTube')
+		array('key' => 'youtube', 'label' => 'YouTube', 'placeholder' => 'https://youtube.com/@yourchannel')
 	);
 	add_settings_field(
 		'linkedin',
 		'LinkedIn',
 		'portico_webworks_field_url',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_social',
-		array('key' => 'linkedin', 'label' => 'LinkedIn')
+		array('key' => 'linkedin', 'label' => 'LinkedIn', 'placeholder' => 'https://linkedin.com/company/yourcompany')
 	);
 	add_settings_field(
 		'tripadvisor',
 		'Tripadvisor',
 		'portico_webworks_field_url',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_social',
-		array('key' => 'tripadvisor', 'label' => 'Tripadvisor')
+		array('key' => 'tripadvisor', 'label' => 'Tripadvisor', 'placeholder' => 'https://tripadvisor.com/...')
 	);
 	add_settings_field(
 		'twitter',
 		'Twitter (X)',
 		'portico_webworks_field_url',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_social',
-		array('key' => 'twitter', 'label' => 'Twitter (X)')
+		array('key' => 'twitter', 'label' => 'Twitter (X)', 'placeholder' => 'https://x.com/yourhandle')
 	);
 	add_settings_field(
 		'google_business',
 		'Google My Business',
 		'portico_webworks_field_url',
-		'portico-webworks-property-profile',
+		portico_webworks_admin_page_slug(),
 		'portico_webworks_property_social',
-		array('key' => 'google_business', 'label' => 'Google My Business')
+		array('key' => 'google_business', 'label' => 'Google My Business', 'placeholder' => 'https://g.page/...')
 	);
 });
 
@@ -390,35 +435,51 @@ function portico_webworks_render_root_page() {
 		return;
 	}
 
-	echo '<div class="wrap">';
-	echo '<h1><img alt="" src="' . esc_url(portico_webworks_logo_url()) . '" style="height: 28px; width: 28px; vertical-align: middle; margin-right: 8px;" />Portico Webworks</h1>';
-	echo '<p>Select an option from the submenu.</p>';
-	echo '</div>';
-}
-
-function portico_webworks_render_property_profile_page() {
-	if (!current_user_can('manage_options')) {
-		return;
+	$tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'property';
+	$tabs = array(
+		'property' => 'Property Profile',
+		'settings' => 'Settings',
+	);
+	if (!isset($tabs[$tab])) {
+		$tab = 'property';
 	}
 
-	echo '<div class="wrap">';
-	echo '<h1><img alt="" src="' . esc_url(portico_webworks_logo_url()) . '" style="height: 28px; width: 28px; vertical-align: middle; margin-right: 8px;" />Property Profile</h1>';
-	echo '<form method="post" action="options.php">';
-	settings_fields('portico_webworks_property_profile');
-	do_settings_sections('portico-webworks-property-profile');
-	submit_button('Save');
-	echo '</form>';
+	echo '<div class="wrap portico-webworks-admin">';
+	echo '<div class="pw-header">';
+	echo '<div class="pw-header-left">';
+	echo '<img class="pw-logo" alt="" src="' . esc_url(portico_webworks_logo_url()) . '" />';
+	echo '<div class="pw-title">Portico Webworks</div>';
 	echo '</div>';
-}
+	echo '<div class="pw-badge">v0.1.4</div>';
+	echo '</div>';
 
-function portico_webworks_render_settings_page() {
-	if (!current_user_can('manage_options')) {
-		return;
+	echo '<nav class="pw-tabs" aria-label="Portico Webworks">';
+	foreach ($tabs as $key => $label) {
+		$is_active = $key === $tab;
+		$url = admin_url('admin.php?page=' . urlencode(portico_webworks_admin_page_slug()) . '&tab=' . urlencode($key));
+		echo '<a class="pw-tab' . ($is_active ? ' is-active' : '') . '" href="' . esc_url($url) . '">' . esc_html($label) . '</a>';
 	}
+	echo '</nav>';
 
-	echo '<div class="wrap">';
-	echo '<h1><img alt="" src="' . esc_url(portico_webworks_logo_url()) . '" style="height: 28px; width: 28px; vertical-align: middle; margin-right: 8px;" />Settings</h1>';
-	echo '<p>Portico Webworks settings will go here.</p>';
+	echo '<div class="pw-panel">';
+	if ($tab === 'property') {
+		echo '<div class="pw-card">';
+		echo '<div class="pw-card-head"><div class="pw-card-title">Property Profile</div></div>';
+		echo '<div class="pw-card-body">';
+		echo '<form method="post" action="options.php">';
+		echo '<input type="hidden" name="_wp_http_referer" value="' . esc_attr(admin_url('admin.php?page=' . urlencode(portico_webworks_admin_page_slug()) . '&tab=property')) . '" />';
+		settings_fields('portico_webworks_property_profile');
+		do_settings_sections(portico_webworks_admin_page_slug());
+		submit_button('Save', 'primary', 'submit', true, array('class' => 'pw-btn'));
+		echo '</form>';
+		echo '</div></div>';
+	} else {
+		echo '<div class="pw-card">';
+		echo '<div class="pw-card-head"><div class="pw-card-title">Settings</div></div>';
+		echo '<div class="pw-card-body"><p>Portico Webworks settings will go here.</p></div>';
+		echo '</div>';
+	}
+	echo '</div>';
 	echo '</div>';
 }
 

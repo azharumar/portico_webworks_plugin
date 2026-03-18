@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.4] - 2026-03-18
+
+### Added
+- Single-page Portico Webworks admin UI (tabs + cards)
+- Helper text and better placeholders for Property Profile fields
+
 ## [0.1.3] - 2026-03-18
 
 ### Added
