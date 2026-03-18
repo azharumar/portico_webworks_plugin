@@ -100,10 +100,16 @@ function pw_render_root_page() {
 	echo '<img class="pw-logo" src="' . esc_url(pw_logo_url()) . '" alt="" />';
 	echo '<div class="pw-brand-text">';
 	echo '<div class="pw-title">' . esc_html(pw_title()) . '</div>';
+	$site_mode = get_option('pw_site_mode', 'development');
 	$ver = pw_version();
 	if ($ver !== '') {
 		echo '<div class="pw-version">v' . esc_html($ver) . '</div>';
 	}
+
+	$is_prod = $site_mode === 'production';
+	$mode_label = $is_prod ? 'Production' : 'Development';
+	$mode_class = $is_prod ? 'is-production' : 'is-development';
+	echo '<div class="pw-mode ' . esc_attr($mode_class) . '">' . esc_html($mode_label) . '</div>';
 	echo '</div>';
 	echo '</div>';
 	echo '</div>';

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.4] - 2026-03-19
+
+### Fixed
+- Register `_pw_property_profile` meta for `pw_property` CPT so REST dynamic data discovery works
+- Ensure `pw_site_mode` updates front-end indexing behavior via `pre_option_blog_public`
+
+### Changed
+- Show Production/Development badge in the Portico Webworks admin header
+
 ## [0.3.3] - 2026-03-19
 
 ### Added

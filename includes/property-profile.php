@@ -257,7 +257,8 @@ add_action('rest_api_init', function () {
 	}
 
 	if (function_exists('pw_property_meta_key')) {
-		register_meta('post', pw_property_meta_key(), array(
+		// Register the meta blob for the actual CPT so REST/discovery can associate it correctly.
+		register_meta('pw_property', pw_property_meta_key(), array(
 			'type' => 'object',
 			'single' => true,
 			'show_in_rest' => true,

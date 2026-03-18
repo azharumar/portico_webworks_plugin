@@ -30,6 +30,9 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 .pw-admin .pw-brand-text{display:flex;align-items:center;gap:10px;min-width:0}
 .pw-admin .pw-title{font-size:20px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
 .pw-admin .pw-version{font-size:12px;font-weight:700;color:var(--muted);background:rgba(0,0,0,0.04);border:1px solid var(--border);padding:2px 8px;border-radius:999px}
+.pw-admin .pw-mode{font-size:12px;font-weight:700;color:var(--text);background:rgba(0,0,0,0.04);border:1px solid var(--border);padding:2px 8px;border-radius:999px;white-space:nowrap}
+.pw-admin .pw-mode.is-development{background:rgba(201,42,8,0.12);border-color:rgba(201,42,8,0.25)}
+.pw-admin .pw-mode.is-production{background:rgba(30,142,62,0.12);border-color:rgba(30,142,62,0.25)}
 .pw-admin .pw-tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin:10px 0 16px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
 .pw-admin .pw-tabs::-webkit-scrollbar{display:none}
 .pw-admin .pw-tab{display:inline-flex;align-items:center;padding:10px 12px;font-size:13px;font-weight:600;color:var(--muted);text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-1px}
