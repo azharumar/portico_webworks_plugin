@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3] - 2026-03-18
+
+### Added
+- Property Profile admin page (identity, address, contact, geo, social)
+
+### Fixed
+- Admin menu spacing under Portico Webworks
+
 ## [0.1.2] - 2026-03-18
 
 ### Changed
