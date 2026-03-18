@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.2] - 2026-03-18
+
+### Changed
+- Admin menu icon: use Dashicons hotel/building icon
+
 ## [0.1.1] - 2026-03-18
 
 ### Added

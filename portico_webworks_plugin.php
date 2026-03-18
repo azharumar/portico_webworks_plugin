@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Portico Webworks
  * Description: Portico Webworks plugin.
- * Version: 0.1.1
+ * Version: 0.1.2
  * Author: Portico Webworks
  * Author URI: https://porticowebworks.com
  */
@@ -22,7 +22,7 @@ add_action('admin_menu', function () {
 		'manage_options',
 		'portico-webworks',
 		'portico_webworks_render_root_page',
-		portico_webworks_logo_url(),
+		'dashicons-building',
 		58
 	);
 
