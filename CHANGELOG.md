@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1] - 2026-03-19
+
+### Fixed
+- Include `vendor/autoload.php` and `vendor/composer/` in release ZIP so PhpSpreadsheet (and any future Composer-autoloaded library) is resolvable on the production server
+- Remove `pw_offer`, `pw_nearby`, `pw_experience`, `pw_event` from `pw_remove_cpt_submenus()` so their list-view admin pages are accessible in the sidebar
+- Add the four new CPTs to `admin-page.php` post-new removal list to suppress the redundant "Add New" duplicate submenu entry
+
 ## [0.5.0] - 2026-03-19
 
 ### Added

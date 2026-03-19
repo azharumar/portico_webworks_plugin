@@ -763,10 +763,6 @@ function pw_remove_cpt_submenus() {
 		'pw_amenity',
 		'pw_policy',
 		'pw_faq',
-		'pw_offer',
-		'pw_nearby',
-		'pw_experience',
-		'pw_event',
 	];
 
 	foreach ( $cpts as $cpt ) {

@@ -44,6 +44,10 @@ add_action('admin_menu', function () {
 		'pw_amenity',
 		'pw_policy',
 		'pw_faq',
+		'pw_offer',
+		'pw_nearby',
+		'pw_experience',
+		'pw_event',
 	];
 
 	foreach ($cpt_slugs as $cpt) {
@@ -102,9 +106,8 @@ function pw_render_root_page() {
 	}
 
 	$base_tabs = array(
-		'property' => 'Property Profile',
 		'settings' => 'Settings',
-		'about' => 'About',
+		'about'    => 'About',
 	);
 	$tabs = apply_filters('pw_admin_tabs', $base_tabs);
 	$valid_keys = array_keys($tabs);
@@ -145,7 +148,7 @@ function pw_render_root_page() {
 	}
 	echo '</nav>';
 
-	if (!in_array($tab, array('property', 'settings', 'about'), true)) {
+	if (!in_array($tab, array('settings', 'about'), true)) {
 		do_action('pw_render_tab_' . $tab);
 		echo '<div class="pw-footer">';
 		echo '<a class="pw-footer-link" href="' . esc_url($footer_link) . '" target="_blank" rel="noopener noreferrer">© ' . esc_html(gmdate('Y')) . ' Portico Webworks</a>';
@@ -251,50 +254,5 @@ function pw_render_root_page() {
 		return;
 	}
 
-	echo '<div class="pw-card">';
-	echo '<div class="pw-card-head"><div class="pw-card-title">Properties</div></div>';
-	echo '<div class="pw-card-body">';
-
-	$properties = pw_get_all_properties();
-	$add_url = admin_url('post-new.php?post_type=pw_property');
-	$hide_add = ($mode === 'single' && !empty($properties));
-
-	if (!$hide_add) {
-		echo '<p><a class="button button-primary" href="' . esc_url($add_url) . '">Add Property</a></p>';
-	}
-
-	echo '<table class="widefat striped" role="presentation">';
-	echo '<thead><tr>';
-	echo '<th scope="col">Name</th>';
-	echo '<th scope="col">Slug</th>';
-	echo '<th scope="col">City</th>';
-	echo '<th scope="col">Actions</th>';
-	echo '</tr></thead>';
-	echo '<tbody>';
-	if (empty($properties)) {
-		echo '<tr><td colspan="4">No properties found. Click "Add Property" to get started.</td></tr>';
-	} else {
-		foreach ($properties as $p) {
-			$profile = pw_get_property_profile($p['id']);
-			$city = isset($profile['city']) ? $profile['city'] : '';
-			$edit_url = get_edit_post_link($p['id']);
-
-			echo '<tr>';
-			echo '<td>' . esc_html($p['name']) . '</td>';
-			echo '<td>' . esc_html($p['slug']) . '</td>';
-			echo '<td>' . esc_html($city) . '</td>';
-			echo '<td><a href="' . esc_url($edit_url) . '">Edit</a></td>';
-			echo '</tr>';
-		}
-	}
-	echo '</tbody>';
-	echo '</table>';
-
-	echo '</div></div>';
-	echo '<div class="pw-footer">';
-	echo '<a class="pw-footer-link" href="' . esc_url($footer_link) . '" target="_blank" rel="noopener noreferrer">© ' . esc_html(gmdate('Y')) . ' Portico Webworks</a>';
-	echo '</div>';
-	do_action('pw_admin_notices');
-	echo '</div>';
 }
 
