@@ -3,9 +3,16 @@
     "description": "Portico Webworks Hotel Website Manager",
     "type": "wordpress-plugin",
     "require": {
-        "cmb2/cmb2": "^2.11"
+        "php": ">=7.4",
+        "cmb2/cmb2": "^2.11",
+        "phpoffice/phpspreadsheet": "^1.29"
     },
     "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
         "vendor-dir": "vendor"
+    },
+    "autoload": {
+        "psr-4": {}
     }
 }

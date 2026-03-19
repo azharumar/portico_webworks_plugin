@@ -192,6 +192,34 @@ function pw_get_room_features( $room_type_id ) {
 	] );
 }
 
+function pw_get_faqs_for( $post_type, $post_id ) {
+	$faqs = get_posts( [
+		'post_type'      => 'pw_faq',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+	] );
+
+	return array_filter( $faqs, function( $faq ) use ( $post_type, $post_id ) {
+		$connections = get_post_meta( $faq->ID, '_pw_connected_to', true );
+		if ( empty( $connections ) || ! is_array( $connections ) ) return false;
+		foreach ( $connections as $connection ) {
+			if (
+				isset( $connection['type'], $connection['id'] ) &&
+				$connection['type'] === $post_type &&
+				(int) $connection['id'] === (int) $post_id
+			) {
+				return true;
+			}
+		}
+		return false;
+	} );
+}
+
+function pw_get_property_currency( $property_id = null ) {
+	$id = $property_id ?? pw_get_current_property_id();
+	return get_post_meta( (int) $id, '_pw_currency', true ) ?: 'USD';
+}
+
 add_action('template_redirect', function () {
 	if (is_admin() || wp_doing_ajax()) {
 		return;

@@ -1,5 +1,4 @@
 node_modules/
-vendor/
 *.log
 .DS_Store
 .idea/
@@ -8,4 +7,20 @@ vendor/
 !assets/zips/*.zip
 wp-config.php
 .cursor/
+
+# Ignore all vendor by default
+/vendor/
+
+# Track CMB2 — bundled library, shipped with plugin
+!/vendor/cmb2/
+!/vendor/cmb2/**
+
+# Track PhpSpreadsheet — bundled library, shipped with plugin
+!/vendor/phpoffice/
+!/vendor/phpoffice/**
+
+# Track autoloader — required for both libraries to work
+!/vendor/autoload.php
+!/vendor/composer/
+!/vendor/composer/**
 

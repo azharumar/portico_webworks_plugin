@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.5.0] - 2026-03-19
+
+### Added
+- Register CPTs: `pw_offer`, `pw_nearby`, `pw_experience`, `pw_event` under Portico Webworks admin menu
+- Register taxonomies: `pw_nearby_type`, `pw_transport_mode` on `pw_nearby`; `pw_experience_category` on `pw_experience`; `pw_event_type` on `pw_event`
+- Sustainability checklist meta (19 feature keys + certification name/URL) on `pw_property`
+- Accessibility checklist meta (19 feature keys) on `pw_property`
+- Pool details repeatable group (`_pw_pools`) on `pw_property`
+- Direct booking benefits repeatable group (`_pw_direct_benefits`) on `pw_property`
+- CMB2 meta boxes for all new CPTs and all new `pw_property` groups
+- Add `pw_offer`, `pw_nearby`, `pw_experience`, `pw_event` to import/export allowed types
+- `_pw_currency` meta on `pw_property` with CMB2 currency selector
+- `pw_get_faqs_for()` and `pw_get_property_currency()` helper functions
+- `pw_faq` CPT added to admin page navigation list
+
 ## [0.4.1] - 2026-03-19
 
 ### Fixed

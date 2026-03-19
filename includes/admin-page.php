@@ -43,6 +43,7 @@ add_action('admin_menu', function () {
 		'pw_meeting_room',
 		'pw_amenity',
 		'pw_policy',
+		'pw_faq',
 	];
 
 	foreach ($cpt_slugs as $cpt) {

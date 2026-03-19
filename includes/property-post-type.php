@@ -101,7 +101,42 @@ function pw_register_property_post_meta() {
 		'show_in_rest' => true,
 		'default'      => 0,
 	] );
+
+	register_post_meta( 'pw_property', '_pw_currency', [
+		'type'         => 'string',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => 'USD',
+	] );
 }
+
+function pw_currency_cmb2_options() {
+	$options = [];
+	foreach ( pw_get_currency_list() as $code => $data ) {
+		$options[ $code ] = $code . ' ' . $data['symbol'] . ' — ' . $data['name'];
+	}
+	return $options;
+}
+
+function pw_register_property_metaboxes() {
+	$cmb = new_cmb2_box( [
+		'id'           => 'pw_property_metabox',
+		'title'        => 'Property Settings',
+		'object_types' => [ 'pw_property' ],
+		'context'      => 'normal',
+		'priority'     => 'high',
+	] );
+
+	$cmb->add_field( [
+		'name'    => 'Currency',
+		'id'      => '_pw_currency',
+		'type'    => 'select',
+		'options' => 'pw_currency_cmb2_options',
+		'default' => 'USD',
+	] );
+}
+
+add_action( 'cmb2_admin_init', 'pw_register_property_metaboxes' );
 
 // Override viewable so builders (GenerateBlocks) discover pw_property even when publicly_queryable is false.
 add_filter('is_post_type_viewable', function ($is_viewable, $post_type) {
