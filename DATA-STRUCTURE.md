@@ -2,95 +2,101 @@
 
 ## Overview
 
-The plugin registers **1 primary post type** (`pw_property`) and **11 child post types**. Child CPTs are linked to a property via a `_pw_property_id` meta field. All CPTs expose data via the REST API (`show_in_rest: true`).
+The plugin registers **1 primary post type** (`pw_property`) and **12 child post types**. Child CPTs are linked to a property via a `_pw_property_id` meta field (or `_pw_connected_to` / `_pw_parents` where applicable). All CPTs expose data via the REST API (`show_in_rest: true`).
+
+Admin UI is built with **CMB2** (meta boxes) and custom metaboxes (property profile). CMB2 is bundled in `vendor/cmb2/` and its admin menu is suppressed via `cmb2_menus` filter.
 
 ---
 
 ## Post Type: `pw_property`
 
 **REST base:** `pw-properties`  
-**Supports:** `title`, `thumbnail`, `revisions`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `revisions`, `custom-fields`  
 **Public:** mode-dependent (`pw_property_mode` option: `single` | `multi`)
 
 ### Meta Fields
 
 #### General
-| Meta Key | Type | Default | Notes |
-|---|---|---|---|
-| `_pw_legal_name` | string | `''` | For invoices / compliance |
-| `_pw_star_rating` | integer | `0` | 1–5 classification |
-| `_pw_currency` | string | `'USD'` | ISO 4217 currency code |
-| `_pw_check_in_time` | string | `''` | e.g. `14:00` |
-| `_pw_check_out_time` | string | `''` | e.g. `11:00` |
-| `_pw_year_established` | integer | `0` | Used in schema.org LodgingBusiness |
-| `_pw_total_rooms` | integer | `0` | Total inventory count |
+| Meta Key | Type | Default | Notes | CMB2 |
+|---|---|---|---|---|
+| `_pw_legal_name` | string | `''` | For invoices / compliance | Custom metabox (Property Profile → General) |
+| `_pw_star_rating` | integer | `0` | 1–5 classification | Custom metabox |
+| `_pw_currency` | string | `'USD'` | ISO 4217 currency code | Custom metabox (select) |
+| `_pw_check_in_time` | string | `''` | e.g. `14:00` | Custom metabox |
+| `_pw_check_out_time` | string | `''` | e.g. `11:00` | Custom metabox |
+| `_pw_year_established` | integer | `0` | schema.org LodgingBusiness | Custom metabox |
+| `_pw_total_rooms` | integer | `0` | Total inventory count | Custom metabox |
 
-> **Note:** The default front-end template is now a plugin-level setting configured via the Portico Webworks Settings page (stored as a WP option). It is no longer a per-property meta field.
+> **Note:** The default front-end template is a plugin-level setting (Portico Webworks Settings → Default Template). Property profile fields (General, Address, Geo, Social) use custom metaboxes in `property-profile.php`, not CMB2.
 
 #### Address
-| Meta Key | Type | Default |
-|---|---|---|
-| `_pw_address_line_1` | string | `''` |
-| `_pw_address_line_2` | string | `''` |
-| `_pw_city` | string | `''` |
-| `_pw_state` | string | `''` | State or province |
-| `_pw_postal_code` | string | `''` |
-| `_pw_country` | string | `''` | ISO 3166-1 alpha-2 |
+| Meta Key | Type | Default | Notes | CMB2 |
+|---|---|---|---|---|
+| `_pw_address_line_1` | string | `''` | | Custom metabox (Property Profile → Address) |
+| `_pw_address_line_2` | string | `''` | | Custom metabox |
+| `_pw_city` | string | `''` | | Custom metabox |
+| `_pw_state` | string | `''` | State or province | Custom metabox |
+| `_pw_postal_code` | string | `''` | | Custom metabox |
+| `_pw_country` | string | `''` | Full country name | Custom metabox |
+| `_pw_country_code` | string | `''` | ISO 3166-1 alpha-2 (schema.org) | Custom metabox |
 
-#### Contact
-| Meta Key | Type | Default |
-|---|---|---|
-| `_pw_phone` | string | `''` |
-| `_pw_mobile` | string | `''` |
-| `_pw_whatsapp` | string | `''` |
-| `_pw_email` | string | `''` |
+#### Contacts (`_pw_contacts`) — repeatable group
+| Field | Type | Notes | CMB2 |
+|---|---|---|---|
+| `label` | string | e.g. Hotel, Reservations, Sales | CMB2: `pw_property_contacts` |
+| `phone` | string | | |
+| `mobile` | string | | |
+| `whatsapp` | string | | |
+| `email` | string | | |
 
 #### Geo
-| Meta Key | Type | Default | Notes |
-|---|---|---|---|
-| `_pw_lat` | number | `0` | |
-| `_pw_lng` | number | `0` | |
-| `_pw_google_place_id` | string | `''` | Google Maps Place ID |
-| `_pw_timezone` | string | `''` | IANA timezone identifier (e.g. `Asia/Kolkata`) |
+| Meta Key | Type | Default | Notes | CMB2 |
+|---|---|---|---|---|
+| `_pw_lat` | number | `0` | | Custom metabox (Property Profile → Geo) |
+| `_pw_lng` | number | `0` | | Custom metabox |
+| `_pw_google_place_id` | string | `''` | Google Maps Place ID | Custom metabox |
+| `_pw_timezone` | string | `''` | IANA (e.g. `Asia/Kolkata`) | Custom metabox (select) |
 
 #### Social
-| Meta Key | Type | Default |
-|---|---|---|
-| `_pw_social_facebook` | string | `''` |
-| `_pw_social_instagram` | string | `''` |
-| `_pw_social_twitter` | string | `''` |
-| `_pw_social_youtube` | string | `''` |
-| `_pw_social_linkedin` | string | `''` |
-| `_pw_social_tripadvisor` | string | `''` |
+| Meta Key | Type | Default | CMB2 |
+|---|---|---|---|
+| `_pw_social_facebook` | string | `''` | Custom metabox (Property Profile → Social) |
+| `_pw_social_instagram` | string | `''` | Custom metabox |
+| `_pw_social_twitter` | string | `''` | Custom metabox |
+| `_pw_social_youtube` | string | `''` | Custom metabox |
+| `_pw_social_linkedin` | string | `''` | Custom metabox |
+| `_pw_social_tripadvisor` | string | `''` | Custom metabox |
 
 #### SEO & Social Sharing
-| Meta Key | Type | Default | Notes |
+| Meta Key | Type | Default | Notes | CMB2 |
+|---|---|---|---|---|
+| `_pw_meta_title` | string | `''` | Overrides post title | CMB2: `pw_property_seo` |
+| `_pw_meta_description` | string | `''` | Overrides excerpt | CMB2 |
+| `_pw_og_image` | integer | `0` | Attachment ID for Open Graph | CMB2 (file) |
+
+#### Pools (`_pw_pools`) — repeatable group
+| Field | Type | Notes | CMB2 |
 |---|---|---|---|
-| `_pw_og_image` | integer | `0` | Attachment ID for custom Open Graph image |
+| `name` | string | e.g. Main Pool, Kids Pool | CMB2: `pw_property_pools` |
+| `length_m` | number | | |
+| `width_m` | number | | |
+| `depth_m` | number | | |
+| `open_time` | string | e.g. `07:00` | text_time |
+| `close_time` | string | e.g. `22:00` | text_time |
+| `is_heated` | boolean | | checkbox |
+| `is_kids` | boolean | | checkbox |
+| `is_indoor` | boolean | | checkbox |
+| `is_infinity` | boolean | | checkbox |
 
-#### Pools (`_pw_pools`) — array of objects
-| Field | Type | Notes |
+#### Direct Booking Benefits (`_pw_direct_benefits`) — repeatable group
+| Field | Type | CMB2 |
 |---|---|---|
-| `name` | string | |
-| `length_m` | number | |
-| `width_m` | number | |
-| `depth_m` | number | |
-| `open_time` | string | e.g. `07:00` |
-| `close_time` | string | e.g. `22:00` |
-| `is_heated` | boolean | |
-| `is_kids` | boolean | |
-| `is_indoor` | boolean | |
-| `is_infinity` | boolean | |
-
-#### Direct Booking Benefits (`_pw_direct_benefits`) — array of objects
-| Field | Type |
-|---|---|
-| `title` | string |
-| `description` | string |
-| `icon` | string |
+| `title` | string | CMB2: `pw_property_direct_benefits` |
+| `description` | string | |
+| `icon` | string | Icon slug or SVG |
 
 #### Sustainability — string enum (`unknown` | `available` | `not_available`) + optional note
-Each sustainability parameter has a paired `_note` key (string, `''`) for free-text clarification.
+Each parameter has a paired `_note` key (string, `''`). CMB2: `pw_property_sustainability`
 
 | Meta Key | Note Key | Group |
 |---|---|---|
@@ -114,10 +120,16 @@ Each sustainability parameter has a paired `_note` key (string, `''`) for free-t
 | `_pw_sus_local_food_sourcing` | `_pw_sus_local_food_sourcing_note` | Sustainable sourcing |
 | `_pw_sus_organic_food_options` | `_pw_sus_organic_food_options_note` | Sustainable sourcing |
 
-Certifications (strings, `''`): `_pw_sus_certification_name`, `_pw_sus_certification_url`
+#### Certifications & Awards (`_pw_certifications`) — repeatable group
+| Field | Type | Notes | CMB2 |
+|---|---|---|---|
+| `name` | string | e.g. Green Key, Forbes Travel Guide | CMB2: `pw_property_certifications` |
+| `issuer` | string | Organisation that issued | |
+| `year` | string | Year awarded or renewed | |
+| `url` | string | Link to certificate | |
 
 #### Accessibility — string enum (`unknown` | `available` | `not_available`) + optional note
-Each accessibility parameter has a paired `_note` key (string, `''`) for free-text clarification.
+CMB2: `pw_property_accessibility`
 
 | Meta Key | Note Key | Group |
 |---|---|---|
@@ -148,32 +160,31 @@ Each accessibility parameter has a paired `_note` key (string, `''`) for free-te
 **Supports:** `title`, `custom-fields`  
 **Taxonomies:** `pw_feature_group`
 
-| Meta Key | Type | Default |
-|---|---|---|
-| `_pw_icon` | string | `''` | SVG string or icon slug |
-| `_pw_short_description` | string | `''` |
+| Meta Key | Type | Default | CMB2 |
+|---|---|---|---|
+| `_pw_icon` | string | `''` | CMB2: `pw_feature_metabox` (textarea_small) — SVG string or icon slug |
 
 ---
 
 ## Post Type: `pw_room_type`
 
-**Supports:** `title`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
 **Taxonomies:** `pw_bed_type`, `pw_view_type`
 
-| Meta Key | Type | Default | Notes |
-|---|---|---|---|
-| `_pw_property_id` | integer | `0` | FK → `pw_property` |
-| `_pw_rate_from` | number | `0` | Starting rate |
-| `_pw_rate_to` | number | `0` | Upper end of rate range |
-| `_pw_max_occupancy` | integer | `0` | Total guest limit |
-| `_pw_max_adults` | integer | `0` | Must satisfy: max_adults + max_children ≤ max_occupancy |
-| `_pw_max_children` | integer | `0` | Must satisfy: max_adults + max_children ≤ max_occupancy |
-| `_pw_size_sqft` | integer | `0` | |
-| `_pw_size_sqm` | integer | `0` | |
-| `_pw_max_extra_beds` | integer | `0` | |
-| `_pw_display_order` | integer | `0` | |
-| `_pw_features` | array\<integer\> | — | Array of `pw_feature` post IDs |
-| `_pw_gallery` | array\<integer\> | — | Array of attachment IDs |
+| Meta Key | Type | Default | Notes | CMB2 |
+|---|---|---|---|---|
+| `_pw_property_id` | integer | `0` | FK → `pw_property` | CMB2: `pw_room_type_metabox` (select) |
+| `_pw_rate_from` | number | `0` | Starting rate | text_money |
+| `_pw_rate_to` | number | `0` | Upper rate range | text_money |
+| `_pw_max_occupancy` | integer | `0` | Total guest limit | text_small |
+| `_pw_max_adults` | integer | `0` | max_adults + max_children ≤ max_occupancy | text_small |
+| `_pw_max_children` | integer | `0` | max_adults + max_children ≤ max_occupancy | text_small |
+| `_pw_size_sqft` | integer | `0` | | text_small |
+| `_pw_size_sqm` | integer | `0` | | text_small |
+| `_pw_max_extra_beds` | integer | `0` | | text_small |
+| `_pw_display_order` | integer | `0` | | text_small |
+| `_pw_features` | array\<integer\> | — | Array of `pw_feature` post IDs | multicheck |
+| `_pw_gallery` | array\<integer\> | — | Attachment IDs | file_list |
 
 **Validation:** Admin UI enforces `max_adults + max_children ≤ max_occupancy` on save.
 
@@ -181,82 +192,71 @@ Each accessibility parameter has a paired `_note` key (string, `''`) for free-te
 
 ## Post Type: `pw_restaurant`
 
-**Supports:** `title`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
 **Taxonomies:** `pw_meal_period`
 
-| Meta Key | Type | Default | Notes |
-|---|---|---|---|
-| `_pw_property_id` | integer | `0` | |
-| `_pw_location` | string | `''` | Physical location identifier (e.g. Rooftop Level, Beach Side) |
-| `_pw_cuisine_type` | string | `''` | |
-| `_pw_seating_capacity` | integer | `0` | |
-| `_pw_reservation_url` | string | `''` | |
-| `_pw_menu_url` | string | `''` | |
-| `_pw_gallery` | array\<integer\> | — | |
+| Meta Key | Type | Default | Notes | CMB2 |
+|---|---|---|---|---|
+| `_pw_property_id` | integer | `0` | | CMB2: `pw_restaurant_metabox` (select) |
+| `_pw_location` | string | `''` | e.g. Rooftop Level, Beach Side | text |
+| `_pw_cuisine_type` | string | `''` | | text |
+| `_pw_seating_capacity` | integer | `0` | | text_small |
+| `_pw_reservation_url` | string | `''` | | text_url |
+| `_pw_menu_url` | string | `''` | | text_url |
+| `_pw_gallery` | array\<integer\> | — | | file_list |
 
-#### Operating Hours (`_pw_operating_hours`) — array of session objects
-Multiple sessions per day are supported by adding multiple entries with the same `day` value.
+#### Operating Hours — per-day meta keys `_pw_hours_{day}` (e.g. `_pw_hours_monday`)
+Each day stores an object with `is_closed` and `sessions` (repeatable). | CMB2: `pw_restaurant_operating_hours` |
 
 | Field | Type | Notes |
 |---|---|---|
-| `session_label` | string | e.g. `Breakfast`, `Lunch`, `Dinner` |
-| `day` | string | `monday`…`sunday` |
-| `open_time` | string | |
-| `close_time` | string | |
-| `is_closed` | boolean | |
+| `is_closed` | boolean | Closed all day |
+| `sessions` | array | Repeatable: `label`, `open_time`, `close_time` |
 
 ---
 
 ## Post Type: `pw_spa`
 
-**Supports:** `title`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
 **Taxonomies:** `pw_treatment_type`
 
-| Meta Key | Type | Default |
-|---|---|---|
-| `_pw_property_id` | integer | `0` |
-| `_pw_booking_url` | string | `''` |
-| `_pw_menu_url` | string | `''` |
-| `_pw_min_age` | integer | `0` |
-| `_pw_number_of_treatment_rooms` | integer | `0` |
-| `_pw_gallery` | array\<integer\> | — |
+| Meta Key | Type | Default | CMB2 |
+|---|---|---|---|
+| `_pw_property_id` | integer | `0` | CMB2: `pw_spa_metabox` (select) |
+| `_pw_booking_url` | string | `''` | text_url |
+| `_pw_menu_url` | string | `''` | text_url |
+| `_pw_min_age` | integer | `0` | text_small |
+| `_pw_number_of_treatment_rooms` | integer | `0` | text_small |
+| `_pw_gallery` | array\<integer\> | — | file_list |
 
-#### Operating Hours (`_pw_operating_hours`) — array of session objects
-Multiple sessions per day are supported by adding multiple entries with the same `day` value.
-
-| Field | Type | Notes |
-|---|---|---|
-| `session_label` | string | e.g. `Morning`, `Afternoon` |
-| `day` | string | `monday`…`sunday` |
-| `open_time` | string | |
-| `close_time` | string | |
-| `is_closed` | boolean | |
+#### Operating Hours — per-day `_pw_hours_{day}`
+Same structure as restaurant. | CMB2: `pw_spa_operating_hours` |
 
 ---
 
 ## Post Type: `pw_meeting_room`
 
-**Supports:** `title`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
 **Taxonomies:** `pw_av_equipment`
 
-| Meta Key | Type | Default |
-|---|---|---|
-| `_pw_property_id` | integer | `0` |
-| `_pw_capacity_theatre` | integer | `0` |
-| `_pw_capacity_classroom` | integer | `0` |
-| `_pw_capacity_boardroom` | integer | `0` |
-| `_pw_capacity_ushape` | integer | `0` |
-| `_pw_area_sqft` | integer | `0` |
-| `_pw_area_sqm` | integer | `0` |
-| `_pw_prefunction_area_sqft` | integer | `0` |
-| `_pw_prefunction_area_sqm` | integer | `0` |
-| `_pw_natural_light` | boolean | `false` |
-| `_pw_floor_plan` | integer | `0` | Attachment ID |
-| `_pw_phone` | string | `''` | Direct venue contact |
-| `_pw_mobile` | string | `''` | |
-| `_pw_whatsapp` | string | `''` | |
-| `_pw_email` | string | `''` | |
-| `_pw_gallery` | array\<integer\> | — |
+| Meta Key | Type | Default | Notes | CMB2 |
+|---|---|---|---|---|
+| `_pw_property_id` | integer | `0` | | CMB2: `pw_meeting_room_metabox` (select) |
+| `_pw_capacity_theatre` | integer | `0` | | text_small |
+| `_pw_capacity_classroom` | integer | `0` | | text_small |
+| `_pw_capacity_boardroom` | integer | `0` | | text_small |
+| `_pw_capacity_ushape` | integer | `0` | | text_small |
+| `_pw_area_sqft` | integer | `0` | | text_small |
+| `_pw_area_sqm` | integer | `0` | | text_small |
+| `_pw_prefunction_area_sqft` | integer | `0` | | text_small |
+| `_pw_prefunction_area_sqm` | integer | `0` | | text_small |
+| `_pw_natural_light` | boolean | `false` | | checkbox |
+| `_pw_floor_plan` | integer | `0` | Attachment ID | file |
+| `_pw_sales_phone` | string | `''` | Direct venue contact | text_small |
+| `_pw_sales_mobile` | string | `''` | | text_small |
+| `_pw_sales_whatsapp` | string | `''` | | text_small |
+| `_pw_sales_email` | string | `''` | | text_small |
+| `_pw_gallery` | array\<integer\> | — | | file_list |
 
 ---
 
@@ -264,31 +264,32 @@ Multiple sessions per day are supported by adding multiple entries with the same
 
 **Supports:** `title`, `custom-fields`
 
-| Meta Key | Type | Default | Notes |
-|---|---|---|---|
-| `_pw_property_id` | integer | `0` | |
-| `_pw_type` | string | `''` | `amenity` \| `service` \| `facility` |
-| `_pw_category` | string | `''` | |
-| `_pw_icon` | string | `''` | |
-| `_pw_description` | string | `''` | |
-| `_pw_is_complimentary` | boolean | `false` | |
-| `_pw_display_order` | integer | `0` | |
+| Meta Key | Type | Default | Notes | CMB2 |
+|---|---|---|---|---|
+| `_pw_property_id` | integer | `0` | | CMB2: `pw_amenity_metabox` (select) |
+| `_pw_type` | string | `''` | `amenity` \| `service` \| `facility` | select |
+| `_pw_category` | string | `''` | | text |
+| `_pw_icon` | string | `''` | | textarea_small |
+| `_pw_description` | string | `''` | | textarea_small |
+| `_pw_is_complimentary` | boolean | `false` | | checkbox |
+| `_pw_display_order` | integer | `0` | | text_small |
 
 ---
 
 ## Post Type: `pw_policy`
 
-**Supports:** `title`, `custom-fields`
+**Supports:** `title`, `editor`, `custom-fields`  
+**Taxonomies:** `pw_policy_type` (checkin, checkout, cancellation, pet, child, payment, smoking, custom)
 
-| Meta Key | Type | Default | Notes |
-|---|---|---|---|
-| `_pw_property_id` | integer | `0` | |
-| `_pw_policy_type` | string | `''` | `checkin` \| `checkout` \| `cancellation` \| `pet` \| `child` \| `payment` \| `smoking` \| `custom` |
-| `_pw_title` | string | `''` | |
-| `_pw_content` | string | `''` | |
-| `_pw_is_highlighted` | boolean | `false` | |
-| `_pw_display_order` | integer | `0` | |
-| `_pw_active` | boolean | `true` | |
+| Meta Key | Type | Default | Notes | CMB2 |
+|---|---|---|---|---|
+| `_pw_property_id` | integer | `0` | | CMB2: `pw_policy_metabox` (select) |
+| `_pw_content` | string | `''` | | textarea |
+| `_pw_is_highlighted` | boolean | `false` | | checkbox |
+| `_pw_display_order` | integer | `0` | | text_small |
+| `_pw_active` | boolean | `true` | | checkbox |
+
+Policy type is set via taxonomy `pw_policy_type`. Post title is the policy title.
 
 ---
 
@@ -296,117 +297,140 @@ Multiple sessions per day are supported by adding multiple entries with the same
 
 **Supports:** `title`, `custom-fields`
 
-| Meta Key | Type | Default |
-|---|---|---|
-| `_pw_answer` | string | `''` |
-| `_pw_display_order` | integer | `0` |
+| Meta Key | Type | Default | CMB2 |
+|---|---|---|---|
+| `_pw_answer` | string | `''` | CMB2: `pw_faq_metabox` (wysiwyg) |
+| `_pw_display_order` | integer | `0` | text_small |
 
-#### Connected To (`_pw_connected_to`) — array of objects
-Links an FAQ to one or more entities.
-
-| Field | Type | Notes |
-|---|---|---|
-| `type` | string | `pw_property` \| `pw_restaurant` \| `pw_meeting_room` \| `pw_spa` |
-| `id` | integer | Post ID of the connected entity |
+#### Connected To (`_pw_connected_to`) — repeatable group
+| Field | Type | Notes | CMB2 |
+|---|---|---|---|
+| `type` | string | `pw_property` \| `pw_restaurant` \| `pw_meeting_room` \| `pw_spa` | select |
+| `id` | integer | Post ID of connected entity | select (pw_faq_connection_options) |
 
 ---
 
 ## Post Type: `pw_offer`
 
-**Supports:** `title`, `thumbnail`, `custom-fields`
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`
 
-| Meta Key | Type | Default | Notes |
-|---|---|---|---|
-| `_pw_offer_type` | string | `'promotion'` | `promotion` \| `package` \| `direct_booking_benefit` |
-| `_pw_parent_type` | string | `''` | `pw_property` \| `pw_restaurant` \| `pw_spa` |
-| `_pw_parent_id` | integer | `0` | Post ID of the parent entity |
-| `_pw_description` | string | `''` | |
-| `_pw_valid_from` | string | `''` | Date `Y-m-d` |
-| `_pw_valid_to` | string | `''` | Date `Y-m-d` |
-| `_pw_booking_url` | string | `''` | |
-| `_pw_terms` | string | `''` | |
-| `_pw_is_featured` | boolean | `false` | |
-| `_pw_discount_type` | string | `''` | `percentage` \| `flat` \| `value_add` |
-| `_pw_discount_value` | number | `0` | |
-| `_pw_minimum_stay_nights` | integer | `0` | |
-| `_pw_room_types` | array\<integer\> | — | Array of `pw_room_type` post IDs |
-| `_pw_display_order` | integer | `0` | |
+| Meta Key | Type | Default | Notes | CMB2 |
+|---|---|---|---|---|
+| `_pw_offer_type` | string | `'promotion'` | `promotion` \| `package` \| `direct_booking_benefit` | CMB2: `pw_offer_metabox` (select) |
+| `_pw_parents` | array | — | Repeatable: `type`, `id` → pw_property \| pw_restaurant \| pw_spa | group |
+| `_pw_valid_from` | string | `''` | Date `Y-m-d` | text_date |
+| `_pw_valid_to` | string | `''` | Date `Y-m-d` | text_date |
+| `_pw_booking_url` | string | `''` | | text_url |
+| `_pw_is_featured` | boolean | `false` | | checkbox |
+| `_pw_discount_type` | string | `''` | `percentage` \| `flat` \| `value_add` | select |
+| `_pw_discount_value` | number | `0` | Conditional (hidden if value_add) | text_money |
+| `_pw_minimum_stay_nights` | integer | `0` | Conditional (promotion/package only) | text_small |
+| `_pw_room_types` | array\<integer\> | — | `pw_room_type` post IDs | multicheck |
+| `_pw_display_order` | integer | `0` | | text_small |
+
+Description/terms: use post `editor` and `excerpt` as needed.
 
 ---
 
 ## Post Type: `pw_nearby`
 
-**Supports:** `title`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
 **Taxonomies:** `pw_nearby_type`, `pw_transport_mode`
 
-| Meta Key | Type | Default |
-|---|---|---|
-| `_pw_property_id` | integer | `0` |
-| `_pw_distance_km` | number | `0` |
-| `_pw_travel_time_min` | integer | `0` |
-| `_pw_place_url` | string | `''` |
-| `_pw_display_order` | integer | `0` |
+| Meta Key | Type | Default | CMB2 |
+|---|---|---|---|
+| `_pw_property_id` | integer | `0` | CMB2: `pw_nearby_metabox` (select) |
+| `_pw_distance_km` | number | `0` | text_small |
+| `_pw_travel_time_min` | integer | `0` | text_small |
+| `_pw_place_url` | string | `''` | text_url |
+| `_pw_display_order` | integer | `0` | text_small |
 
 ---
 
 ## Post Type: `pw_experience`
 
-**Supports:** `title`, `thumbnail`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
 **Taxonomies:** `pw_experience_category`
 
-| Meta Key | Type | Default |
-|---|---|---|
-| `_pw_property_id` | integer | `0` |
-| `_pw_description` | string | `''` |
-| `_pw_duration_hours` | number | `0` |
-| `_pw_price_from` | number | `0` |
-| `_pw_booking_url` | string | `''` |
-| `_pw_is_complimentary` | boolean | `false` |
-| `_pw_gallery` | array\<integer\> | — |
-| `_pw_display_order` | integer | `0` |
+| Meta Key | Type | Default | Notes | CMB2 |
+|---|---|---|---|---|
+| `_pw_connected_to` | array | — | Repeatable: `type`, `id` → pw_property \| pw_restaurant \| pw_spa | CMB2: `pw_experience_metabox` (group) |
+| `_pw_description` | string | `''` | | textarea |
+| `_pw_duration_hours` | number | `0` | | text_small |
+| `_pw_price_from` | number | `0` | | text_money |
+| `_pw_booking_url` | string | `''` | | text_url |
+| `_pw_is_complimentary` | boolean | `false` | | checkbox |
+| `_pw_gallery` | array\<integer\> | — | | file_list |
+| `_pw_display_order` | integer | `0` | | text_small |
 
 ---
 
 ## Post Type: `pw_event`
 
-**Supports:** `title`, `thumbnail`, `custom-fields`  
-**Taxonomies:** `pw_event_type`
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
+**Taxonomies:** `pw_event_type`, `pw_event_organiser`
 
-| Meta Key | Type | Default | Notes |
-|---|---|---|---|
-| `_pw_property_id` | integer | `0` | |
-| `_pw_venue_id` | integer | `0` | FK → `pw_meeting_room` |
-| `_pw_description` | string | `''` | |
-| `_pw_start_datetime` | string | `''` | `Y-m-d H:i:s` |
-| `_pw_end_datetime` | string | `''` | `Y-m-d H:i:s` |
-| `_pw_capacity` | integer | `0` | |
-| `_pw_price_from` | number | `0` | |
-| `_pw_booking_url` | string | `''` | |
-| `_pw_recurrence_rule` | string | `''` | iCal RRULE string (e.g. `FREQ=WEEKLY;BYDAY=SA`) |
-| `_pw_organiser_name` | string | `''` | Required for schema.org Event |
-| `_pw_organiser_url` | string | `''` | Required for schema.org Event |
-| `_pw_event_status` | string | `'EventScheduled'` | schema.org: `EventScheduled` \| `EventCancelled` \| `EventPostponed` \| `EventRescheduled` |
-| `_pw_event_attendance_mode` | string | `'OfflineEventAttendanceMode'` | schema.org: `OfflineEventAttendanceMode` \| `OnlineEventAttendanceMode` \| `MixedEventAttendanceMode` |
-| `_pw_gallery` | array\<integer\> | — | |
+| Meta Key | Type | Default | Notes | CMB2 |
+|---|---|---|---|---|
+| `_pw_property_id` | integer | `0` | | CMB2: `pw_event_metabox` (select) |
+| `_pw_venue_id` | integer | `0` | FK → `pw_meeting_room` | select (pw_meeting_room_options) |
+| `_pw_description` | string | `''` | | textarea |
+| `_pw_start_datetime` | string | `''` | | text_datetime_timestamp_timezone |
+| `_pw_end_datetime` | string | `''` | | text_datetime_timestamp_timezone |
+| `_pw_capacity` | integer | `0` | | text_small |
+| `_pw_price_from` | number | `0` | | text_money |
+| `_pw_booking_url` | string | `''` | | text_url |
+| `_pw_recurrence_rule` | string | `''` | iCal RRULE (e.g. `FREQ=WEEKLY;BYDAY=SA`) | pw_rrule (custom field) |
+| `_pw_event_status` | string | `'EventScheduled'` | schema.org: EventScheduled \| EventCancelled \| EventPostponed \| EventRescheduled | select |
+| `_pw_event_attendance_mode` | string | `'OfflineEventAttendanceMode'` | OfflineEventAttendanceMode \| OnlineEventAttendanceMode \| MixedEventAttendanceMode | select |
+| `_pw_gallery` | array\<integer\> | — | | file_list |
+
+**Organiser:** Use taxonomy `pw_event_organiser` (term name = organiser name). Term meta `organiser_url` stores the URL. Used for schema.org Event markup.
 
 ---
 
 ## Taxonomies
 
-| Taxonomy | Post Type | Label |
-|---|---|---|
-| `pw_bed_type` | `pw_room_type` | Bed Types |
-| `pw_view_type` | `pw_room_type` | View Types |
-| `pw_meal_period` | `pw_restaurant` | Meal Periods |
-| `pw_treatment_type` | `pw_spa` | Treatment Types |
-| `pw_av_equipment` | `pw_meeting_room` | AV Equipment |
-| `pw_feature_group` | `pw_feature` | Feature Groups |
-| `pw_nearby_type` | `pw_nearby` | Location Types |
-| `pw_transport_mode` | `pw_nearby` | Transport Modes |
-| `pw_experience_category` | `pw_experience` | Experience Categories |
-| `pw_event_type` | `pw_event` | Event Types |
+| Taxonomy | Post Type | Label | Term Meta |
+|---|---|---|---|
+| `pw_bed_type` | `pw_room_type` | Bed Types | — |
+| `pw_view_type` | `pw_room_type` | View Types | — |
+| `pw_meal_period` | `pw_restaurant` | Meal Periods | — |
+| `pw_treatment_type` | `pw_spa` | Treatment Types | — |
+| `pw_av_equipment` | `pw_meeting_room` | AV Equipment | — |
+| `pw_feature_group` | `pw_feature` | Feature Groups | — |
+| `pw_nearby_type` | `pw_nearby` | Location Types | — |
+| `pw_transport_mode` | `pw_nearby` | Transport Modes | — |
+| `pw_experience_category` | `pw_experience` | Experience Categories | — |
+| `pw_event_type` | `pw_event` | Event Types | — |
+| `pw_policy_type` | `pw_policy` | Policy Types | — |
+| `pw_event_organiser` | `pw_event` | Organisers | `organiser_url` (string) |
 
 All taxonomies: non-hierarchical, `show_in_rest: true`, `show_admin_column: true`, `rewrite: false`.
+
+---
+
+## Options Page: Portico Webworks Settings
+
+**CMB2 box:** `pw_settings` (options-page, `option_key: pw_settings`)
+
+| Option Key | Type | Default | Notes |
+|---|---|---|---|
+| `pw_property_mode` | string | `'single'` | `single` \| `multi` |
+| `pw_property_base` | string | `'properties'` | URL prefix for properties (multi mode) |
+| `pw_default_template` | string | `''` | Template slug for front-end rendering |
+
+---
+
+## SEO Meta Box (shared)
+
+**CMB2 box:** `pw_seo_metabox`  
+**Applies to:** `pw_room_type`, `pw_restaurant`, `pw_spa`, `pw_meeting_room`, `pw_experience`, `pw_event`, `pw_offer`, `pw_nearby`
+
+| Meta Key | Type | CMB2 |
+|---|---|---|
+| `_pw_meta_title` | string | text (max 60 chars) |
+| `_pw_meta_description` | string | textarea_small (max 160 chars) |
 
 ---
 
@@ -422,9 +446,9 @@ pw_property (1)
   ├── pw_amenity         (_pw_property_id)
   ├── pw_policy          (_pw_property_id)
   ├── pw_nearby          (_pw_property_id)
-  ├── pw_experience      (_pw_property_id)
+  ├── pw_experience      (_pw_connected_to[] → pw_property | pw_restaurant | pw_spa)
   └── pw_event           (_pw_property_id, _pw_venue_id → pw_meeting_room)
 
-pw_offer               (_pw_parent_type + _pw_parent_id → pw_property | pw_restaurant | pw_spa)
+pw_offer               (_pw_parents[] → pw_property | pw_restaurant | pw_spa)
 pw_faq                 (_pw_connected_to[] → pw_property | pw_restaurant | pw_meeting_room | pw_spa)
 ```

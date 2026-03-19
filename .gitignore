@@ -8,8 +8,8 @@ node_modules/
 wp-config.php
 .cursor/
 
-# Ignore all vendor by default
-/vendor/
+# Ignore contents of vendor by default
+/vendor/*
 
 # Track CMB2 — bundled library, shipped with plugin
 !/vendor/cmb2/

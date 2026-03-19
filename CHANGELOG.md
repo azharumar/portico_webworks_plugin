@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.7.3] - 2026-03-19
+
+### Fixed
+- .gitignore: change `/vendor/` to `/vendor/*` so negation patterns work; vendor (CMB2, PhpSpreadsheet, composer) now tracked for production deployment
+
 ## [0.7.1] - 2026-03-19
 
 ### Changed

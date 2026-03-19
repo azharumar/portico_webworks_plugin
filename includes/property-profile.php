@@ -8,7 +8,6 @@ function pw_property_sections() {
 	return array(
 		'general' => array('label' => 'General'),
 		'address' => array('label' => 'Address'),
-		'contact' => array('label' => 'Contact'),
 		'geo'     => array('label' => 'Geo'),
 		'social'  => array('label' => 'Social'),
 	);
@@ -28,8 +27,8 @@ function pw_property_fields() {
 		'_pw_legal_name'         => ['section' => 'general',  'label' => 'Legal Name',        'type' => 'text',   'placeholder' => 'e.g. Grand Pavilion Hospitality Pvt Ltd',    'help' => 'For invoices, contracts, and compliance.'],
 		'_pw_star_rating'        => ['section' => 'general',  'label' => 'Star Rating',       'type' => 'number', 'placeholder' => '1–5',                                        'help' => 'Hotel star classification (1–5).'],
 		'_pw_currency'           => ['section' => 'general',  'label' => 'Currency',          'type' => 'select', 'options' => 'pw_currency_options_for_profile',                'help' => 'Default currency for rates and pricing.'],
-		'_pw_check_in_time'      => ['section' => 'general',  'label' => 'Check-in Time',       'type' => 'text',   'placeholder' => 'e.g. 14:00'],
-		'_pw_check_out_time'     => ['section' => 'general',  'label' => 'Check-out Time',      'type' => 'text',   'placeholder' => 'e.g. 11:00'],
+		'_pw_check_in_time'      => ['section' => 'general',  'label' => 'Check-in Time',       'type' => 'time',   'placeholder' => 'e.g. 14:00'],
+		'_pw_check_out_time'     => ['section' => 'general',  'label' => 'Check-out Time',      'type' => 'time',   'placeholder' => 'e.g. 11:00'],
 		'_pw_year_established'   => ['section' => 'general',  'label' => 'Year Established',    'type' => 'number', 'placeholder' => 'e.g. 2005'],
 		'_pw_total_rooms'        => ['section' => 'general',  'label' => 'Total Rooms',         'type' => 'number', 'placeholder' => 'e.g. 120'],
 
@@ -38,12 +37,8 @@ function pw_property_fields() {
 		'_pw_city'               => ['section' => 'address',  'label' => 'City',             'type' => 'text',   'placeholder' => 'e.g. Kochi'],
 		'_pw_state'              => ['section' => 'address',  'label' => 'State / Province', 'type' => 'text',   'placeholder' => 'e.g. Kerala'],
 		'_pw_postal_code'        => ['section' => 'address',  'label' => 'Postal Code',      'type' => 'text',   'placeholder' => 'e.g. 682001'],
-		'_pw_country'            => ['section' => 'address',  'label' => 'Country',          'type' => 'text',   'placeholder' => 'e.g. IN',                                    'help' => 'ISO 3166-1 alpha-2 code.'],
-
-		'_pw_phone'              => ['section' => 'contact',  'label' => 'Phone',            'type' => 'tel',    'placeholder' => 'e.g. +91 484 123 4567',                      'help' => 'Main front desk / reservations number.'],
-		'_pw_mobile'             => ['section' => 'contact',  'label' => 'Mobile',           'type' => 'tel',    'placeholder' => 'e.g. +91 98765 43210'],
-		'_pw_whatsapp'           => ['section' => 'contact',  'label' => 'WhatsApp',         'type' => 'tel',    'placeholder' => 'e.g. +91 98765 43210'],
-		'_pw_email'              => ['section' => 'contact',  'label' => 'Email',            'type' => 'email',  'placeholder' => 'e.g. reservations@yourhotel.com',            'help' => 'Inbox for guest enquiries and reservations.'],
+		'_pw_country'            => ['section' => 'address',  'label' => 'Country',          'type' => 'text',   'placeholder' => 'e.g. India',                                'help' => 'Full country name'],
+		'_pw_country_code'       => ['section' => 'address',  'label' => 'Country code',     'type' => 'text',   'placeholder' => 'e.g. IN',                                    'help' => 'ISO 3166-1 alpha-2 — used in schema.org markup'],
 
 		'_pw_lat'                => ['section' => 'geo',      'label' => 'Latitude',         'type' => 'text',   'placeholder' => 'e.g. 9.9312'],
 		'_pw_lng'                => ['section' => 'geo',      'label' => 'Longitude',        'type' => 'text',   'placeholder' => 'e.g. 76.2673'],
@@ -141,10 +136,6 @@ function pw_render_property_profile_address_metabox($post) {
 	pw_render_property_profile_section_metabox($post, 'address');
 }
 
-function pw_render_property_profile_contact_metabox($post) {
-	pw_render_property_profile_section_metabox($post, 'contact');
-}
-
 function pw_render_property_profile_geo_metabox($post) {
 	pw_render_property_profile_section_metabox($post, 'geo');
 }
@@ -158,7 +149,6 @@ function pw_add_property_metabox() {
 	$callbacks = array(
 		'general' => 'pw_render_property_profile_general_metabox',
 		'address' => 'pw_render_property_profile_address_metabox',
-		'contact' => 'pw_render_property_profile_contact_metabox',
 		'geo'     => 'pw_render_property_profile_geo_metabox',
 		'social'  => 'pw_render_property_profile_social_metabox',
 	);

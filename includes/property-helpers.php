@@ -22,10 +22,8 @@ function pw_get_property_profile( $property_id = null ) {
 		'state'              => '_pw_state',
 		'postal_code'        => '_pw_postal_code',
 		'country'            => '_pw_country',
-		'phone'              => '_pw_phone',
-		'mobile'             => '_pw_mobile',
-		'whatsapp'           => '_pw_whatsapp',
-		'email'              => '_pw_email',
+		'country_code'       => '_pw_country_code',
+		'contacts'           => '_pw_contacts',
 		'lat'                => '_pw_lat',
 		'lng'                => '_pw_lng',
 		'google_place_id'    => '_pw_google_place_id',
@@ -73,7 +71,7 @@ function pw_get_all_properties() {
 }
 
 function pw_property_base() {
-	$base = get_option('pw_property_base', 'properties');
+	$base = pw_get_setting('pw_property_base', 'properties');
 	$base = is_string($base) ? trim($base) : 'properties';
 	$base = trim($base, '/');
 	if ($base === '') {
@@ -136,7 +134,7 @@ function pw_get_current_property_id() {
 		return $resolved;
 	}
 
-	$mode = get_option('pw_property_mode', 'single');
+	$mode = pw_get_setting('pw_property_mode', 'single');
 
 	if ($mode === 'multi') {
 		$from_url = pw_resolve_property_id_from_url();
@@ -201,6 +199,27 @@ function pw_get_room_features( $room_type_id ) {
 	] );
 }
 
+function pw_get_experiences_for( $post_type, $post_id ) {
+	$experiences = get_posts( [
+		'post_type'      => 'pw_experience',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+	] );
+
+	return array_filter( $experiences, function( $exp ) use ( $post_type, $post_id ) {
+		$connections = get_post_meta( $exp->ID, '_pw_connected_to', true );
+		if ( empty( $connections ) || ! is_array( $connections ) ) return false;
+		foreach ( $connections as $c ) {
+			if ( isset( $c['type'], $c['id'] ) &&
+				$c['type'] === $post_type &&
+				(int) $c['id'] === (int) $post_id ) {
+				return true;
+			}
+		}
+		return false;
+	} );
+}
+
 function pw_get_faqs_for( $post_type, $post_id ) {
 	$faqs = get_posts( [
 		'post_type'      => 'pw_faq',
@@ -224,6 +243,18 @@ function pw_get_faqs_for( $post_type, $post_id ) {
 	} );
 }
 
+function pw_get_operating_hours( $post_id ) {
+	$days  = [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ];
+	$hours = [];
+	foreach ( $days as $day ) {
+		$hours[ $day ] = get_post_meta( (int) $post_id, '_pw_hours_' . $day, true ) ?: [
+			'is_closed' => false,
+			'sessions'  => [],
+		];
+	}
+	return $hours;
+}
+
 function pw_get_property_currency( $property_id = null ) {
 	$id = $property_id ?? pw_get_current_property_id();
 	return get_post_meta( (int) $id, '_pw_currency', true ) ?: 'USD';
@@ -234,7 +265,7 @@ add_action('template_redirect', function () {
 		return;
 	}
 
-	$mode = get_option('pw_property_mode', 'single');
+	$mode = pw_get_setting('pw_property_mode', 'single');
 	if ($mode === 'single') {
 		return;
 	}

@@ -5,8 +5,8 @@ if (!defined('ABSPATH')) {
 }
 
 function pw_register_property_post_type() {
-	$is_multi      = get_option( 'pw_property_mode' ) === 'multi';
-	$property_base = get_option( 'pw_property_base', 'properties' );
+	$is_multi      = pw_get_setting( 'pw_property_mode', 'single' ) === 'multi';
+	$property_base = pw_get_setting( 'pw_property_base', 'properties' );
 
 	register_post_type( 'pw_property', [
 		'labels' => [
@@ -43,8 +43,7 @@ function pw_register_property_post_type() {
 		'menu_icon'          => 'dashicons-building',
 		'menu_position'      => 25,
 
-		// no editor — property is a data store, not a page
-		'supports'           => [ 'title', 'thumbnail', 'revisions', 'custom-fields' ],
+		'supports'           => [ 'title', 'editor', 'excerpt', 'thumbnail', 'revisions', 'custom-fields' ],
 
 		'can_export'         => true,
 		'delete_with_user'   => false,
@@ -62,10 +61,7 @@ function pw_register_property_post_meta() {
 		'_pw_state',
 		'_pw_postal_code',
 		'_pw_country',
-		'_pw_phone',
-		'_pw_mobile',
-		'_pw_whatsapp',
-		'_pw_email',
+		'_pw_country_code',
 		'_pw_social_facebook',
 		'_pw_social_instagram',
 		'_pw_social_twitter',
@@ -74,6 +70,8 @@ function pw_register_property_post_meta() {
 		'_pw_social_youtube',
 		'_pw_google_place_id',
 		'_pw_timezone',
+		'_pw_meta_title',
+		'_pw_meta_description',
 	];
 
 	foreach ( $string_keys as $key ) {
@@ -146,6 +144,26 @@ function pw_register_property_post_meta() {
 		'single'       => true,
 		'show_in_rest' => true,
 		'default'      => 0,
+	] );
+
+	register_post_meta( 'pw_property', '_pw_contacts', [
+		'type'         => 'array',
+		'single'       => true,
+		'show_in_rest' => [
+			'schema' => [
+				'type'  => 'array',
+				'items' => [
+					'type'       => 'object',
+					'properties' => [
+						'label'    => [ 'type' => 'string' ],
+						'phone'    => [ 'type' => 'string' ],
+						'mobile'   => [ 'type' => 'string' ],
+						'whatsapp' => [ 'type' => 'string' ],
+						'email'    => [ 'type' => 'string' ],
+					],
+				],
+			],
+		],
 	] );
 }
 
