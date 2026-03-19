@@ -221,7 +221,7 @@ function pw_register_child_post_meta() {
 		'default'      => 0,
 	] );
 
-	foreach ( [ '_pw_max_occupancy', '_pw_size_sqft', '_pw_size_sqm' ] as $key ) {
+	foreach ( [ '_pw_max_occupancy', '_pw_max_adults', '_pw_max_children', '_pw_size_sqft', '_pw_size_sqm' ] as $key ) {
 		register_post_meta( 'pw_room_type', $key, [
 			'type'         => 'integer',
 			'single'       => true,
@@ -261,7 +261,7 @@ function pw_register_child_post_meta() {
 		'default'      => 0,
 	] );
 
-	foreach ( [ '_pw_cuisine_type', '_pw_reservation_url', '_pw_menu_url' ] as $key ) {
+	foreach ( [ '_pw_cuisine_type', '_pw_location', '_pw_reservation_url', '_pw_menu_url' ] as $key ) {
 		register_post_meta( 'pw_restaurant', $key, [
 			'type'         => 'string',
 			'single'       => true,
@@ -297,9 +297,10 @@ function pw_register_child_post_meta() {
 				'items' => [
 					'type'       => 'object',
 					'properties' => [
-						'day'        => [ 'type' => 'string' ],
-						'open_time'  => [ 'type' => 'string' ],
-						'close_time' => [ 'type' => 'string' ],
+						'session_label' => [ 'type' => 'string' ],
+						'day'           => [ 'type' => 'string' ],
+						'open_time'     => [ 'type' => 'string' ],
+						'close_time'    => [ 'type' => 'string' ],
 					],
 				],
 			],
@@ -382,6 +383,15 @@ function pw_register_child_post_meta() {
 			'single'       => true,
 			'show_in_rest' => true,
 			'default'      => 0,
+		] );
+	}
+
+	foreach ( [ '_pw_phone', '_pw_mobile', '_pw_whatsapp', '_pw_email' ] as $key ) {
+		register_post_meta( 'pw_meeting_room', $key, [
+			'type'         => 'string',
+			'single'       => true,
+			'show_in_rest' => true,
+			'default'      => '',
 		] );
 	}
 
@@ -538,6 +548,12 @@ function pw_register_child_post_meta() {
 			'show_in_rest' => true,
 			'default'      => 'unknown',
 		] );
+		register_post_meta( 'pw_property', $key . '_note', [
+			'type'         => 'string',
+			'single'       => true,
+			'show_in_rest' => true,
+			'default'      => '',
+		] );
 	}
 
 	foreach ( [ '_pw_sus_certification_name', '_pw_sus_certification_url' ] as $key ) {
@@ -580,6 +596,12 @@ function pw_register_child_post_meta() {
 			'show_in_rest' => true,
 			'default'      => 'unknown',
 		] );
+		register_post_meta( 'pw_property', $key . '_note', [
+			'type'         => 'string',
+			'single'       => true,
+			'show_in_rest' => true,
+			'default'      => '',
+		] );
 	}
 
 	// --- pw_property: pools ---
@@ -597,6 +619,8 @@ function pw_register_child_post_meta() {
 						'length_m'    => [ 'type' => 'number' ],
 						'width_m'     => [ 'type' => 'number' ],
 						'depth_m'     => [ 'type' => 'number' ],
+						'open_time'   => [ 'type' => 'string' ],
+						'close_time'  => [ 'type' => 'string' ],
 						'is_heated'   => [ 'type' => 'boolean' ],
 						'is_kids'     => [ 'type' => 'boolean' ],
 						'is_indoor'   => [ 'type' => 'boolean' ],

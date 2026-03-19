@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.6.0] - 2026-03-19
+
+### Added
+- Admin UI: removed "Property Profile" tab; tab order is now Settings → Dependencies → About
+- Property: rename meta key `_pw_brand_name` → `_pw_property_name`; rename section "Identity" → "General"
+- Property General: move `_pw_currency` into General section (rendered via custom metabox, CMB2 currency box removed)
+- Property Address: add `_pw_state` and `_pw_postal_code` meta keys
+- Property Contact: add `_pw_mobile` and `_pw_whatsapp` meta keys
+- Property Social: add `_pw_social_twitter` meta key
+- Property Geo: add `_pw_google_place_id` and `_pw_timezone` (IANA timezone dropdown via `DateTimeZone::listIdentifiers()`)
+- Sustainability: add paired `_note` string meta for all 19 sustainability parameters
+- Accessibility: add paired `_note` string meta for all 19 accessibility parameters
+- Room Type: add `_pw_max_adults` and `_pw_max_children` meta keys; admin JS validation enforces max_adults + max_children ≤ max_occupancy
+- Restaurant: add `_pw_location` meta key; operating hours sessions now include a `session_label` field; UI labels updated to "Session" instead of "Day"
+- Pool: add `open_time` and `close_time` fields to each pool entry in `_pw_pools`
+- Meeting Room: add `_pw_phone`, `_pw_mobile`, `_pw_whatsapp`, `_pw_email` contact meta keys
+- DATA-STRUCTURE.md: full rewrite reflecting all structural changes
+
 ## [0.5.2] - 2026-03-19
 
 ### Fixed

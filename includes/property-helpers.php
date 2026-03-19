@@ -9,24 +9,32 @@ function pw_get_property_profile( $property_id = null ) {
 	if ( ! $id ) return [];
 
 	$keys = [
+		'property_name'      => '_pw_property_name',
 		'legal_name'         => '_pw_legal_name',
-		'brand_name'         => '_pw_brand_name',
 		'slug'               => '_pw_slug',
+		'star_rating'        => '_pw_star_rating',
+		'default_template'   => '_pw_default_template',
+		'currency'           => '_pw_currency',
 		'address_line_1'     => '_pw_address_line_1',
 		'address_line_2'     => '_pw_address_line_2',
 		'city'               => '_pw_city',
+		'state'              => '_pw_state',
+		'postal_code'        => '_pw_postal_code',
 		'country'            => '_pw_country',
+		'phone'              => '_pw_phone',
+		'mobile'             => '_pw_mobile',
+		'whatsapp'           => '_pw_whatsapp',
+		'email'              => '_pw_email',
 		'lat'                => '_pw_lat',
 		'lng'                => '_pw_lng',
-		'phone'              => '_pw_phone',
-		'email'              => '_pw_email',
-		'star_rating'        => '_pw_star_rating',
+		'google_place_id'    => '_pw_google_place_id',
+		'timezone'           => '_pw_timezone',
 		'social_facebook'    => '_pw_social_facebook',
 		'social_instagram'   => '_pw_social_instagram',
+		'social_twitter'     => '_pw_social_twitter',
 		'social_tripadvisor' => '_pw_social_tripadvisor',
 		'social_linkedin'    => '_pw_social_linkedin',
 		'social_youtube'     => '_pw_social_youtube',
-		'default_template'   => '_pw_default_template',
 	];
 
 	$profile = [];

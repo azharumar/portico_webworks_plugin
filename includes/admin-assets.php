@@ -95,6 +95,51 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 });
 
 add_action('admin_footer', function () {
+	$screen = get_current_screen();
+	if ($screen && $screen->id === 'pw_room_type') {
+		?>
+		<script>
+		(function () {
+		  var maxOcc      = document.querySelector('#_pw_max_occupancy');
+		  var maxAdults   = document.querySelector('#_pw_max_adults');
+		  var maxChildren = document.querySelector('#_pw_max_children');
+
+		  if (!maxOcc || !maxAdults || !maxChildren) return;
+
+		  var errorEl = document.createElement('p');
+		  errorEl.style.cssText = 'color:#b32d15;font-weight:600;margin-top:6px;display:none';
+		  errorEl.textContent = 'Max adults + max children must not exceed max occupancy.';
+		  maxChildren.closest('td') && maxChildren.closest('td').appendChild(errorEl);
+
+		  function validate() {
+		    var occ      = parseInt(maxOcc.value, 10) || 0;
+		    var adults   = parseInt(maxAdults.value, 10) || 0;
+		    var children = parseInt(maxChildren.value, 10) || 0;
+		    var invalid  = (adults + children) > occ && occ > 0;
+		    errorEl.style.display = invalid ? '' : 'none';
+		    return !invalid;
+		  }
+
+		  [maxOcc, maxAdults, maxChildren].forEach(function (el) {
+		    el.addEventListener('input', validate);
+		  });
+
+		  var form = document.getElementById('post');
+		  if (form) {
+		    form.addEventListener('submit', function (e) {
+		      if (!validate()) {
+		        e.preventDefault();
+		        maxAdults.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		      }
+		    });
+		  }
+		})();
+		</script>
+		<?php
+	}
+});
+
+add_action('admin_footer', function () {
 	if (!isset($_GET['page']) || $_GET['page'] !== pw_admin_page_slug()) {
 		return;
 	}

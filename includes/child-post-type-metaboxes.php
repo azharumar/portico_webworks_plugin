@@ -145,8 +145,10 @@ function pw_register_child_metaboxes() {
 		'options' => 'pw_property_options',
 	] );
 
-	$cmb->add_field( [ 'name' => 'Rate from', 'desc' => 'Starting rate. Currency is set on the parent property.', 'id' => '_pw_rate_from', 'type' => 'text_money' ] );
+	$cmb->add_field( [ 'name' => 'Rate from',     'desc' => 'Starting rate. Currency is set on the parent property.', 'id' => '_pw_rate_from',     'type' => 'text_money' ] );
 	$cmb->add_field( [ 'name' => 'Max occupancy', 'id' => '_pw_max_occupancy', 'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Max adults',    'id' => '_pw_max_adults',    'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Max children',  'id' => '_pw_max_children',  'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Size (sqft)',   'id' => '_pw_size_sqft',     'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Size (sqm)',    'id' => '_pw_size_sqm',      'type' => 'text_small' ] );
 
@@ -184,6 +186,7 @@ function pw_register_child_metaboxes() {
 	] );
 
 	$cmb->add_field( [ 'name' => 'Property',          'id' => '_pw_property_id',      'type' => 'select',     'options' => 'pw_property_options' ] );
+	$cmb->add_field( [ 'name' => 'Location',          'id' => '_pw_location',         'type' => 'text',       'desc' => 'e.g. Rooftop Level, Beach Side, Main Lobby' ] );
 	$cmb->add_field( [ 'name' => 'Cuisine type',       'id' => '_pw_cuisine_type',     'type' => 'text' ] );
 	$cmb->add_field( [ 'name' => 'Seating capacity',   'id' => '_pw_seating_capacity', 'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Reservation URL',    'id' => '_pw_reservation_url',  'type' => 'text_url' ] );
@@ -194,8 +197,9 @@ function pw_register_child_metaboxes() {
 		'id'         => '_pw_operating_hours',
 		'type'       => 'group',
 		'repeatable' => true,
-		'options'    => [ 'group_title' => 'Day {#}', 'add_button' => 'Add Day', 'remove_button' => 'Remove Day' ],
+		'options'    => [ 'group_title' => 'Session {#}', 'add_button' => 'Add Session', 'remove_button' => 'Remove Session' ],
 		'fields'     => [
+			[ 'name' => 'Session label', 'id' => 'session_label', 'type' => 'text_small', 'desc' => 'e.g. Breakfast, Lunch, Dinner' ],
 			[
 				'name'    => 'Day',
 				'id'      => 'day',
@@ -277,6 +281,10 @@ function pw_register_child_metaboxes() {
 	$cmb->add_field( [ 'name' => 'Capacity — U-Shape',   'id' => '_pw_capacity_ushape',    'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Area (sqft)',           'id' => '_pw_area_sqft',          'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Area (sqm)',            'id' => '_pw_area_sqm',           'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Contact Phone',         'id' => '_pw_phone',              'type' => 'text',       'desc' => 'Direct line for this venue' ] );
+	$cmb->add_field( [ 'name' => 'Contact Mobile',        'id' => '_pw_mobile',             'type' => 'text' ] );
+	$cmb->add_field( [ 'name' => 'Contact WhatsApp',      'id' => '_pw_whatsapp',           'type' => 'text' ] );
+	$cmb->add_field( [ 'name' => 'Contact Email',         'id' => '_pw_email',              'type' => 'text' ] );
 
 	$cmb->add_field( [
 		'name' => 'Natural light',
@@ -533,32 +541,51 @@ function pw_register_property_sustainability_metabox() {
 
 	$cmb->add_field( [ 'name' => 'Energy', 'type' => 'title', 'id' => '_pw_sus_title_energy' ] );
 	$cmb->add_field( [ 'name' => 'Solar power',                'id' => '_pw_sus_solar_power',                'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_solar_power_note',           'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'Solar water heater',         'id' => '_pw_sus_solar_water_heater',         'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_solar_water_heater_note',    'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'Energy-efficient lighting',  'id' => '_pw_sus_energy_efficient_lighting',  'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_energy_efficient_lighting_note', 'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'Energy-saving thermostats',  'id' => '_pw_sus_energy_saving_thermostats',  'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_energy_saving_thermostats_note', 'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'Green building design',      'id' => '_pw_sus_green_building_design',      'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_green_building_design_note', 'type' => 'text_small', 'desc' => 'Note' ] );
 
 	$cmb->add_field( [ 'name' => 'Water', 'type' => 'title', 'id' => '_pw_sus_title_water' ] );
 	$cmb->add_field( [ 'name' => 'Water-efficient fixtures',   'id' => '_pw_sus_water_efficient_fixtures',   'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_water_efficient_fixtures_note', 'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'Sewage treatment plant',     'id' => '_pw_sus_sewage_treatment_plant',     'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_sewage_treatment_plant_note', 'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'Water reuse program',        'id' => '_pw_sus_water_reuse_program',        'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_water_reuse_program_note',   'type' => 'text_small', 'desc' => 'Note' ] );
 
 	$cmb->add_field( [ 'name' => 'Waste reduction', 'type' => 'title', 'id' => '_pw_sus_title_waste' ] );
 	$cmb->add_field( [ 'name' => 'Waste segregation',          'id' => '_pw_sus_waste_segregation',          'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_waste_segregation_note',     'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'Recycling program',          'id' => '_pw_sus_recycling_program',          'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_recycling_program_note',     'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'No styrofoam',               'id' => '_pw_sus_no_styrofoam',               'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_no_styrofoam_note',          'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'Electronics disposal',       'id' => '_pw_sus_electronics_disposal',       'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_electronics_disposal_note',  'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'Reusable water bottles',     'id' => '_pw_sus_reusable_water_bottles',     'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_reusable_water_bottles_note', 'type' => 'text_small', 'desc' => 'Note' ] );
 
 	$cmb->add_field( [ 'name' => 'Guest amenities', 'type' => 'title', 'id' => '_pw_sus_title_guest' ] );
 	$cmb->add_field( [ 'name' => 'Wall-mounted dispensers',    'id' => '_pw_sus_wall_mounted_dispensers',    'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_wall_mounted_dispensers_note', 'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'Eco-friendly toiletries',    'id' => '_pw_sus_eco_friendly_toiletries',    'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_eco_friendly_toiletries_note', 'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'Towel reuse program',        'id' => '_pw_sus_towel_reuse_program',        'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_towel_reuse_program_note',   'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'Linen reuse program',        'id' => '_pw_sus_linen_reuse_program',        'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_linen_reuse_program_note',   'type' => 'text_small', 'desc' => 'Note' ] );
 
 	$cmb->add_field( [ 'name' => 'Sustainable sourcing', 'type' => 'title', 'id' => '_pw_sus_title_sourcing' ] );
 	$cmb->add_field( [ 'name' => 'Local food sourcing',        'id' => '_pw_sus_local_food_sourcing',        'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_local_food_sourcing_note',   'type' => 'text_small', 'desc' => 'Note' ] );
 	$cmb->add_field( [ 'name' => 'Organic food options',       'id' => '_pw_sus_organic_food_options',       'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_organic_food_options_note',  'type' => 'text_small', 'desc' => 'Note' ] );
 
 	$cmb->add_field( [ 'name' => 'Certifications', 'type' => 'title', 'id' => '_pw_sus_title_cert' ] );
 	$cmb->add_field( [ 'name' => 'Certification name', 'id' => '_pw_sus_certification_name', 'type' => 'text',     'desc' => 'e.g. LEED, Green Key, EarthCheck' ] );
@@ -587,31 +614,50 @@ function pw_register_property_accessibility_metabox() {
 	] );
 
 	$cmb->add_field( [ 'name' => 'Property access', 'type' => 'title', 'id' => '_pw_acc_title_access' ] );
-	$cmb->add_field( [ 'name' => 'Wheelchair accessible',         'id' => '_pw_acc_wheelchair_accessible',         'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Step-free entrance',            'id' => '_pw_acc_step_free_entrance',            'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Automatic doors',               'id' => '_pw_acc_automatic_doors',               'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Accessible parking',            'id' => '_pw_acc_accessible_parking',            'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Accessible path to entrance',   'id' => '_pw_acc_accessible_path_to_entrance',   'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Wheelchair accessible',         'id' => '_pw_acc_wheelchair_accessible',              'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_wheelchair_accessible_note',         'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Step-free entrance',            'id' => '_pw_acc_step_free_entrance',                 'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_step_free_entrance_note',            'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Automatic doors',               'id' => '_pw_acc_automatic_doors',                    'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_automatic_doors_note',               'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Accessible parking',            'id' => '_pw_acc_accessible_parking',                 'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_accessible_parking_note',            'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Accessible path to entrance',   'id' => '_pw_acc_accessible_path_to_entrance',        'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_accessible_path_to_entrance_note',   'type' => 'text_small', 'desc' => 'Note' ] );
 
 	$cmb->add_field( [ 'name' => 'Guest rooms', 'type' => 'title', 'id' => '_pw_acc_title_rooms' ] );
-	$cmb->add_field( [ 'name' => 'Accessible room available',  'id' => '_pw_acc_accessible_room_available',  'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Grab bars in bathroom',      'id' => '_pw_acc_grab_bars_bathroom',         'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Roll-in shower',             'id' => '_pw_acc_roll_in_shower',             'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Adjustable showerhead',      'id' => '_pw_acc_adjustable_showerhead',      'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Lowered closet',             'id' => '_pw_acc_lowered_closet',             'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Transfer-friendly bed',      'id' => '_pw_acc_transfer_friendly_bed',      'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Emergency pull cords',       'id' => '_pw_acc_emergency_pull_cords',       'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Reachable outlets',          'id' => '_pw_acc_reachable_outlets',          'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Accessible room available',  'id' => '_pw_acc_accessible_room_available',       'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_accessible_room_available_note',  'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Grab bars in bathroom',      'id' => '_pw_acc_grab_bars_bathroom',              'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_grab_bars_bathroom_note',         'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Roll-in shower',             'id' => '_pw_acc_roll_in_shower',                  'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_roll_in_shower_note',             'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Adjustable showerhead',      'id' => '_pw_acc_adjustable_showerhead',           'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_adjustable_showerhead_note',      'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Lowered closet',             'id' => '_pw_acc_lowered_closet',                  'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_lowered_closet_note',             'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Transfer-friendly bed',      'id' => '_pw_acc_transfer_friendly_bed',           'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_transfer_friendly_bed_note',      'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Emergency pull cords',       'id' => '_pw_acc_emergency_pull_cords',            'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_emergency_pull_cords_note',       'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Reachable outlets',          'id' => '_pw_acc_reachable_outlets',               'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_reachable_outlets_note',          'type' => 'text_small', 'desc' => 'Note' ] );
 
 	$cmb->add_field( [ 'name' => 'Facilities', 'type' => 'title', 'id' => '_pw_acc_title_facilities' ] );
-	$cmb->add_field( [ 'name' => 'Elevator',              'id' => '_pw_acc_elevator',              'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Elevator audio cues',   'id' => '_pw_acc_elevator_audio_cues',   'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Pool lift',             'id' => '_pw_acc_pool_lift',             'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Accessible restaurant', 'id' => '_pw_acc_accessible_restaurant', 'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Elevator',              'id' => '_pw_acc_elevator',                   'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_elevator_note',              'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Elevator audio cues',   'id' => '_pw_acc_elevator_audio_cues',        'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_elevator_audio_cues_note',   'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Pool lift',             'id' => '_pw_acc_pool_lift',                  'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_pool_lift_note',             'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Accessible restaurant', 'id' => '_pw_acc_accessible_restaurant',      'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_accessible_restaurant_note', 'type' => 'text_small', 'desc' => 'Note' ] );
 
 	$cmb->add_field( [ 'name' => 'Communication', 'type' => 'title', 'id' => '_pw_acc_title_communication' ] );
-	$cmb->add_field( [ 'name' => 'Visual fire alarm',     'id' => '_pw_acc_visual_fire_alarm',     'type' => 'select', 'options' => $status_options ] );
-	$cmb->add_field( [ 'name' => 'Clear dietary labels',  'id' => '_pw_acc_clear_dietary_labels',  'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Visual fire alarm',     'id' => '_pw_acc_visual_fire_alarm',          'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_visual_fire_alarm_note',     'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [ 'name' => 'Clear dietary labels',  'id' => '_pw_acc_clear_dietary_labels',       'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_clear_dietary_labels_note',  'type' => 'text_small', 'desc' => 'Note' ] );
 }
 
 // ---------------------------------------------------------------------------
@@ -644,6 +690,8 @@ function pw_register_property_pools_metabox() {
 			[ 'name' => 'Length (m)',   'id' => 'length_m',    'type' => 'text_small' ],
 			[ 'name' => 'Width (m)',    'id' => 'width_m',     'type' => 'text_small' ],
 			[ 'name' => 'Depth (m)',    'id' => 'depth_m',     'type' => 'text_small' ],
+			[ 'name' => 'Opens at',     'id' => 'open_time',   'type' => 'text_small', 'desc' => 'e.g. 07:00' ],
+			[ 'name' => 'Closes at',    'id' => 'close_time',  'type' => 'text_small', 'desc' => 'e.g. 22:00' ],
 			[ 'name' => 'Heated',       'id' => 'is_heated',   'type' => 'checkbox' ],
 			[ 'name' => 'Kids pool',    'id' => 'is_kids',     'type' => 'checkbox' ],
 			[ 'name' => 'Indoor',       'id' => 'is_indoor',   'type' => 'checkbox' ],

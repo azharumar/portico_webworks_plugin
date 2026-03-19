@@ -56,19 +56,26 @@ function pw_register_property_post_type() {
 function pw_register_property_post_meta() {
 	$string_keys = [
 		'_pw_legal_name',
-		'_pw_brand_name',
+		'_pw_property_name',
 		'_pw_slug',
 		'_pw_address_line_1',
 		'_pw_address_line_2',
 		'_pw_city',
+		'_pw_state',
+		'_pw_postal_code',
 		'_pw_country',
 		'_pw_phone',
+		'_pw_mobile',
+		'_pw_whatsapp',
 		'_pw_email',
 		'_pw_social_facebook',
 		'_pw_social_instagram',
+		'_pw_social_twitter',
 		'_pw_social_tripadvisor',
 		'_pw_social_linkedin',
 		'_pw_social_youtube',
+		'_pw_google_place_id',
+		'_pw_timezone',
 		'_pw_default_template',
 	];
 
@@ -109,34 +116,6 @@ function pw_register_property_post_meta() {
 		'default'      => 'USD',
 	] );
 }
-
-function pw_currency_cmb2_options() {
-	$options = [];
-	foreach ( pw_get_currency_list() as $code => $data ) {
-		$options[ $code ] = $code . ' ' . $data['symbol'] . ' — ' . $data['name'];
-	}
-	return $options;
-}
-
-function pw_register_property_metaboxes() {
-	$cmb = new_cmb2_box( [
-		'id'           => 'pw_property_metabox',
-		'title'        => 'Property Settings',
-		'object_types' => [ 'pw_property' ],
-		'context'      => 'normal',
-		'priority'     => 'high',
-	] );
-
-	$cmb->add_field( [
-		'name'    => 'Currency',
-		'id'      => '_pw_currency',
-		'type'    => 'select',
-		'options' => 'pw_currency_cmb2_options',
-		'default' => 'USD',
-	] );
-}
-
-add_action( 'cmb2_admin_init', 'pw_register_property_metaboxes' );
 
 // Override viewable so builders (GenerateBlocks) discover pw_property even when publicly_queryable is false.
 add_filter('is_post_type_viewable', function ($is_viewable, $post_type) {
