@@ -8,6 +8,17 @@ function pw_admin_page_slug() {
 	return 'portico-webworks';
 }
 
+function pw_add_menu_divider( $label, $slug_suffix ) {
+	add_submenu_page(
+		pw_admin_page_slug(),
+		'',
+		'<span class="pw-menu-divider">' . esc_html( $label ) . '</span>',
+		'manage_options',
+		'#pw-divider-' . $slug_suffix,
+		'__return_false'
+	);
+}
+
 function pw_logo_url() {
 	return plugins_url('logo.svg', PW_PLUGIN_FILE);
 }
@@ -26,7 +37,7 @@ add_action('admin_menu', function () {
 	add_submenu_page(
 		pw_admin_page_slug(),
 		'Portico Webworks',
-		'Overview',
+		'Settings',
 		'manage_options',
 		pw_admin_page_slug(),
 		'pw_render_root_page'
@@ -34,26 +45,42 @@ add_action('admin_menu', function () {
 }, 10);
 
 add_action('admin_menu', function () {
-	$cpt_slugs = [
-		'pw_property',
-		'pw_feature',
-		'pw_room_type',
-		'pw_restaurant',
-		'pw_spa',
-		'pw_meeting_room',
-		'pw_amenity',
-		'pw_policy',
-		'pw_faq',
-		'pw_offer',
-		'pw_nearby',
-		'pw_experience',
-		'pw_event',
-	];
+	pw_add_menu_divider( 'Properties', 'properties' );
 
-	foreach ($cpt_slugs as $cpt) {
-		remove_submenu_page(pw_admin_page_slug(), 'post-new.php?post_type=' . $cpt);
-	}
-}, 999);
+	add_submenu_page(
+		pw_admin_page_slug(),
+		'All Properties',
+		'All Properties',
+		'manage_options',
+		'edit.php?post_type=pw_property'
+	);
+
+	add_submenu_page(
+		pw_admin_page_slug(),
+		'Add New Property',
+		'Add New Property',
+		'manage_options',
+		'post-new.php?post_type=pw_property'
+	);
+
+	pw_add_menu_divider( 'Property Content', 'property-content' );
+
+	add_submenu_page( pw_admin_page_slug(), 'Room Types',    'Room Types',    'manage_options', 'edit.php?post_type=pw_room_type' );
+	add_submenu_page( pw_admin_page_slug(), 'Features',      'Features',      'manage_options', 'edit.php?post_type=pw_feature' );
+	add_submenu_page( pw_admin_page_slug(), 'Restaurants',   'Restaurants',   'manage_options', 'edit.php?post_type=pw_restaurant' );
+	add_submenu_page( pw_admin_page_slug(), 'Spas',          'Spas',          'manage_options', 'edit.php?post_type=pw_spa' );
+	add_submenu_page( pw_admin_page_slug(), 'Meeting Rooms', 'Meeting Rooms', 'manage_options', 'edit.php?post_type=pw_meeting_room' );
+	add_submenu_page( pw_admin_page_slug(), 'Amenities',     'Amenities',     'manage_options', 'edit.php?post_type=pw_amenity' );
+	add_submenu_page( pw_admin_page_slug(), 'Policies',      'Policies',      'manage_options', 'edit.php?post_type=pw_policy' );
+
+	pw_add_menu_divider( 'Marketing', 'marketing' );
+
+	add_submenu_page( pw_admin_page_slug(), 'Offers',      'Offers',      'manage_options', 'edit.php?post_type=pw_offer' );
+	add_submenu_page( pw_admin_page_slug(), 'Experiences', 'Experiences', 'manage_options', 'edit.php?post_type=pw_experience' );
+	add_submenu_page( pw_admin_page_slug(), 'Events',      'Events',      'manage_options', 'edit.php?post_type=pw_event' );
+	add_submenu_page( pw_admin_page_slug(), 'Nearby',      'Nearby',      'manage_options', 'edit.php?post_type=pw_nearby' );
+	add_submenu_page( pw_admin_page_slug(), 'FAQs',        'FAQs',        'manage_options', 'edit.php?post_type=pw_faq' );
+}, 30);
 
 function pw_title() {
 	return 'Portico Webworks Hotel Website Manager';
@@ -70,40 +97,87 @@ function pw_sanitize_property_base($value) {
 	return $value !== '' ? $value : 'properties';
 }
 
-add_action('admin_init', function () {
-	register_setting('pw_settings', 'pw_property_mode', array(
-		'sanitize_callback' => function ($v) {
-			return $v === 'multi' ? 'multi' : 'single';
-		},
-		'default' => 'single',
-	));
-
-	register_setting('pw_settings', 'pw_property_base', array(
-		'sanitize_callback' => 'pw_sanitize_property_base',
-	));
-
-	register_setting('pw_settings', 'pw_default_template', [
-		'sanitize_callback' => 'sanitize_text_field',
-		'default'           => '',
-	]);
-});
-
-function pw_maybe_flush_property_rewrites($old_value, $value) {
-	if ($old_value === $value) {
-		return;
+function pw_get_setting($key, $default = '') {
+	$opts = get_option('pw_settings', []);
+	if (is_array($opts) && array_key_exists($key, $opts)) {
+		return $opts[$key];
 	}
+	return get_option($key, $default);
+}
 
+add_filter('cmb2_override_option_get_pw_settings', function ($value, $default) {
+	$opts = get_option('pw_settings', []);
+	if (is_array($opts) && !empty($opts)) {
+		return $opts;
+	}
+	return [
+		'pw_property_mode'    => get_option('pw_property_mode', 'single'),
+		'pw_property_base'    => get_option('pw_property_base', 'properties'),
+		'pw_default_template' => get_option('pw_default_template', ''),
+	];
+}, 10, 2);
+
+add_action('update_option_pw_settings', function ($old_value, $value, $option) {
 	if (!function_exists('flush_rewrite_rules')) {
 		return;
 	}
+	$old_mode = is_array($old_value) ? ($old_value['pw_property_mode'] ?? '') : '';
+	$old_base = is_array($old_value) ? ($old_value['pw_property_base'] ?? '') : '';
+	$new_mode = is_array($value) ? ($value['pw_property_mode'] ?? '') : '';
+	$new_base = is_array($value) ? ($value['pw_property_base'] ?? '') : '';
+	if ($old_mode !== $new_mode || $old_base !== $new_base) {
+		flush_rewrite_rules();
+	}
+}, 10, 3);
 
-	// This runs only when the plugin admin changes the options; flushing is needed
-	// so rewrite rules update immediately after switching modes/bases.
-	flush_rewrite_rules();
+add_action('cmb2_admin_init', 'pw_register_settings_cmb2');
+
+function pw_register_settings_cmb2() {
+	$cmb = new_cmb2_box([
+		'id'           => 'pw_settings',
+		'title'        => 'Portico Webworks Settings',
+		'object_types' => ['options-page'],
+		'option_key'   => 'pw_settings',
+		'parent_slug'  => pw_admin_page_slug(),
+		'menu_title'   => 'Settings',
+		'capability'   => 'manage_options',
+	]);
+
+	$cmb->add_field([
+		'name'            => 'Property Mode',
+		'id'              => 'pw_property_mode',
+		'type'            => 'select',
+		'options'         => [
+			'single' => 'Single Property',
+			'multi'  => 'Multi-Property',
+		],
+		'default'         => 'single',
+		'sanitization_cb' => function ($v) { return $v === 'multi' ? 'multi' : 'single'; },
+	]);
+
+	$cmb->add_field([
+		'name'            => 'Properties Base Path',
+		'id'              => 'pw_property_base',
+		'type'            => 'text',
+		'desc'            => 'URL prefix for properties, e.g. /{base}/{slug}/... Only applies in Multi-Property mode.',
+		'default'         => 'properties',
+		'attributes'      => ['placeholder' => 'properties'],
+		'sanitization_cb' => 'pw_sanitize_property_base',
+	]);
+
+	$cmb->add_field([
+		'name'            => 'Default Template',
+		'id'              => 'pw_default_template',
+		'type'            => 'text',
+		'desc'            => 'Template slug used for front-end rendering. Applied across all properties.',
+		'attributes'      => ['placeholder' => 'e.g. default'],
+		'sanitization_cb' => 'sanitize_text_field',
+	]);
 }
 
-add_action('update_option_pw_property_mode', 'pw_maybe_flush_property_rewrites', 10, 2);
-add_action('update_option_pw_property_base', 'pw_maybe_flush_property_rewrites', 10, 2);
+add_action('admin_menu', function () {
+	remove_submenu_page(pw_admin_page_slug(), 'pw_settings');
+}, 9999);
 
 function pw_render_root_page() {
 	if (!current_user_can('manage_options')) {
@@ -111,7 +185,7 @@ function pw_render_root_page() {
 	}
 
 	$base_tabs = array(
-		'settings' => 'Settings',
+		'settings' => 'General',
 		'about'    => 'About',
 	);
 	$tabs = apply_filters('pw_admin_tabs', $base_tabs);
@@ -122,7 +196,7 @@ function pw_render_root_page() {
 		$tab = $valid_keys[0];
 	}
 
-	$mode = get_option('pw_property_mode', 'single');
+	$mode = pw_get_setting('pw_property_mode', 'single');
 	$footer_link = 'https://porticowebworks.com/?utm_source=wp-admin&utm_medium=plugin&utm_campaign=portico_webworks&utm_content=footer';
 
 	echo '<div class="wrap pw-admin">';
@@ -196,67 +270,30 @@ function pw_render_root_page() {
 	}
 
 	if ($tab === 'settings') {
-		echo '<div class="pw-card">';
-		echo '<div class="pw-card-head"><div class="pw-card-title">Settings</div></div>';
-		echo '<div class="pw-card-body">';
-		echo '<form method="post" action="options.php">';
-		echo '<input type="hidden" name="_wp_http_referer" value="' . esc_attr(admin_url('admin.php?page=' . urlencode(pw_admin_page_slug()) . '&tab=settings')) . '" />';
-		settings_fields('pw_settings');
-
-		$current_mode = esc_attr($mode);
 		$blog_public = get_option('blog_public', 1);
 		$blog_public = is_numeric($blog_public) ? (int) $blog_public : 1;
 		$indexing_on = $blog_public === 1;
+		echo '<div class="pw-card">';
+		echo '<div class="pw-card-head"><div class="pw-card-title">Settings</div></div>';
+		echo '<div class="pw-card-body">';
 		echo '<table class="form-table" role="presentation"><tbody>';
-		echo '<tr>';
-		echo '<th scope="row">Search Engine Indexing</th>';
-		echo '<td>';
+		echo '<tr><th scope="row">Search Engine Indexing</th><td>';
 		echo '<strong>' . esc_html($indexing_on ? 'ON' : 'OFF') . '</strong>';
 		echo '<p class="description">Controlled by WordPress Settings -> Reading -> "Discourage search engines from indexing this site".</p>';
-		echo '</td>';
-		echo '</tr>';
-		echo '<tr>';
-		echo '<th scope="row">Property Mode</th>';
-		echo '<td>';
-		echo '<label style="margin-right:16px"><input type="radio" name="pw_property_mode" value="single"' . checked($current_mode, 'single', false) . ' /> Single Property</label>';
-		echo '<label><input type="radio" name="pw_property_mode" value="multi"' . checked($current_mode, 'multi', false) . ' /> Multi-Property</label>';
-		echo '<p class="description">Single: one property, no URL routing. Multi: multiple properties resolved by URL path.</p>';
-		echo '</td>';
-		echo '</tr>';
-		echo '<tr>';
-		echo '<th scope="row"><label for="pw-default-template">Default Template</label></th>';
-		echo '<td>';
-		echo '<input class="regular-text" id="pw-default-template" type="text" name="pw_default_template" value="' . esc_attr( get_option( 'pw_default_template', '' ) ) . '" placeholder="e.g. default" />';
-		echo '<p class="description">Template slug used for front-end rendering. Applied across all properties.</p>';
-		echo '</td>';
-		echo '</tr>';
+		echo '</td></tr>';
 		echo '</tbody></table>';
 
-		$base_val = esc_attr(get_option('pw_property_base', 'properties'));
-		echo '<div id="pw-routing-section"' . ($current_mode !== 'multi' ? ' style="display:none"' : '') . '>';
-		echo '<h3>Routing</h3>';
-		echo '<table class="form-table" role="presentation"><tbody>';
-		echo '<tr>';
-		echo '<th scope="row"><label for="pw-property-base">Properties Base Path</label></th>';
-		echo '<td>';
-		echo '<input class="regular-text" id="pw-property-base" type="text" name="pw_property_base" value="' . $base_val . '" placeholder="properties" />';
-		echo '<p class="description">URL prefix for properties, e.g. <code>/{base}/{slug}/...</code></p>';
-		echo '</td>';
-		echo '</tr>';
-		echo '</tbody></table>';
-		echo '</div>';
+		$cmb = cmb2_get_metabox('pw_settings', 'pw_settings');
+		if ($cmb) {
+			echo '<form class="cmb-form" action="' . esc_url(admin_url('admin-post.php')) . '" method="POST" id="pw_settings" enctype="multipart/form-data">';
+			echo '<input type="hidden" name="action" value="pw_settings" />';
+			$cmb->show_form();
+			submit_button(esc_attr__('Save Settings', 'cmb2'), 'primary', 'submit-cmb');
+			echo '</form>';
+		}
 
-		submit_button('Save Settings');
-		echo '</form>';
 		echo '</div>';
 		echo '</div>';
-
-		echo '<script>';
-		echo 'document.querySelectorAll(\'input[name="pw_property_mode"]\').forEach(function(r){';
-		echo 'r.addEventListener("change",function(){';
-		echo 'document.getElementById("pw-routing-section").style.display=this.value==="multi"?"":"none";';
-		echo '});});';
-		echo '</script>';
 
 		echo '<div class="pw-footer">';
 		echo '<a class="pw-footer-link" href="' . esc_url($footer_link) . '" target="_blank" rel="noopener noreferrer">© ' . esc_html(gmdate('Y')) . ' Portico Webworks</a>';

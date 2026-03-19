@@ -4,7 +4,50 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
+add_action('admin_enqueue_scripts', function () {
+	$divider_css = '
+#adminmenu li a[href^="#pw-divider-"] {
+	pointer-events: none;
+	cursor: default;
+	margin-top: 4px;
+}
+#adminmenu li a[href^="#pw-divider-"]:hover {
+	background: transparent !important;
+	color: inherit;
+}
+.pw-menu-divider {
+	display: block;
+	padding: 10px 0 2px;
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	color: #72777c;
+	line-height: 1;
+}
+#adminmenu li:has(a[href^="#pw-divider-"]) .wp-menu-arrow,
+#adminmenu li:has(a[href^="#pw-divider-"]) .update-plugins {
+	display: none;
+}
+';
+	wp_register_style( 'pw-admin-menu-dividers', false, array(), '0.1.0' );
+	wp_enqueue_style( 'pw-admin-menu-dividers' );
+	wp_add_inline_style( 'pw-admin-menu-dividers', $divider_css );
+}, 5);
+
 add_action('admin_enqueue_scripts', function ($hook_suffix) {
+	$screen = get_current_screen();
+	$pw_cpts = [ 'pw_feature', 'pw_room_type', 'pw_restaurant', 'pw_spa', 'pw_meeting_room', 'pw_amenity', 'pw_policy', 'pw_faq', 'pw_offer', 'pw_nearby', 'pw_experience', 'pw_event', 'pw_property' ];
+	$is_pw_cpt = $screen && in_array( $screen->post_type ?? '', $pw_cpts, true );
+	$is_pw_tax = $screen && ( $screen->taxonomy ?? '' ) !== '' && strpos( $screen->taxonomy, 'pw_' ) === 0;
+
+	if ( $is_pw_cpt || $is_pw_tax ) {
+		$css = '.cmb2-postbox .cmb-row:not(:last-of-type),.cmb2-postbox .cmb-repeatable-group:not(:last-of-type),.cmb-type-group .cmb-row:not(:last-of-type),.cmb-type-group .cmb-repeatable-group:not(:last-of-type){border-bottom:0}.cmb2-postbox .cmb-row,.cmb-type-group .cmb-row{padding:0 0 .6em;margin:0 0 .4em}';
+		wp_register_style( 'pw-cmb2-overrides', false, [ 'cmb2-styles' ], '0.1.0' );
+		wp_enqueue_style( 'pw-cmb2-overrides' );
+		wp_add_inline_style( 'pw-cmb2-overrides', $css );
+	}
+
 	if (!isset($_GET['page']) || $_GET['page'] !== pw_admin_page_slug()) {
 		return;
 	}

@@ -14,9 +14,7 @@ if (!(Test-Path -LiteralPath $pluginPath)) {
 	throw "Missing plugin file: $pluginPath"
 }
 
-if (!(Test-Path -LiteralPath $adminPreviewPath)) {
-	throw "Missing admin preview file: $adminPreviewPath"
-}
+$hasAdminPreview = Test-Path -LiteralPath $adminPreviewPath
 
 $pluginPhp = Get-Content -LiteralPath $pluginPath -Raw
 
@@ -40,27 +38,26 @@ $updatedPluginPhp = [regex]::Replace(
 	'* Version: ' + $version
 )
 
-$adminPreview = Get-Content -LiteralPath $adminPreviewPath -Raw
-
-$updatedAdminPreview = $adminPreview
-$updatedAdminPreview = [regex]::Replace(
-	$updatedAdminPreview,
-	'<div\s+class="ver">\s*v[0-9A-Za-z\.\-]+\s*</div>',
-	'<div class="ver">v' + $version + '</div>'
-)
-
-$updatedAdminPreview = [regex]::Replace(
-	$updatedAdminPreview,
-	"<strong>Plugin version</strong>:\\s*v[0-9A-Za-z\\.\\-]+",
-	"<strong>Plugin version</strong>: v$version"
-)
+if ($hasAdminPreview) {
+	$adminPreview = Get-Content -LiteralPath $adminPreviewPath -Raw
+	$updatedAdminPreview = $adminPreview
+	$updatedAdminPreview = [regex]::Replace(
+		$updatedAdminPreview,
+		'<div\s+class="ver">\s*v[0-9A-Za-z\.\-]+\s*</div>',
+		'<div class="ver">v' + $version + '</div>'
+	)
+	$updatedAdminPreview = [regex]::Replace(
+		$updatedAdminPreview,
+		"<strong>Plugin version</strong>:\\s*v[0-9A-Za-z\\.\\-]+",
+		"<strong>Plugin version</strong>: v$version"
+	)
+	if ($updatedAdminPreview -ne $adminPreview) {
+		Set-Content -LiteralPath $adminPreviewPath -Value $updatedAdminPreview -NoNewline
+	}
+}
 
 if ($updatedPluginPhp -ne $pluginPhp) {
 	Set-Content -LiteralPath $pluginPath -Value $updatedPluginPhp -NoNewline
-}
-
-if ($updatedAdminPreview -ne $adminPreview) {
-	Set-Content -LiteralPath $adminPreviewPath -Value $updatedAdminPreview -NoNewline
 }
 
 Write-Output $version

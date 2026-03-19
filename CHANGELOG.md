@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.1] - 2026-03-19
+
+### Changed
+- Admin menu: reorganise into logical groups with section dividers (Properties, Property Content, Marketing)
+- Admin menu: rename Overview to Settings; rename Settings tab to General
+- Admin menu: add "Add New Property" to sidebar; suppress "Add New" for all child CPTs
+- sync-version.ps1: make admin-preview.html optional (file was removed in 0.7.0)
+
 ## [0.7.0] - 2026-03-19
 
 ### Added
