@@ -24,15 +24,6 @@ function pw_backward_compat_meta( $value, $object_id, $meta_key, $single ) {
 			$slug = get_post_field( 'post_name', $object_id );
 			return $single ? $slug : [ $slug ];
 		}
-		if ( $meta_key === '_pw_default_template' ) {
-			remove_filter( 'get_post_metadata', 'pw_backward_compat_meta', 10 );
-			$stored = get_post_meta( $object_id, $meta_key, true );
-			add_filter( 'get_post_metadata', 'pw_backward_compat_meta', 10, 4 );
-			if ( $stored === '' || $stored === false ) {
-				$fallback = pw_get_setting( 'pw_default_template', '' );
-				return $single ? $fallback : [ $fallback ];
-			}
-		}
 	}
 
 	if ( $post_type === 'pw_event' && $meta_key === '_pw_is_recurring' ) {
