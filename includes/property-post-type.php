@@ -56,8 +56,6 @@ function pw_register_property_post_type() {
 function pw_register_property_post_meta() {
 	$string_keys = [
 		'_pw_legal_name',
-		'_pw_property_name',
-		'_pw_slug',
 		'_pw_address_line_1',
 		'_pw_address_line_2',
 		'_pw_city',
@@ -76,7 +74,6 @@ function pw_register_property_post_meta() {
 		'_pw_social_youtube',
 		'_pw_google_place_id',
 		'_pw_timezone',
-		'_pw_default_template',
 	];
 
 	foreach ( $string_keys as $key ) {
@@ -114,6 +111,41 @@ function pw_register_property_post_meta() {
 		'single'       => true,
 		'show_in_rest' => true,
 		'default'      => 'USD',
+	] );
+
+	register_post_meta( 'pw_property', '_pw_check_in_time', [
+		'type'         => 'string',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => '',
+	] );
+
+	register_post_meta( 'pw_property', '_pw_check_out_time', [
+		'type'         => 'string',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => '',
+	] );
+
+	register_post_meta( 'pw_property', '_pw_year_established', [
+		'type'         => 'integer',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => 0,
+	] );
+
+	register_post_meta( 'pw_property', '_pw_total_rooms', [
+		'type'         => 'integer',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => 0,
+	] );
+
+	register_post_meta( 'pw_property', '_pw_og_image', [
+		'type'         => 'integer',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => 0,
 	] );
 }
 

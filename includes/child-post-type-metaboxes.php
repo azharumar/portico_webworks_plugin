@@ -146,11 +146,13 @@ function pw_register_child_metaboxes() {
 	] );
 
 	$cmb->add_field( [ 'name' => 'Rate from',     'desc' => 'Starting rate. Currency is set on the parent property.', 'id' => '_pw_rate_from',     'type' => 'text_money' ] );
+	$cmb->add_field( [ 'name' => 'Rate to',       'desc' => 'Upper end of rate range.',                              'id' => '_pw_rate_to',       'type' => 'text_money' ] );
 	$cmb->add_field( [ 'name' => 'Max occupancy', 'id' => '_pw_max_occupancy', 'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Max adults',    'id' => '_pw_max_adults',    'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Max children',  'id' => '_pw_max_children',  'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Size (sqft)',   'id' => '_pw_size_sqft',     'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Size (sqm)',    'id' => '_pw_size_sqm',      'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Max extra beds', 'id' => '_pw_max_extra_beds', 'type' => 'text_small' ] );
 
 	$cmb->add_field( [
 		'name'    => 'Features',
@@ -174,6 +176,7 @@ function pw_register_child_metaboxes() {
 	] );
 
 	$cmb->add_field( [ 'name' => 'Gallery', 'id' => '_pw_gallery', 'type' => 'file_list' ] );
+	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small' ] );
 
 	// --- pw_restaurant ---
 
@@ -216,6 +219,7 @@ function pw_register_child_metaboxes() {
 			],
 			[ 'name' => 'Opens at',  'id' => 'open_time',  'type' => 'text_small' ],
 			[ 'name' => 'Closes at', 'id' => 'close_time', 'type' => 'text_small' ],
+			[ 'name' => 'Closed',    'id' => 'is_closed',  'type' => 'checkbox' ],
 		],
 	] );
 
@@ -235,6 +239,7 @@ function pw_register_child_metaboxes() {
 	$cmb->add_field( [ 'name' => 'Booking URL', 'id' => '_pw_booking_url', 'type' => 'text_url' ] );
 	$cmb->add_field( [ 'name' => 'Menu URL',    'id' => '_pw_menu_url',    'type' => 'text_url' ] );
 	$cmb->add_field( [ 'name' => 'Minimum age', 'id' => '_pw_min_age',     'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Treatment rooms', 'id' => '_pw_number_of_treatment_rooms', 'type' => 'text_small' ] );
 
 	$cmb->add_field( [
 		'name'       => 'Operating hours',
@@ -243,6 +248,7 @@ function pw_register_child_metaboxes() {
 		'repeatable' => true,
 		'options'    => [ 'group_title' => 'Day {#}', 'add_button' => 'Add Day', 'remove_button' => 'Remove Day' ],
 		'fields'     => [
+			[ 'name' => 'Session label', 'id' => 'session_label', 'type' => 'text_small', 'desc' => 'e.g. Morning, Afternoon' ],
 			[
 				'name'    => 'Day',
 				'id'      => 'day',
@@ -259,6 +265,7 @@ function pw_register_child_metaboxes() {
 			],
 			[ 'name' => 'Opens at',  'id' => 'open_time',  'type' => 'text_small' ],
 			[ 'name' => 'Closes at', 'id' => 'close_time', 'type' => 'text_small' ],
+			[ 'name' => 'Closed',    'id' => 'is_closed',  'type' => 'checkbox' ],
 		],
 	] );
 
@@ -281,6 +288,8 @@ function pw_register_child_metaboxes() {
 	$cmb->add_field( [ 'name' => 'Capacity — U-Shape',   'id' => '_pw_capacity_ushape',    'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Area (sqft)',           'id' => '_pw_area_sqft',          'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Area (sqm)',            'id' => '_pw_area_sqm',           'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Pre-function area (sqft)', 'id' => '_pw_prefunction_area_sqft', 'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Pre-function area (sqm)',  'id' => '_pw_prefunction_area_sqm',  'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Contact Phone',         'id' => '_pw_phone',              'type' => 'text',       'desc' => 'Direct line for this venue' ] );
 	$cmb->add_field( [ 'name' => 'Contact Mobile',        'id' => '_pw_mobile',             'type' => 'text' ] );
 	$cmb->add_field( [ 'name' => 'Contact WhatsApp',      'id' => '_pw_whatsapp',           'type' => 'text' ] );
@@ -416,6 +425,7 @@ function pw_register_child_metaboxes() {
 			],
 		],
 	] );
+	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small' ] );
 
 	// --- pw_offer ---
 
@@ -462,6 +472,40 @@ function pw_register_child_metaboxes() {
 	$cmb->add_field( [ 'name' => 'Booking URL', 'id' => '_pw_booking_url', 'type' => 'text_url' ] );
 	$cmb->add_field( [ 'name' => 'Terms',       'id' => '_pw_terms',       'type' => 'textarea_small' ] );
 	$cmb->add_field( [ 'name' => 'Featured',    'id' => '_pw_is_featured', 'type' => 'checkbox' ] );
+	$cmb->add_field( [
+		'name'    => 'Discount type',
+		'id'      => '_pw_discount_type',
+		'type'    => 'select',
+		'options' => [
+			''          => '— None —',
+			'percentage' => 'Percentage',
+			'flat'       => 'Flat amount',
+			'value_add'  => 'Value add',
+		],
+	] );
+	$cmb->add_field( [ 'name' => 'Discount value',       'id' => '_pw_discount_value',       'type' => 'text_money', 'desc' => 'e.g. 20 for 20% or 500 for ₹500' ] );
+	$cmb->add_field( [ 'name' => 'Minimum stay (nights)', 'id' => '_pw_minimum_stay_nights',  'type' => 'text_small' ] );
+	$cmb->add_field( [
+		'name'    => 'Applicable room types',
+		'desc'    => 'Leave blank to apply to all room types',
+		'id'      => '_pw_room_types',
+		'type'    => 'multicheck',
+		'options' => function() {
+			$rooms = get_posts( [
+				'post_type'      => 'pw_room_type',
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+			] );
+			$options = [];
+			foreach ( $rooms as $r ) {
+				$options[ $r->ID ] = $r->post_title;
+			}
+			return $options;
+		},
+	] );
+	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small' ] );
 
 	// --- pw_nearby ---
 
@@ -477,6 +521,7 @@ function pw_register_child_metaboxes() {
 	$cmb->add_field( [ 'name' => 'Distance (km)',      'id' => '_pw_distance_km',     'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Travel time (min)',  'id' => '_pw_travel_time_min', 'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Place URL',          'id' => '_pw_place_url',       'type' => 'text_url',   'desc' => 'Google Maps or website URL' ] );
+	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small' ] );
 
 	// --- pw_experience ---
 
@@ -495,6 +540,7 @@ function pw_register_child_metaboxes() {
 	$cmb->add_field( [ 'name' => 'Booking URL',    'id' => '_pw_booking_url',      'type' => 'text_url' ] );
 	$cmb->add_field( [ 'name' => 'Complimentary',  'id' => '_pw_is_complimentary', 'type' => 'checkbox' ] );
 	$cmb->add_field( [ 'name' => 'Gallery',        'id' => '_pw_gallery',          'type' => 'file_list' ] );
+	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small' ] );
 
 	// --- pw_event ---
 
@@ -509,13 +555,36 @@ function pw_register_child_metaboxes() {
 	$cmb->add_field( [ 'name' => 'Property',    'id' => '_pw_property_id',    'type' => 'select',                   'options' => 'pw_property_options' ] );
 	$cmb->add_field( [ 'name' => 'Venue',       'id' => '_pw_venue_id',       'type' => 'select',                   'options' => 'pw_meeting_room_options' ] );
 	$cmb->add_field( [ 'name' => 'Description', 'id' => '_pw_description',    'type' => 'textarea' ] );
-	$cmb->add_field( [ 'name' => 'Start',       'id' => '_pw_start_datetime', 'type' => 'text_datetime_timestamp',  'desc' => 'Used for schema.org Event markup' ] );
-	$cmb->add_field( [ 'name' => 'End',         'id' => '_pw_end_datetime',   'type' => 'text_datetime_timestamp' ] );
+	$cmb->add_field( [ 'name' => 'Start',       'id' => '_pw_start_datetime', 'type' => 'text_datetime',  'desc' => 'Used for schema.org Event markup' ] );
+	$cmb->add_field( [ 'name' => 'End',         'id' => '_pw_end_datetime',   'type' => 'text_datetime' ] );
 	$cmb->add_field( [ 'name' => 'Capacity',    'id' => '_pw_capacity',       'type' => 'text_small' ] );
 	$cmb->add_field( [ 'name' => 'Price from',  'id' => '_pw_price_from',     'type' => 'text_money' ] );
 	$cmb->add_field( [ 'name' => 'Booking URL', 'id' => '_pw_booking_url',    'type' => 'text_url' ] );
-	$cmb->add_field( [ 'name' => 'Recurring',   'id' => '_pw_is_recurring',   'type' => 'checkbox' ] );
 	$cmb->add_field( [ 'name' => 'Gallery',     'id' => '_pw_gallery',        'type' => 'file_list' ] );
+	$cmb->add_field( [ 'name' => 'Recurrence rule', 'id' => '_pw_recurrence_rule',      'type' => 'text',     'desc' => 'iCal RRULE string, e.g. FREQ=WEEKLY;BYDAY=SA' ] );
+	$cmb->add_field( [ 'name' => 'Organiser name',  'id' => '_pw_organiser_name',       'type' => 'text' ] );
+	$cmb->add_field( [ 'name' => 'Organiser URL',   'id' => '_pw_organiser_url',        'type' => 'text_url' ] );
+	$cmb->add_field( [
+		'name'    => 'Event status',
+		'id'      => '_pw_event_status',
+		'type'    => 'select',
+		'options' => [
+			'EventScheduled'   => 'Scheduled',
+			'EventCancelled'   => 'Cancelled',
+			'EventPostponed'   => 'Postponed',
+			'EventRescheduled' => 'Rescheduled',
+		],
+	] );
+	$cmb->add_field( [
+		'name'    => 'Attendance mode',
+		'id'      => '_pw_event_attendance_mode',
+		'type'    => 'select',
+		'options' => [
+			'OfflineEventAttendanceMode' => 'In-person',
+			'OnlineEventAttendanceMode'  => 'Online',
+			'MixedEventAttendanceMode'   => 'Mixed',
+		],
+	] );
 }
 
 // ---------------------------------------------------------------------------
@@ -730,5 +799,28 @@ function pw_register_property_direct_benefits_metabox() {
 			[ 'name' => 'Description', 'id' => 'description', 'type' => 'textarea_small' ],
 			[ 'name' => 'Icon',        'id' => 'icon',        'type' => 'text_small', 'desc' => 'Icon slug or SVG' ],
 		],
+	] );
+}
+
+// ---------------------------------------------------------------------------
+// pw_property: SEO & Social Sharing meta box
+// ---------------------------------------------------------------------------
+
+add_action( 'cmb2_admin_init', 'pw_register_property_seo_metabox' );
+
+function pw_register_property_seo_metabox() {
+	$cmb = new_cmb2_box( [
+		'id'           => 'pw_property_seo',
+		'title'        => 'SEO & Social Sharing',
+		'object_types' => [ 'pw_property' ],
+		'context'      => 'normal',
+		'priority'     => 'default',
+	] );
+
+	$cmb->add_field( [
+		'name' => 'Open Graph Image',
+		'desc' => 'Custom Open Graph image. Overrides WordPress default on social shares.',
+		'id'   => '_pw_og_image',
+		'type' => 'file',
 	] );
 }

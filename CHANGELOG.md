@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.7.0] - 2026-03-19
+
+### Added
+- Property: add `_pw_check_in_time`, `_pw_check_out_time`, `_pw_year_established`, `_pw_total_rooms` structured meta
+- Property: add `_pw_og_image` (attachment ID) for custom Open Graph image per property via new SEO & Social Sharing metabox
+- Property: migrate `pw_default_template` to plugin-level setting (Settings page)
+- Room Type: add `_pw_rate_to` (upper rate range), `_pw_max_extra_beds`, `_pw_display_order`
+- Spa: add `_pw_number_of_treatment_rooms`; add `is_closed` boolean and `session_label` per operating hours session
+- Restaurant: add `is_closed` boolean per operating hours session
+- Meeting Room: add `_pw_prefunction_area_sqft` and `_pw_prefunction_area_sqm`
+- Offer: add `_pw_discount_type`, `_pw_discount_value`, `_pw_minimum_stay_nights`, `_pw_room_types`, `_pw_display_order`
+- Event: add `_pw_recurrence_rule` (iCal RRULE string), `_pw_organiser_name`, `_pw_organiser_url`, `_pw_event_status`, `_pw_event_attendance_mode` for schema.org compliance
+- FAQ, Nearby, Experience: add `_pw_display_order`
+
+### Changed
+- Event: `_pw_start_datetime` and `_pw_end_datetime` now stored as `Y-m-d H:i:s` (was Unix timestamp string)
+
+### Removed
+- Property: remove `_pw_property_name` meta — `post_title` serves as the property name
+- Property: remove `_pw_slug` meta — `post_name` is used directly in URL resolution
+- Event: remove `_pw_is_recurring` boolean — replaced by `_pw_recurrence_rule`
+
 ## [0.6.0] - 2026-03-19
 
 ### Added

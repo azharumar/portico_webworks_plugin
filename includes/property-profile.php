@@ -25,12 +25,13 @@ function pw_timezone_options() {
 
 function pw_property_fields() {
 	return [
-		'_pw_property_name'      => ['section' => 'general',  'label' => 'Property Name',    'type' => 'text',   'placeholder' => 'e.g. The Grand Pavilion',                    'help' => 'Public-facing name shown to guests.'],
 		'_pw_legal_name'         => ['section' => 'general',  'label' => 'Legal Name',        'type' => 'text',   'placeholder' => 'e.g. Grand Pavilion Hospitality Pvt Ltd',    'help' => 'For invoices, contracts, and compliance.'],
-		'_pw_slug'               => ['section' => 'general',  'label' => 'Slug',              'type' => 'text',   'placeholder' => 'e.g. grand-pavilion',                        'help' => 'Used for URL routing in multi-property mode.'],
 		'_pw_star_rating'        => ['section' => 'general',  'label' => 'Star Rating',       'type' => 'number', 'placeholder' => '1–5',                                        'help' => 'Hotel star classification (1–5).'],
-		'_pw_default_template'   => ['section' => 'general',  'label' => 'Default Template',  'type' => 'text',   'placeholder' => 'e.g. default',                               'help' => 'Template slug for front-end rendering.'],
 		'_pw_currency'           => ['section' => 'general',  'label' => 'Currency',          'type' => 'select', 'options' => 'pw_currency_options_for_profile',                'help' => 'Default currency for rates and pricing.'],
+		'_pw_check_in_time'      => ['section' => 'general',  'label' => 'Check-in Time',       'type' => 'text',   'placeholder' => 'e.g. 14:00'],
+		'_pw_check_out_time'     => ['section' => 'general',  'label' => 'Check-out Time',      'type' => 'text',   'placeholder' => 'e.g. 11:00'],
+		'_pw_year_established'   => ['section' => 'general',  'label' => 'Year Established',    'type' => 'number', 'placeholder' => 'e.g. 2005'],
+		'_pw_total_rooms'        => ['section' => 'general',  'label' => 'Total Rooms',         'type' => 'number', 'placeholder' => 'e.g. 120'],
 
 		'_pw_address_line_1'     => ['section' => 'address',  'label' => 'Address Line 1',   'type' => 'text',   'placeholder' => 'Street address, building, etc.'],
 		'_pw_address_line_2'     => ['section' => 'address',  'label' => 'Address Line 2',   'type' => 'text',   'placeholder' => 'Area, landmark (optional)'],

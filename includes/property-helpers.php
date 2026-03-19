@@ -9,12 +9,13 @@ function pw_get_property_profile( $property_id = null ) {
 	if ( ! $id ) return [];
 
 	$keys = [
-		'property_name'      => '_pw_property_name',
 		'legal_name'         => '_pw_legal_name',
-		'slug'               => '_pw_slug',
 		'star_rating'        => '_pw_star_rating',
-		'default_template'   => '_pw_default_template',
 		'currency'           => '_pw_currency',
+		'check_in_time'      => '_pw_check_in_time',
+		'check_out_time'     => '_pw_check_out_time',
+		'year_established'   => '_pw_year_established',
+		'total_rooms'        => '_pw_total_rooms',
 		'address_line_1'     => '_pw_address_line_1',
 		'address_line_2'     => '_pw_address_line_2',
 		'city'               => '_pw_city',

@@ -17,12 +17,15 @@ The plugin registers **1 primary post type** (`pw_property`) and **11 child post
 #### General
 | Meta Key | Type | Default | Notes |
 |---|---|---|---|
-| `_pw_property_name` | string | `''` | Public-facing name shown to guests |
 | `_pw_legal_name` | string | `''` | For invoices / compliance |
-| `_pw_slug` | string | `''` | URL routing in multi-property mode |
 | `_pw_star_rating` | integer | `0` | 1–5 classification |
-| `_pw_default_template` | string | `''` | Template slug for front-end rendering |
 | `_pw_currency` | string | `'USD'` | ISO 4217 currency code |
+| `_pw_check_in_time` | string | `''` | e.g. `14:00` |
+| `_pw_check_out_time` | string | `''` | e.g. `11:00` |
+| `_pw_year_established` | integer | `0` | Used in schema.org LodgingBusiness |
+| `_pw_total_rooms` | integer | `0` | Total inventory count |
+
+> **Note:** The default front-end template is now a plugin-level setting configured via the Portico Webworks Settings page (stored as a WP option). It is no longer a per-property meta field.
 
 #### Address
 | Meta Key | Type | Default |
@@ -59,6 +62,11 @@ The plugin registers **1 primary post type** (`pw_property`) and **11 child post
 | `_pw_social_youtube` | string | `''` |
 | `_pw_social_linkedin` | string | `''` |
 | `_pw_social_tripadvisor` | string | `''` |
+
+#### SEO & Social Sharing
+| Meta Key | Type | Default | Notes |
+|---|---|---|---|
+| `_pw_og_image` | integer | `0` | Attachment ID for custom Open Graph image |
 
 #### Pools (`_pw_pools`) — array of objects
 | Field | Type | Notes |
@@ -156,11 +164,14 @@ Each accessibility parameter has a paired `_note` key (string, `''`) for free-te
 |---|---|---|---|
 | `_pw_property_id` | integer | `0` | FK → `pw_property` |
 | `_pw_rate_from` | number | `0` | Starting rate |
+| `_pw_rate_to` | number | `0` | Upper end of rate range |
 | `_pw_max_occupancy` | integer | `0` | Total guest limit |
 | `_pw_max_adults` | integer | `0` | Must satisfy: max_adults + max_children ≤ max_occupancy |
 | `_pw_max_children` | integer | `0` | Must satisfy: max_adults + max_children ≤ max_occupancy |
 | `_pw_size_sqft` | integer | `0` | |
 | `_pw_size_sqm` | integer | `0` | |
+| `_pw_max_extra_beds` | integer | `0` | |
+| `_pw_display_order` | integer | `0` | |
 | `_pw_features` | array\<integer\> | — | Array of `pw_feature` post IDs |
 | `_pw_gallery` | array\<integer\> | — | Array of attachment IDs |
 
@@ -192,6 +203,7 @@ Multiple sessions per day are supported by adding multiple entries with the same
 | `day` | string | `monday`…`sunday` |
 | `open_time` | string | |
 | `close_time` | string | |
+| `is_closed` | boolean | |
 
 ---
 
@@ -206,9 +218,19 @@ Multiple sessions per day are supported by adding multiple entries with the same
 | `_pw_booking_url` | string | `''` |
 | `_pw_menu_url` | string | `''` |
 | `_pw_min_age` | integer | `0` |
+| `_pw_number_of_treatment_rooms` | integer | `0` |
 | `_pw_gallery` | array\<integer\> | — |
 
-#### Operating Hours (`_pw_operating_hours`) — same schema as `pw_restaurant`
+#### Operating Hours (`_pw_operating_hours`) — array of session objects
+Multiple sessions per day are supported by adding multiple entries with the same `day` value.
+
+| Field | Type | Notes |
+|---|---|---|
+| `session_label` | string | e.g. `Morning`, `Afternoon` |
+| `day` | string | `monday`…`sunday` |
+| `open_time` | string | |
+| `close_time` | string | |
+| `is_closed` | boolean | |
 
 ---
 
@@ -226,6 +248,8 @@ Multiple sessions per day are supported by adding multiple entries with the same
 | `_pw_capacity_ushape` | integer | `0` |
 | `_pw_area_sqft` | integer | `0` |
 | `_pw_area_sqm` | integer | `0` |
+| `_pw_prefunction_area_sqft` | integer | `0` |
+| `_pw_prefunction_area_sqm` | integer | `0` |
 | `_pw_natural_light` | boolean | `false` |
 | `_pw_floor_plan` | integer | `0` | Attachment ID |
 | `_pw_phone` | string | `''` | Direct venue contact |
@@ -275,6 +299,7 @@ Multiple sessions per day are supported by adding multiple entries with the same
 | Meta Key | Type | Default |
 |---|---|---|
 | `_pw_answer` | string | `''` |
+| `_pw_display_order` | integer | `0` |
 
 #### Connected To (`_pw_connected_to`) — array of objects
 Links an FAQ to one or more entities.
@@ -301,6 +326,11 @@ Links an FAQ to one or more entities.
 | `_pw_booking_url` | string | `''` | |
 | `_pw_terms` | string | `''` | |
 | `_pw_is_featured` | boolean | `false` | |
+| `_pw_discount_type` | string | `''` | `percentage` \| `flat` \| `value_add` |
+| `_pw_discount_value` | number | `0` | |
+| `_pw_minimum_stay_nights` | integer | `0` | |
+| `_pw_room_types` | array\<integer\> | — | Array of `pw_room_type` post IDs |
+| `_pw_display_order` | integer | `0` | |
 
 ---
 
@@ -315,6 +345,7 @@ Links an FAQ to one or more entities.
 | `_pw_distance_km` | number | `0` |
 | `_pw_travel_time_min` | integer | `0` |
 | `_pw_place_url` | string | `''` |
+| `_pw_display_order` | integer | `0` |
 
 ---
 
@@ -332,6 +363,7 @@ Links an FAQ to one or more entities.
 | `_pw_booking_url` | string | `''` |
 | `_pw_is_complimentary` | boolean | `false` |
 | `_pw_gallery` | array\<integer\> | — |
+| `_pw_display_order` | integer | `0` |
 
 ---
 
@@ -345,12 +377,16 @@ Links an FAQ to one or more entities.
 | `_pw_property_id` | integer | `0` | |
 | `_pw_venue_id` | integer | `0` | FK → `pw_meeting_room` |
 | `_pw_description` | string | `''` | |
-| `_pw_start_datetime` | string | `''` | Unix timestamp string |
-| `_pw_end_datetime` | string | `''` | Unix timestamp string |
+| `_pw_start_datetime` | string | `''` | `Y-m-d H:i:s` |
+| `_pw_end_datetime` | string | `''` | `Y-m-d H:i:s` |
 | `_pw_capacity` | integer | `0` | |
 | `_pw_price_from` | number | `0` | |
 | `_pw_booking_url` | string | `''` | |
-| `_pw_is_recurring` | boolean | `false` | |
+| `_pw_recurrence_rule` | string | `''` | iCal RRULE string (e.g. `FREQ=WEEKLY;BYDAY=SA`) |
+| `_pw_organiser_name` | string | `''` | Required for schema.org Event |
+| `_pw_organiser_url` | string | `''` | Required for schema.org Event |
+| `_pw_event_status` | string | `'EventScheduled'` | schema.org: `EventScheduled` \| `EventCancelled` \| `EventPostponed` \| `EventRescheduled` |
+| `_pw_event_attendance_mode` | string | `'OfflineEventAttendanceMode'` | schema.org: `OfflineEventAttendanceMode` \| `OnlineEventAttendanceMode` \| `MixedEventAttendanceMode` |
 | `_pw_gallery` | array\<integer\> | — | |
 
 ---

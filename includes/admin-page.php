@@ -81,6 +81,11 @@ add_action('admin_init', function () {
 	register_setting('pw_settings', 'pw_property_base', array(
 		'sanitize_callback' => 'pw_sanitize_property_base',
 	));
+
+	register_setting('pw_settings', 'pw_default_template', [
+		'sanitize_callback' => 'sanitize_text_field',
+		'default'           => '',
+	]);
 });
 
 function pw_maybe_flush_property_rewrites($old_value, $value) {
@@ -216,6 +221,13 @@ function pw_render_root_page() {
 		echo '<label style="margin-right:16px"><input type="radio" name="pw_property_mode" value="single"' . checked($current_mode, 'single', false) . ' /> Single Property</label>';
 		echo '<label><input type="radio" name="pw_property_mode" value="multi"' . checked($current_mode, 'multi', false) . ' /> Multi-Property</label>';
 		echo '<p class="description">Single: one property, no URL routing. Multi: multiple properties resolved by URL path.</p>';
+		echo '</td>';
+		echo '</tr>';
+		echo '<tr>';
+		echo '<th scope="row"><label for="pw-default-template">Default Template</label></th>';
+		echo '<td>';
+		echo '<input class="regular-text" id="pw-default-template" type="text" name="pw_default_template" value="' . esc_attr( get_option( 'pw_default_template', '' ) ) . '" placeholder="e.g. default" />';
+		echo '<p class="description">Template slug used for front-end rendering. Applied across all properties.</p>';
 		echo '</td>';
 		echo '</tr>';
 		echo '</tbody></table>';

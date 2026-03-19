@@ -221,7 +221,14 @@ function pw_register_child_post_meta() {
 		'default'      => 0,
 	] );
 
-	foreach ( [ '_pw_max_occupancy', '_pw_max_adults', '_pw_max_children', '_pw_size_sqft', '_pw_size_sqm' ] as $key ) {
+	register_post_meta( 'pw_room_type', '_pw_rate_to', [
+		'type'         => 'number',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => 0,
+	] );
+
+	foreach ( [ '_pw_max_occupancy', '_pw_max_adults', '_pw_max_children', '_pw_size_sqft', '_pw_size_sqm', '_pw_max_extra_beds', '_pw_display_order' ] as $key ) {
 		register_post_meta( 'pw_room_type', $key, [
 			'type'         => 'integer',
 			'single'       => true,
@@ -296,12 +303,13 @@ function pw_register_child_post_meta() {
 				'type'  => 'array',
 				'items' => [
 					'type'       => 'object',
-					'properties' => [
-						'session_label' => [ 'type' => 'string' ],
-						'day'           => [ 'type' => 'string' ],
-						'open_time'     => [ 'type' => 'string' ],
-						'close_time'    => [ 'type' => 'string' ],
-					],
+				'properties' => [
+					'session_label' => [ 'type' => 'string' ],
+					'day'           => [ 'type' => 'string' ],
+					'open_time'     => [ 'type' => 'string' ],
+					'close_time'    => [ 'type' => 'string' ],
+					'is_closed'     => [ 'type' => 'boolean' ],
+				],
 				],
 			],
 		],
@@ -332,6 +340,13 @@ function pw_register_child_post_meta() {
 		'default'      => 0,
 	] );
 
+	register_post_meta( 'pw_spa', '_pw_number_of_treatment_rooms', [
+		'type'         => 'integer',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => 0,
+	] );
+
 	register_post_meta( 'pw_spa', '_pw_gallery', [
 		'type'         => 'array',
 		'single'       => true,
@@ -351,11 +366,13 @@ function pw_register_child_post_meta() {
 				'type'  => 'array',
 				'items' => [
 					'type'       => 'object',
-					'properties' => [
-						'day'        => [ 'type' => 'string' ],
-						'open_time'  => [ 'type' => 'string' ],
-						'close_time' => [ 'type' => 'string' ],
-					],
+				'properties' => [
+					'session_label' => [ 'type' => 'string' ],
+					'day'           => [ 'type' => 'string' ],
+					'open_time'     => [ 'type' => 'string' ],
+					'close_time'    => [ 'type' => 'string' ],
+					'is_closed'     => [ 'type' => 'boolean' ],
+				],
 				],
 			],
 		],
@@ -377,6 +394,8 @@ function pw_register_child_post_meta() {
 		'_pw_capacity_ushape',
 		'_pw_area_sqft',
 		'_pw_area_sqm',
+		'_pw_prefunction_area_sqft',
+		'_pw_prefunction_area_sqm',
 	] as $key ) {
 		register_post_meta( 'pw_meeting_room', $key, [
 			'type'         => 'integer',
@@ -515,6 +534,9 @@ function pw_register_child_post_meta() {
 				],
 			],
 		],
+	] );
+	register_post_meta( 'pw_faq', '_pw_display_order', [
+		'type' => 'integer', 'single' => true, 'show_in_rest' => true, 'default' => 0,
 	] );
 
 	// --- pw_property: sustainability ---
@@ -680,6 +702,28 @@ function pw_register_child_post_meta() {
 	register_post_meta( 'pw_offer', '_pw_is_featured', [
 		'type' => 'boolean', 'single' => true, 'show_in_rest' => true, 'default' => false,
 	] );
+	register_post_meta( 'pw_offer', '_pw_discount_type', [
+		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
+	] );
+	register_post_meta( 'pw_offer', '_pw_discount_value', [
+		'type' => 'number', 'single' => true, 'show_in_rest' => true, 'default' => 0,
+	] );
+	register_post_meta( 'pw_offer', '_pw_minimum_stay_nights', [
+		'type' => 'integer', 'single' => true, 'show_in_rest' => true, 'default' => 0,
+	] );
+	register_post_meta( 'pw_offer', '_pw_room_types', [
+		'type'         => 'array',
+		'single'       => true,
+		'show_in_rest' => [
+			'schema' => [
+				'type'  => 'array',
+				'items' => [ 'type' => 'integer' ],
+			],
+		],
+	] );
+	register_post_meta( 'pw_offer', '_pw_display_order', [
+		'type' => 'integer', 'single' => true, 'show_in_rest' => true, 'default' => 0,
+	] );
 
 	// --- pw_nearby ---
 
@@ -694,6 +738,9 @@ function pw_register_child_post_meta() {
 	] );
 	register_post_meta( 'pw_nearby', '_pw_place_url', [
 		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
+	] );
+	register_post_meta( 'pw_nearby', '_pw_display_order', [
+		'type' => 'integer', 'single' => true, 'show_in_rest' => true, 'default' => 0,
 	] );
 
 	// --- pw_experience ---
@@ -726,6 +773,9 @@ function pw_register_child_post_meta() {
 			],
 		],
 	] );
+	register_post_meta( 'pw_experience', '_pw_display_order', [
+		'type' => 'integer', 'single' => true, 'show_in_rest' => true, 'default' => 0,
+	] );
 
 	// --- pw_event ---
 
@@ -753,9 +803,6 @@ function pw_register_child_post_meta() {
 	register_post_meta( 'pw_event', '_pw_booking_url', [
 		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
 	] );
-	register_post_meta( 'pw_event', '_pw_is_recurring', [
-		'type' => 'boolean', 'single' => true, 'show_in_rest' => true, 'default' => false,
-	] );
 	register_post_meta( 'pw_event', '_pw_gallery', [
 		'type'         => 'array',
 		'single'       => true,
@@ -765,6 +812,21 @@ function pw_register_child_post_meta() {
 				'items' => [ 'type' => 'integer' ],
 			],
 		],
+	] );
+	register_post_meta( 'pw_event', '_pw_recurrence_rule', [
+		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
+	] );
+	register_post_meta( 'pw_event', '_pw_organiser_name', [
+		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
+	] );
+	register_post_meta( 'pw_event', '_pw_organiser_url', [
+		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
+	] );
+	register_post_meta( 'pw_event', '_pw_event_status', [
+		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => 'EventScheduled',
+	] );
+	register_post_meta( 'pw_event', '_pw_event_attendance_mode', [
+		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => 'OfflineEventAttendanceMode',
 	] );
 }
 
