@@ -5,6 +5,143 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // ---------------------------------------------------------------------------
+// Sanitization helpers
+// ---------------------------------------------------------------------------
+
+function pw_sanitize_notice( $message ) {
+	set_transient( 'pw_sanitize_notice', $message, 45 );
+}
+
+function pw_sanitize_occupancy( $value, $field_args, $field ) {
+	$key = $field->id();
+	$occ = isset( $_POST['_pw_max_occupancy'] ) ? (int) wp_unslash( $_POST['_pw_max_occupancy'] ) : 0;
+	$adults = isset( $_POST['_pw_max_adults'] ) ? (int) wp_unslash( $_POST['_pw_max_adults'] ) : 0;
+	$children = isset( $_POST['_pw_max_children'] ) ? (int) wp_unslash( $_POST['_pw_max_children'] ) : 0;
+
+	if ( $key === '_pw_max_adults' ) {
+		$adults = (int) $value;
+	} elseif ( $key === '_pw_max_children' ) {
+		$children = (int) $value;
+	}
+
+	if ( $occ > 0 && ( $adults + $children ) > $occ ) {
+		if ( $key === '_pw_max_adults' ) {
+			$value = max( 0, $occ - $children );
+			pw_sanitize_notice( 'Max adults was clamped to satisfy max adults + max children ≤ max occupancy.' );
+		} elseif ( $key === '_pw_max_children' ) {
+			$value = max( 0, $occ - $adults );
+			pw_sanitize_notice( 'Max children was clamped to satisfy max adults + max children ≤ max occupancy.' );
+		}
+	}
+	return (string) ( (int) $value );
+}
+
+function pw_sanitize_url( $value, $field_args, $field ) {
+	$raw = is_string( $value ) ? trim( $value ) : '';
+	if ( $raw === '' ) {
+		return '';
+	}
+	$sanitized = esc_url_raw( $raw );
+	if ( $sanitized === '' && $raw !== '' ) {
+		pw_sanitize_notice( 'Invalid URL was cleared: ' . $field->args( 'name' ) );
+		return '';
+	}
+	return $sanitized;
+}
+
+function pw_sanitize_date_ymd( $value, $field_args, $field ) {
+	$raw = is_string( $value ) ? trim( $value ) : '';
+	if ( $raw === '' ) {
+		return '';
+	}
+	$d = DateTime::createFromFormat( 'Y-m-d', $raw );
+	if ( ! $d || $d->format( 'Y-m-d' ) !== $raw ) {
+		pw_sanitize_notice( 'Invalid date format (expected Y-m-d) was cleared: ' . $field->args( 'name' ) );
+		return '';
+	}
+	return $raw;
+}
+
+function pw_sanitize_datetime( $value, $field_args, $field ) {
+	$raw = is_string( $value ) ? trim( $value ) : '';
+	if ( $raw === '' ) {
+		return '';
+	}
+	$d = DateTime::createFromFormat( 'Y-m-d H:i:s', $raw );
+	if ( ! $d || $d->format( 'Y-m-d H:i:s' ) !== $raw ) {
+		pw_sanitize_notice( 'Invalid datetime format (expected Y-m-d H:i:s) was cleared: ' . $field->args( 'name' ) );
+		return '';
+	}
+	return $raw;
+}
+
+function pw_sanitize_event_datetime( $value, $field_args, $field ) {
+	if ( empty( $value ) ) {
+		return '';
+	}
+	$date_format = $field->args( 'date_format' ) ?: 'm/d/Y';
+	$time_format = $field->args( 'time_format' ) ?: 'h:i A';
+	$full_format = $date_format . ' ' . $time_format;
+
+	if ( is_array( $value ) && isset( $value['date'], $value['time'] ) ) {
+		$tzstring = $value['timezone'] ?? wp_timezone_string();
+		$tz      = new DateTimeZone( $tzstring );
+		$dt      = DateTime::createFromFormat( $full_format, $value['date'] . ' ' . $value['time'], $tz );
+		if ( $dt ) {
+			return $dt->format( 'Y-m-d H:i:s' );
+		}
+	}
+	if ( is_string( $value ) ) {
+		$d = DateTime::createFromFormat( 'Y-m-d H:i:s', trim( $value ) );
+		if ( $d && $d->format( 'Y-m-d H:i:s' ) === trim( $value ) ) {
+			return trim( $value );
+		}
+	}
+	return '';
+}
+
+function pw_sanitize_int_nonneg( $value, $field_args, $field ) {
+	$v = (int) $value;
+	return (string) max( 0, $v );
+}
+
+function pw_sanitize_float_nonneg( $value, $field_args, $field ) {
+	$v = (float) $value;
+	return (string) max( 0.0, $v );
+}
+
+function pw_sanitize_select_whitelist( $allowed ) {
+	return function ( $value, $field_args, $field ) use ( $allowed ) {
+		$v = is_string( $value ) ? $value : '';
+		return array_key_exists( $v, $allowed ) ? $v : ( array_key_exists( '', $allowed ) ? '' : array_key_first( $allowed ) );
+	};
+}
+
+function pw_sanitize_status_enum( $value, $field_args, $field ) {
+	$allowed = [ 'unknown' => '', 'available' => '', 'not_available' => '' ];
+	$v = is_string( $value ) ? $value : '';
+	return array_key_exists( $v, $allowed ) ? $v : 'unknown';
+}
+
+function pw_show_if_discount_value( $field_args ) {
+	$post_id = $field_args['object_id'] ?? 0;
+	if ( ! $post_id ) {
+		return true;
+	}
+	$discount_type = isset( $_POST['_pw_discount_type'] ) ? sanitize_text_field( wp_unslash( $_POST['_pw_discount_type'] ) ) : get_post_meta( $post_id, '_pw_discount_type', true );
+	return ! empty( $discount_type ) && $discount_type !== 'value_add';
+}
+
+function pw_show_if_minimum_stay( $field_args ) {
+	$post_id = $field_args['object_id'] ?? 0;
+	if ( ! $post_id ) {
+		return true;
+	}
+	$offer_type = isset( $_POST['_pw_offer_type'] ) ? sanitize_text_field( wp_unslash( $_POST['_pw_offer_type'] ) ) : get_post_meta( $post_id, '_pw_offer_type', true );
+	return in_array( $offer_type, [ 'promotion', 'package' ], true );
+}
+
+// ---------------------------------------------------------------------------
 // Helper: published pw_property posts as a select options array
 // ---------------------------------------------------------------------------
 
@@ -96,6 +233,28 @@ function pw_faq_connection_options() {
 	return $options;
 }
 
+function pw_experience_connection_options() {
+	$options = [ '' => '— Select —' ];
+	$types   = [
+		'pw_property'   => 'Property',
+		'pw_restaurant' => 'Restaurant',
+		'pw_spa'        => 'Spa',
+	];
+	foreach ( $types as $post_type => $label ) {
+		$posts = get_posts( [
+			'post_type'      => $post_type,
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+		] );
+		foreach ( $posts as $p ) {
+			$options[ $p->ID ] = '[' . $label . '] ' . $p->post_title;
+		}
+	}
+	return $options;
+}
+
 // ---------------------------------------------------------------------------
 // Register all child CPT meta boxes
 // ---------------------------------------------------------------------------
@@ -121,13 +280,6 @@ function pw_register_child_metaboxes() {
 		'type' => 'textarea_small',
 	] );
 
-	$cmb->add_field( [
-		'name' => 'Short description',
-		'desc' => 'One sentence. Displayed beneath the feature name on the front end.',
-		'id'   => '_pw_short_description',
-		'type' => 'textarea_small',
-	] );
-
 	// --- pw_room_type ---
 
 	$cmb = new_cmb2_box( [
@@ -147,12 +299,12 @@ function pw_register_child_metaboxes() {
 
 	$cmb->add_field( [ 'name' => 'Rate from',     'desc' => 'Starting rate. Currency is set on the parent property.', 'id' => '_pw_rate_from',     'type' => 'text_money' ] );
 	$cmb->add_field( [ 'name' => 'Rate to',       'desc' => 'Upper end of rate range.',                              'id' => '_pw_rate_to',       'type' => 'text_money' ] );
-	$cmb->add_field( [ 'name' => 'Max occupancy', 'id' => '_pw_max_occupancy', 'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Max adults',    'id' => '_pw_max_adults',    'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Max children',  'id' => '_pw_max_children',  'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Size (sqft)',   'id' => '_pw_size_sqft',     'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Size (sqm)',    'id' => '_pw_size_sqm',      'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Max extra beds', 'id' => '_pw_max_extra_beds', 'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Max occupancy', 'id' => '_pw_max_occupancy', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Max adults',    'id' => '_pw_max_adults',    'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_occupancy' ] );
+	$cmb->add_field( [ 'name' => 'Max children',  'id' => '_pw_max_children',  'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_occupancy' ] );
+	$cmb->add_field( [ 'name' => 'Size (sqft)',   'id' => '_pw_size_sqft',     'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Size (sqm)',    'id' => '_pw_size_sqm',      'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Max extra beds', 'id' => '_pw_max_extra_beds', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 
 	$cmb->add_field( [
 		'name'    => 'Features',
@@ -176,7 +328,7 @@ function pw_register_child_metaboxes() {
 	] );
 
 	$cmb->add_field( [ 'name' => 'Gallery', 'id' => '_pw_gallery', 'type' => 'file_list' ] );
-	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 
 	// --- pw_restaurant ---
 
@@ -191,37 +343,9 @@ function pw_register_child_metaboxes() {
 	$cmb->add_field( [ 'name' => 'Property',          'id' => '_pw_property_id',      'type' => 'select',     'options' => 'pw_property_options' ] );
 	$cmb->add_field( [ 'name' => 'Location',          'id' => '_pw_location',         'type' => 'text',       'desc' => 'e.g. Rooftop Level, Beach Side, Main Lobby' ] );
 	$cmb->add_field( [ 'name' => 'Cuisine type',       'id' => '_pw_cuisine_type',     'type' => 'text' ] );
-	$cmb->add_field( [ 'name' => 'Seating capacity',   'id' => '_pw_seating_capacity', 'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Reservation URL',    'id' => '_pw_reservation_url',  'type' => 'text_url' ] );
-	$cmb->add_field( [ 'name' => 'Menu URL',           'id' => '_pw_menu_url',         'type' => 'text_url' ] );
-
-	$cmb->add_field( [
-		'name'       => 'Operating hours',
-		'id'         => '_pw_operating_hours',
-		'type'       => 'group',
-		'repeatable' => true,
-		'options'    => [ 'group_title' => 'Session {#}', 'add_button' => 'Add Session', 'remove_button' => 'Remove Session' ],
-		'fields'     => [
-			[ 'name' => 'Session label', 'id' => 'session_label', 'type' => 'text_small', 'desc' => 'e.g. Breakfast, Lunch, Dinner' ],
-			[
-				'name'    => 'Day',
-				'id'      => 'day',
-				'type'    => 'select',
-				'options' => [
-					'monday'    => 'Monday',
-					'tuesday'   => 'Tuesday',
-					'wednesday' => 'Wednesday',
-					'thursday'  => 'Thursday',
-					'friday'    => 'Friday',
-					'saturday'  => 'Saturday',
-					'sunday'    => 'Sunday',
-				],
-			],
-			[ 'name' => 'Opens at',  'id' => 'open_time',  'type' => 'text_small' ],
-			[ 'name' => 'Closes at', 'id' => 'close_time', 'type' => 'text_small' ],
-			[ 'name' => 'Closed',    'id' => 'is_closed',  'type' => 'checkbox' ],
-		],
-	] );
+	$cmb->add_field( [ 'name' => 'Seating capacity',   'id' => '_pw_seating_capacity', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Reservation URL',    'id' => '_pw_reservation_url',  'type' => 'text_url', 'sanitization_cb' => 'pw_sanitize_url' ] );
+	$cmb->add_field( [ 'name' => 'Menu URL',           'id' => '_pw_menu_url',         'type' => 'text_url', 'sanitization_cb' => 'pw_sanitize_url' ] );
 
 	$cmb->add_field( [ 'name' => 'Gallery', 'id' => '_pw_gallery', 'type' => 'file_list' ] );
 
@@ -236,39 +360,10 @@ function pw_register_child_metaboxes() {
 	] );
 
 	$cmb->add_field( [ 'name' => 'Property',    'id' => '_pw_property_id', 'type' => 'select',     'options' => 'pw_property_options' ] );
-	$cmb->add_field( [ 'name' => 'Booking URL', 'id' => '_pw_booking_url', 'type' => 'text_url' ] );
-	$cmb->add_field( [ 'name' => 'Menu URL',    'id' => '_pw_menu_url',    'type' => 'text_url' ] );
-	$cmb->add_field( [ 'name' => 'Minimum age', 'id' => '_pw_min_age',     'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Treatment rooms', 'id' => '_pw_number_of_treatment_rooms', 'type' => 'text_small' ] );
-
-	$cmb->add_field( [
-		'name'       => 'Operating hours',
-		'id'         => '_pw_operating_hours',
-		'type'       => 'group',
-		'repeatable' => true,
-		'options'    => [ 'group_title' => 'Day {#}', 'add_button' => 'Add Day', 'remove_button' => 'Remove Day' ],
-		'fields'     => [
-			[ 'name' => 'Session label', 'id' => 'session_label', 'type' => 'text_small', 'desc' => 'e.g. Morning, Afternoon' ],
-			[
-				'name'    => 'Day',
-				'id'      => 'day',
-				'type'    => 'select',
-				'options' => [
-					'monday'    => 'Monday',
-					'tuesday'   => 'Tuesday',
-					'wednesday' => 'Wednesday',
-					'thursday'  => 'Thursday',
-					'friday'    => 'Friday',
-					'saturday'  => 'Saturday',
-					'sunday'    => 'Sunday',
-				],
-			],
-			[ 'name' => 'Opens at',  'id' => 'open_time',  'type' => 'text_small' ],
-			[ 'name' => 'Closes at', 'id' => 'close_time', 'type' => 'text_small' ],
-			[ 'name' => 'Closed',    'id' => 'is_closed',  'type' => 'checkbox' ],
-		],
-	] );
-
+	$cmb->add_field( [ 'name' => 'Booking URL', 'id' => '_pw_booking_url', 'type' => 'text_url', 'sanitization_cb' => 'pw_sanitize_url' ] );
+	$cmb->add_field( [ 'name' => 'Menu URL',    'id' => '_pw_menu_url',    'type' => 'text_url', 'sanitization_cb' => 'pw_sanitize_url' ] );
+	$cmb->add_field( [ 'name' => 'Minimum age', 'id' => '_pw_min_age',     'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Treatment rooms', 'id' => '_pw_number_of_treatment_rooms', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 	$cmb->add_field( [ 'name' => 'Gallery', 'id' => '_pw_gallery', 'type' => 'file_list' ] );
 
 	// --- pw_meeting_room ---
@@ -282,18 +377,18 @@ function pw_register_child_metaboxes() {
 	] );
 
 	$cmb->add_field( [ 'name' => 'Property',             'id' => '_pw_property_id',        'type' => 'select',     'options' => 'pw_property_options' ] );
-	$cmb->add_field( [ 'name' => 'Capacity — Theatre',   'id' => '_pw_capacity_theatre',   'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Capacity — Classroom', 'id' => '_pw_capacity_classroom', 'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Capacity — Boardroom', 'id' => '_pw_capacity_boardroom', 'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Capacity — U-Shape',   'id' => '_pw_capacity_ushape',    'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Area (sqft)',           'id' => '_pw_area_sqft',          'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Area (sqm)',            'id' => '_pw_area_sqm',           'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Pre-function area (sqft)', 'id' => '_pw_prefunction_area_sqft', 'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Pre-function area (sqm)',  'id' => '_pw_prefunction_area_sqm',  'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Contact Phone',         'id' => '_pw_phone',              'type' => 'text',       'desc' => 'Direct line for this venue' ] );
-	$cmb->add_field( [ 'name' => 'Contact Mobile',        'id' => '_pw_mobile',             'type' => 'text' ] );
-	$cmb->add_field( [ 'name' => 'Contact WhatsApp',      'id' => '_pw_whatsapp',           'type' => 'text' ] );
-	$cmb->add_field( [ 'name' => 'Contact Email',         'id' => '_pw_email',              'type' => 'text' ] );
+	$cmb->add_field( [ 'name' => 'Capacity — Theatre',   'id' => '_pw_capacity_theatre',   'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Capacity — Classroom', 'id' => '_pw_capacity_classroom', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Capacity — Boardroom', 'id' => '_pw_capacity_boardroom', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Capacity — U-Shape',   'id' => '_pw_capacity_ushape',    'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Area (sqft)',           'id' => '_pw_area_sqft',          'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Area (sqm)',            'id' => '_pw_area_sqm',           'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Pre-function area (sqft)', 'id' => '_pw_prefunction_area_sqft', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Pre-function area (sqm)',  'id' => '_pw_prefunction_area_sqm',  'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Sales phone',    'id' => '_pw_sales_phone',    'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Sales mobile',   'id' => '_pw_sales_mobile',   'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Sales WhatsApp', 'id' => '_pw_sales_whatsapp', 'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Sales email',    'id' => '_pw_sales_email',    'type' => 'text_small' ] );
 
 	$cmb->add_field( [
 		'name' => 'Natural light',
@@ -310,6 +405,71 @@ function pw_register_child_metaboxes() {
 
 	$cmb->add_field( [ 'name' => 'Gallery', 'id' => '_pw_gallery', 'type' => 'file_list' ] );
 
+add_action( 'cmb2_admin_init', 'pw_register_restaurant_operating_hours_metabox' );
+
+function pw_register_restaurant_operating_hours_metabox() {
+	pw_register_operating_hours_metabox( 'pw_restaurant', 'Restaurant' );
+}
+
+function pw_register_operating_hours_metabox( $post_type, $label ) {
+	$days = [
+		'monday'    => 'Monday',
+		'tuesday'   => 'Tuesday',
+		'wednesday' => 'Wednesday',
+		'thursday'  => 'Thursday',
+		'friday'    => 'Friday',
+		'saturday'  => 'Saturday',
+		'sunday'    => 'Sunday',
+	];
+
+	$cmb = new_cmb2_box( [
+		'id'           => $post_type . '_operating_hours',
+		'title'        => 'Operating Hours',
+		'object_types' => [ $post_type ],
+		'context'      => 'normal',
+		'priority'     => 'default',
+	] );
+
+	foreach ( $days as $day_key => $day_label ) {
+		$cmb->add_field( [
+			'name'       => $day_label,
+			'id'         => '_pw_hours_' . $day_key,
+			'type'       => 'group',
+			'repeatable' => false,
+			'fields'     => [
+				[
+					'name' => 'Closed',
+					'id'   => 'is_closed',
+					'type' => 'checkbox',
+					'desc' => 'Check if closed all day',
+				],
+				[
+					'name'       => 'Sessions',
+					'id'         => 'sessions',
+					'type'       => 'group',
+					'repeatable' => true,
+					'options'    => [
+						'group_title'   => 'Session {#}',
+						'add_button'    => 'Add Session',
+						'remove_button' => 'Remove Session',
+					],
+					'fields' => [
+						[ 'name' => 'Label',      'id' => 'label',      'type' => 'text_small', 'desc' => 'e.g. Breakfast, Lunch, Dinner' ],
+						[ 'name' => 'Opens at',   'id' => 'open_time',  'type' => 'text_time' ],
+						[ 'name' => 'Closes at',  'id' => 'close_time', 'type' => 'text_time' ],
+					],
+				],
+			],
+		] );
+	}
+}
+
+add_action( 'cmb2_admin_init', 'pw_register_spa_operating_hours_metabox' );
+
+function pw_register_spa_operating_hours_metabox() {
+	pw_register_operating_hours_metabox( 'pw_spa', 'Spa' );
+}
+
 	// --- pw_amenity ---
 
 	$cmb = new_cmb2_box( [
@@ -323,20 +483,21 @@ function pw_register_child_metaboxes() {
 	$cmb->add_field( [ 'name' => 'Property', 'id' => '_pw_property_id', 'type' => 'select', 'options' => 'pw_property_options' ] );
 
 	$cmb->add_field( [
-		'name'    => 'Type',
-		'id'      => '_pw_type',
-		'type'    => 'select',
-		'options' => [
+		'name'            => 'Type',
+		'id'              => '_pw_type',
+		'type'            => 'select',
+		'options'         => [
 			'amenity'  => 'Amenity',
 			'service'  => 'Service',
 			'facility' => 'Facility',
 		],
+		'sanitization_cb' => pw_sanitize_select_whitelist( [ 'amenity' => '', 'service' => '', 'facility' => '' ] ),
 	] );
 
 	$cmb->add_field( [ 'name' => 'Category',      'id' => '_pw_category',      'type' => 'text' ] );
 	$cmb->add_field( [ 'name' => 'Icon',          'id' => '_pw_icon',          'type' => 'textarea_small' ] );
 	$cmb->add_field( [ 'name' => 'Description',   'id' => '_pw_description',   'type' => 'textarea_small' ] );
-	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 
 	$cmb->add_field( [
 		'name' => 'Complimentary',
@@ -355,26 +516,8 @@ function pw_register_child_metaboxes() {
 	] );
 
 	$cmb->add_field( [ 'name' => 'Property', 'id' => '_pw_property_id', 'type' => 'select', 'options' => 'pw_property_options' ] );
-
-	$cmb->add_field( [
-		'name'    => 'Policy type',
-		'id'      => '_pw_policy_type',
-		'type'    => 'select',
-		'options' => [
-			'checkin'      => 'Check-in',
-			'checkout'     => 'Check-out',
-			'cancellation' => 'Cancellation',
-			'pet'          => 'Pet',
-			'child'        => 'Child',
-			'payment'      => 'Payment',
-			'smoking'      => 'Smoking',
-			'custom'       => 'Custom',
-		],
-	] );
-
-	$cmb->add_field( [ 'name' => 'Title',         'id' => '_pw_title',          'type' => 'text' ] );
 	$cmb->add_field( [ 'name' => 'Content',       'id' => '_pw_content',        'type' => 'textarea' ] );
-	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order',  'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order',  'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 	$cmb->add_field( [ 'name' => 'Highlighted',   'id' => '_pw_is_highlighted', 'type' => 'checkbox' ] );
 	$cmb->add_field( [ 'name' => 'Active',        'id' => '_pw_active',         'type' => 'checkbox' ] );
 
@@ -407,15 +550,16 @@ function pw_register_child_metaboxes() {
 		],
 		'fields' => [
 			[
-				'name'    => 'Type',
-				'id'      => 'type',
-				'type'    => 'select',
-				'options' => [
+				'name'            => 'Type',
+				'id'              => 'type',
+				'type'            => 'select',
+				'options'         => [
 					'pw_property'     => 'Property',
 					'pw_restaurant'   => 'Restaurant',
 					'pw_meeting_room' => 'Meeting Room',
 					'pw_spa'          => 'Spa',
 				],
+				'sanitization_cb' => pw_sanitize_select_whitelist( [ 'pw_property' => '', 'pw_restaurant' => '', 'pw_meeting_room' => '', 'pw_spa' => '' ] ),
 			],
 			[
 				'name'    => 'Select',
@@ -425,7 +569,7 @@ function pw_register_child_metaboxes() {
 			],
 		],
 	] );
-	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 
 	// --- pw_offer ---
 
@@ -437,54 +581,72 @@ function pw_register_child_metaboxes() {
 		'priority'     => 'high',
 	] );
 
+	$offer_type_opts = [ 'promotion' => 'Promotion', 'package' => 'Package', 'direct_booking_benefit' => 'Direct booking benefit' ];
 	$cmb->add_field( [
-		'name'    => 'Offer type',
-		'id'      => '_pw_offer_type',
-		'type'    => 'select',
-		'options' => [
-			'promotion'              => 'Promotion',
-			'package'                => 'Package',
-			'direct_booking_benefit' => 'Direct booking benefit',
+		'name'            => 'Offer type',
+		'id'              => '_pw_offer_type',
+		'type'            => 'select',
+		'options'         => $offer_type_opts,
+		'sanitization_cb' => pw_sanitize_select_whitelist( $offer_type_opts ),
+	] );
+
+	$cmb->add_field( [
+		'name'       => 'Attach to',
+		'id'         => '_pw_parents',
+		'type'       => 'group',
+		'repeatable' => true,
+		'options'    => [
+			'group_title'   => 'Connection {#}',
+			'add_button'    => 'Add Connection',
+			'remove_button' => 'Remove',
+		],
+		'fields' => [
+			[
+				'name'    => 'Type',
+				'id'      => 'type',
+				'type'    => 'select',
+				'options' => [
+					'pw_property'   => 'Property',
+					'pw_restaurant' => 'Restaurant',
+					'pw_spa'        => 'Spa',
+				],
+			],
+			[
+				'name'    => 'Select',
+				'id'      => 'id',
+				'type'    => 'select',
+				'options' => 'pw_offer_parent_options',
+			],
 		],
 	] );
 
-	$cmb->add_field( [
-		'name'    => 'Attach to',
-		'id'      => '_pw_parent_type',
-		'type'    => 'select',
-		'options' => [
-			'pw_property'   => 'Property',
-			'pw_restaurant' => 'Restaurant',
-			'pw_spa'        => 'Spa',
-		],
-	] );
-
-	$cmb->add_field( [
-		'name'    => 'Select',
-		'id'      => '_pw_parent_id',
-		'type'    => 'select',
-		'options' => 'pw_offer_parent_options',
-	] );
-
-	$cmb->add_field( [ 'name' => 'Description', 'id' => '_pw_description', 'type' => 'textarea' ] );
-	$cmb->add_field( [ 'name' => 'Valid from',  'id' => '_pw_valid_from',  'type' => 'text_date', 'date_format' => 'Y-m-d' ] );
-	$cmb->add_field( [ 'name' => 'Valid to',    'id' => '_pw_valid_to',    'type' => 'text_date', 'date_format' => 'Y-m-d' ] );
-	$cmb->add_field( [ 'name' => 'Booking URL', 'id' => '_pw_booking_url', 'type' => 'text_url' ] );
-	$cmb->add_field( [ 'name' => 'Terms',       'id' => '_pw_terms',       'type' => 'textarea_small' ] );
+	$cmb->add_field( [ 'name' => 'Valid from',  'id' => '_pw_valid_from',  'type' => 'text_date', 'date_format' => 'Y-m-d', 'sanitization_cb' => 'pw_sanitize_date_ymd' ] );
+	$cmb->add_field( [ 'name' => 'Valid to',    'id' => '_pw_valid_to',    'type' => 'text_date', 'date_format' => 'Y-m-d', 'sanitization_cb' => 'pw_sanitize_date_ymd' ] );
+	$cmb->add_field( [ 'name' => 'Booking URL', 'id' => '_pw_booking_url', 'type' => 'text_url', 'sanitization_cb' => 'pw_sanitize_url' ] );
 	$cmb->add_field( [ 'name' => 'Featured',    'id' => '_pw_is_featured', 'type' => 'checkbox' ] );
+	$discount_type_opts = [ '' => '— None —', 'percentage' => 'Percentage', 'flat' => 'Flat amount', 'value_add' => 'Value add' ];
 	$cmb->add_field( [
-		'name'    => 'Discount type',
-		'id'      => '_pw_discount_type',
-		'type'    => 'select',
-		'options' => [
-			''          => '— None —',
-			'percentage' => 'Percentage',
-			'flat'       => 'Flat amount',
-			'value_add'  => 'Value add',
-		],
+		'name'            => 'Discount type',
+		'id'              => '_pw_discount_type',
+		'type'            => 'select',
+		'options'         => $discount_type_opts,
+		'sanitization_cb' => pw_sanitize_select_whitelist( $discount_type_opts ),
 	] );
-	$cmb->add_field( [ 'name' => 'Discount value',       'id' => '_pw_discount_value',       'type' => 'text_money', 'desc' => 'e.g. 20 for 20% or 500 for ₹500' ] );
-	$cmb->add_field( [ 'name' => 'Minimum stay (nights)', 'id' => '_pw_minimum_stay_nights',  'type' => 'text_small' ] );
+	$cmb->add_field( [
+		'name'         => 'Discount value',
+		'id'           => '_pw_discount_value',
+		'type'         => 'text_money',
+		'desc'         => 'e.g. 20 for 20% or 500 for ₹500',
+		'sanitization_cb' => 'pw_sanitize_float_nonneg',
+		'show_on_cb'   => 'pw_show_if_discount_value',
+	] );
+	$cmb->add_field( [
+		'name'         => 'Minimum stay (nights)',
+		'id'           => '_pw_minimum_stay_nights',
+		'type'         => 'text_small',
+		'sanitization_cb' => 'pw_sanitize_int_nonneg',
+		'show_on_cb'   => 'pw_show_if_minimum_stay',
+	] );
 	$cmb->add_field( [
 		'name'    => 'Applicable room types',
 		'desc'    => 'Leave blank to apply to all room types',
@@ -505,7 +667,7 @@ function pw_register_child_metaboxes() {
 			return $options;
 		},
 	] );
-	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 
 	// --- pw_nearby ---
 
@@ -518,10 +680,10 @@ function pw_register_child_metaboxes() {
 	] );
 
 	$cmb->add_field( [ 'name' => 'Property',          'id' => '_pw_property_id',     'type' => 'select',     'options'  => 'pw_property_options' ] );
-	$cmb->add_field( [ 'name' => 'Distance (km)',      'id' => '_pw_distance_km',     'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Travel time (min)',  'id' => '_pw_travel_time_min', 'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Place URL',          'id' => '_pw_place_url',       'type' => 'text_url',   'desc' => 'Google Maps or website URL' ] );
-	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Distance (km)',      'id' => '_pw_distance_km',     'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_float_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Travel time (min)',  'id' => '_pw_travel_time_min', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Place URL',          'id' => '_pw_place_url',       'type' => 'text_url',   'desc' => 'Google Maps or website URL', 'sanitization_cb' => 'pw_sanitize_url' ] );
+	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 
 	// --- pw_experience ---
 
@@ -533,14 +695,42 @@ function pw_register_child_metaboxes() {
 		'priority'     => 'high',
 	] );
 
-	$cmb->add_field( [ 'name' => 'Property',       'id' => '_pw_property_id',      'type' => 'select',     'options'  => 'pw_property_options' ] );
+	$cmb->add_field( [
+		'name'       => 'Connected to',
+		'id'         => '_pw_connected_to',
+		'type'       => 'group',
+		'repeatable' => true,
+		'options'    => [
+			'group_title'   => 'Connection {#}',
+			'add_button'    => 'Add Connection',
+			'remove_button' => 'Remove',
+		],
+		'fields' => [
+			[
+				'name'    => 'Type',
+				'id'      => 'type',
+				'type'    => 'select',
+				'options' => [
+					'pw_property'   => 'Property',
+					'pw_restaurant' => 'Restaurant',
+					'pw_spa'        => 'Spa',
+				],
+			],
+			[
+				'name'    => 'Select',
+				'id'      => 'id',
+				'type'    => 'select',
+				'options' => 'pw_experience_connection_options',
+			],
+		],
+	] );
 	$cmb->add_field( [ 'name' => 'Description',    'id' => '_pw_description',      'type' => 'textarea' ] );
-	$cmb->add_field( [ 'name' => 'Duration (hrs)', 'id' => '_pw_duration_hours',   'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Duration (hrs)', 'id' => '_pw_duration_hours',   'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_float_nonneg' ] );
 	$cmb->add_field( [ 'name' => 'Price from',     'id' => '_pw_price_from',       'type' => 'text_money' ] );
-	$cmb->add_field( [ 'name' => 'Booking URL',    'id' => '_pw_booking_url',      'type' => 'text_url' ] );
+	$cmb->add_field( [ 'name' => 'Booking URL',    'id' => '_pw_booking_url',      'type' => 'text_url', 'sanitization_cb' => 'pw_sanitize_url' ] );
 	$cmb->add_field( [ 'name' => 'Complimentary',  'id' => '_pw_is_complimentary', 'type' => 'checkbox' ] );
 	$cmb->add_field( [ 'name' => 'Gallery',        'id' => '_pw_gallery',          'type' => 'file_list' ] );
-	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small' ] );
+	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 
 	// --- pw_event ---
 
@@ -555,34 +745,87 @@ function pw_register_child_metaboxes() {
 	$cmb->add_field( [ 'name' => 'Property',    'id' => '_pw_property_id',    'type' => 'select',                   'options' => 'pw_property_options' ] );
 	$cmb->add_field( [ 'name' => 'Venue',       'id' => '_pw_venue_id',       'type' => 'select',                   'options' => 'pw_meeting_room_options' ] );
 	$cmb->add_field( [ 'name' => 'Description', 'id' => '_pw_description',    'type' => 'textarea' ] );
-	$cmb->add_field( [ 'name' => 'Start',       'id' => '_pw_start_datetime', 'type' => 'text_datetime',  'desc' => 'Used for schema.org Event markup' ] );
-	$cmb->add_field( [ 'name' => 'End',         'id' => '_pw_end_datetime',   'type' => 'text_datetime' ] );
-	$cmb->add_field( [ 'name' => 'Capacity',    'id' => '_pw_capacity',       'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Price from',  'id' => '_pw_price_from',     'type' => 'text_money' ] );
-	$cmb->add_field( [ 'name' => 'Booking URL', 'id' => '_pw_booking_url',    'type' => 'text_url' ] );
-	$cmb->add_field( [ 'name' => 'Gallery',     'id' => '_pw_gallery',        'type' => 'file_list' ] );
-	$cmb->add_field( [ 'name' => 'Recurrence rule', 'id' => '_pw_recurrence_rule',      'type' => 'text',     'desc' => 'iCal RRULE string, e.g. FREQ=WEEKLY;BYDAY=SA' ] );
-	$cmb->add_field( [ 'name' => 'Organiser name',  'id' => '_pw_organiser_name',       'type' => 'text' ] );
-	$cmb->add_field( [ 'name' => 'Organiser URL',   'id' => '_pw_organiser_url',        'type' => 'text_url' ] );
 	$cmb->add_field( [
-		'name'    => 'Event status',
-		'id'      => '_pw_event_status',
-		'type'    => 'select',
-		'options' => [
-			'EventScheduled'   => 'Scheduled',
-			'EventCancelled'   => 'Cancelled',
-			'EventPostponed'   => 'Postponed',
-			'EventRescheduled' => 'Rescheduled',
-		],
+		'name'            => 'Start',
+		'id'              => '_pw_start_datetime',
+		'type'            => 'text_datetime_timestamp_timezone',
+		'desc'            => 'Used for schema.org Event markup. Stored as Y-m-d H:i:s.',
+		'date_format'     => 'Y-m-d',
+		'time_format'     => 'H:i:s',
+		'sanitization_cb' => 'pw_sanitize_event_datetime',
 	] );
 	$cmb->add_field( [
-		'name'    => 'Attendance mode',
-		'id'      => '_pw_event_attendance_mode',
-		'type'    => 'select',
-		'options' => [
-			'OfflineEventAttendanceMode' => 'In-person',
-			'OnlineEventAttendanceMode'  => 'Online',
-			'MixedEventAttendanceMode'   => 'Mixed',
+		'name'            => 'End',
+		'id'              => '_pw_end_datetime',
+		'type'            => 'text_datetime_timestamp_timezone',
+		'date_format'     => 'Y-m-d',
+		'time_format'     => 'H:i:s',
+		'sanitization_cb' => 'pw_sanitize_event_datetime',
+	] );
+	$cmb->add_field( [ 'name' => 'Capacity',    'id' => '_pw_capacity',       'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Price from',  'id' => '_pw_price_from',     'type' => 'text_money' ] );
+	$cmb->add_field( [ 'name' => 'Booking URL', 'id' => '_pw_booking_url',    'type' => 'text_url', 'sanitization_cb' => 'pw_sanitize_url' ] );
+	$cmb->add_field( [ 'name' => 'Gallery',     'id' => '_pw_gallery',        'type' => 'file_list' ] );
+	$cmb->add_field( [
+		'name' => 'Recurrence',
+		'id'   => '_pw_recurrence_rule',
+		'type' => 'pw_rrule',
+		'desc' => 'Leave empty for non-recurring events.',
+	] );
+	$event_status_opts = [ 'EventScheduled' => 'Scheduled', 'EventCancelled' => 'Cancelled', 'EventPostponed' => 'Postponed', 'EventRescheduled' => 'Rescheduled' ];
+	$cmb->add_field( [
+		'name'            => 'Event status',
+		'id'              => '_pw_event_status',
+		'type'            => 'select',
+		'options'         => $event_status_opts,
+		'sanitization_cb' => pw_sanitize_select_whitelist( $event_status_opts ),
+	] );
+	$attendance_opts = [ 'OfflineEventAttendanceMode' => 'In-person', 'OnlineEventAttendanceMode' => 'Online', 'MixedEventAttendanceMode' => 'Mixed' ];
+	$cmb->add_field( [
+		'name'            => 'Attendance mode',
+		'id'              => '_pw_event_attendance_mode',
+		'type'            => 'select',
+		'options'         => $attendance_opts,
+		'sanitization_cb' => pw_sanitize_select_whitelist( $attendance_opts ),
+	] );
+}
+
+// ---------------------------------------------------------------------------
+// pw_property: Contacts meta box
+// ---------------------------------------------------------------------------
+
+add_action( 'cmb2_admin_init', 'pw_register_property_contacts_metabox' );
+
+function pw_register_property_contacts_metabox() {
+	$cmb = new_cmb2_box( [
+		'id'           => 'pw_property_contacts',
+		'title'        => 'Contacts',
+		'object_types' => [ 'pw_property' ],
+		'context'      => 'normal',
+		'priority'     => 'high',
+	] );
+
+	$cmb->add_field( [
+		'name'       => 'Contacts',
+		'id'         => '_pw_contacts',
+		'type'       => 'group',
+		'repeatable' => true,
+		'options'    => [
+			'group_title'   => 'Contact {#}',
+			'add_button'    => 'Add Contact',
+			'remove_button' => 'Remove Contact',
+		],
+		'fields' => [
+			[
+				'name' => 'Label',
+				'id'   => 'label',
+				'type' => 'text_small',
+				'desc' => 'e.g. Hotel, Reservations, Sales, Spa, Restaurant',
+			],
+			[ 'name' => 'Phone',    'id' => 'phone',    'type' => 'text_small' ],
+			[ 'name' => 'Mobile',   'id' => 'mobile',   'type' => 'text_small' ],
+			[ 'name' => 'WhatsApp', 'id' => 'whatsapp', 'type' => 'text_small' ],
+			[ 'name' => 'Email',    'id' => 'email',    'type' => 'text' ],
 		],
 	] );
 }
@@ -608,57 +851,83 @@ function pw_register_property_sustainability_metabox() {
 		'priority'     => 'default',
 	] );
 
-	$cmb->add_field( [ 'name' => 'Energy', 'type' => 'title', 'id' => '_pw_sus_title_energy' ] );
-	$cmb->add_field( [ 'name' => 'Solar power',                'id' => '_pw_sus_solar_power',                'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Solar power',                'id' => '_pw_sus_solar_power',                'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_solar_power_note',           'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Solar water heater',         'id' => '_pw_sus_solar_water_heater',         'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Solar water heater',         'id' => '_pw_sus_solar_water_heater',         'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_solar_water_heater_note',    'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Energy-efficient lighting',  'id' => '_pw_sus_energy_efficient_lighting',  'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Energy-efficient lighting',  'id' => '_pw_sus_energy_efficient_lighting',  'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_energy_efficient_lighting_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Energy-saving thermostats',  'id' => '_pw_sus_energy_saving_thermostats',  'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Energy-saving thermostats',  'id' => '_pw_sus_energy_saving_thermostats',  'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_energy_saving_thermostats_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Green building design',      'id' => '_pw_sus_green_building_design',      'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Green building design',      'id' => '_pw_sus_green_building_design',      'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_green_building_design_note', 'type' => 'text_small', 'desc' => 'Note' ] );
 
-	$cmb->add_field( [ 'name' => 'Water', 'type' => 'title', 'id' => '_pw_sus_title_water' ] );
-	$cmb->add_field( [ 'name' => 'Water-efficient fixtures',   'id' => '_pw_sus_water_efficient_fixtures',   'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Water-efficient fixtures',   'id' => '_pw_sus_water_efficient_fixtures',   'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_water_efficient_fixtures_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Sewage treatment plant',     'id' => '_pw_sus_sewage_treatment_plant',     'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Sewage treatment plant',     'id' => '_pw_sus_sewage_treatment_plant',     'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_sewage_treatment_plant_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Water reuse program',        'id' => '_pw_sus_water_reuse_program',        'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Water reuse program',        'id' => '_pw_sus_water_reuse_program',        'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_water_reuse_program_note',   'type' => 'text_small', 'desc' => 'Note' ] );
 
-	$cmb->add_field( [ 'name' => 'Waste reduction', 'type' => 'title', 'id' => '_pw_sus_title_waste' ] );
-	$cmb->add_field( [ 'name' => 'Waste segregation',          'id' => '_pw_sus_waste_segregation',          'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Waste segregation',          'id' => '_pw_sus_waste_segregation',          'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_waste_segregation_note',     'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Recycling program',          'id' => '_pw_sus_recycling_program',          'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Recycling program',          'id' => '_pw_sus_recycling_program',          'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_recycling_program_note',     'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'No styrofoam',               'id' => '_pw_sus_no_styrofoam',               'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'No styrofoam',               'id' => '_pw_sus_no_styrofoam',               'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_no_styrofoam_note',          'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Electronics disposal',       'id' => '_pw_sus_electronics_disposal',       'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Electronics disposal',       'id' => '_pw_sus_electronics_disposal',       'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_electronics_disposal_note',  'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Reusable water bottles',     'id' => '_pw_sus_reusable_water_bottles',     'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Reusable water bottles',     'id' => '_pw_sus_reusable_water_bottles',     'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_reusable_water_bottles_note', 'type' => 'text_small', 'desc' => 'Note' ] );
 
-	$cmb->add_field( [ 'name' => 'Guest amenities', 'type' => 'title', 'id' => '_pw_sus_title_guest' ] );
-	$cmb->add_field( [ 'name' => 'Wall-mounted dispensers',    'id' => '_pw_sus_wall_mounted_dispensers',    'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Wall-mounted dispensers',    'id' => '_pw_sus_wall_mounted_dispensers',    'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_wall_mounted_dispensers_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Eco-friendly toiletries',    'id' => '_pw_sus_eco_friendly_toiletries',    'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Eco-friendly toiletries',    'id' => '_pw_sus_eco_friendly_toiletries',    'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_eco_friendly_toiletries_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Towel reuse program',        'id' => '_pw_sus_towel_reuse_program',        'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Towel reuse program',        'id' => '_pw_sus_towel_reuse_program',        'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_towel_reuse_program_note',   'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Linen reuse program',        'id' => '_pw_sus_linen_reuse_program',        'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Linen reuse program',        'id' => '_pw_sus_linen_reuse_program',        'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_linen_reuse_program_note',   'type' => 'text_small', 'desc' => 'Note' ] );
 
-	$cmb->add_field( [ 'name' => 'Sustainable sourcing', 'type' => 'title', 'id' => '_pw_sus_title_sourcing' ] );
-	$cmb->add_field( [ 'name' => 'Local food sourcing',        'id' => '_pw_sus_local_food_sourcing',        'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Local food sourcing',        'id' => '_pw_sus_local_food_sourcing',        'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_local_food_sourcing_note',   'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Organic food options',       'id' => '_pw_sus_organic_food_options',       'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Organic food options',       'id' => '_pw_sus_organic_food_options',       'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_organic_food_options_note',  'type' => 'text_small', 'desc' => 'Note' ] );
 
-	$cmb->add_field( [ 'name' => 'Certifications', 'type' => 'title', 'id' => '_pw_sus_title_cert' ] );
-	$cmb->add_field( [ 'name' => 'Certification name', 'id' => '_pw_sus_certification_name', 'type' => 'text',     'desc' => 'e.g. LEED, Green Key, EarthCheck' ] );
-	$cmb->add_field( [ 'name' => 'Certification URL',  'id' => '_pw_sus_certification_url',  'type' => 'text_url' ] );
+}
+
+// ---------------------------------------------------------------------------
+// pw_property: Certifications & Awards meta box
+// ---------------------------------------------------------------------------
+
+add_action( 'cmb2_admin_init', 'pw_register_property_certifications_metabox' );
+
+function pw_register_property_certifications_metabox() {
+	$cmb = new_cmb2_box( [
+		'id'           => 'pw_property_certifications',
+		'title'        => 'Certifications & Awards',
+		'object_types' => [ 'pw_property' ],
+		'context'      => 'normal',
+		'priority'     => 'default',
+	] );
+
+	$cmb->add_field( [
+		'name'       => 'Certifications & Awards',
+		'id'         => '_pw_certifications',
+		'type'       => 'group',
+		'repeatable' => true,
+		'options'    => [
+			'group_title'   => 'Certification {#}',
+			'add_button'    => 'Add Certification',
+			'remove_button' => 'Remove',
+		],
+		'fields' => [
+			[ 'name' => 'Name',   'id' => 'name',   'type' => 'text',       'desc' => 'e.g. Green Key, TripAdvisor CoE, Forbes Travel Guide' ],
+			[ 'name' => 'Issuer', 'id' => 'issuer', 'type' => 'text_small', 'desc' => 'Organisation that issued the certification' ],
+			[ 'name' => 'Year',   'id' => 'year',   'type' => 'text_small', 'desc' => 'Year awarded or last renewed' ],
+			[ 'name' => 'URL',    'id' => 'url',    'type' => 'text_url',   'desc' => 'Link to certificate or listing' ],
+		],
+	] );
 }
 
 // ---------------------------------------------------------------------------
@@ -682,50 +951,46 @@ function pw_register_property_accessibility_metabox() {
 		'priority'     => 'default',
 	] );
 
-	$cmb->add_field( [ 'name' => 'Property access', 'type' => 'title', 'id' => '_pw_acc_title_access' ] );
-	$cmb->add_field( [ 'name' => 'Wheelchair accessible',         'id' => '_pw_acc_wheelchair_accessible',              'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Wheelchair accessible',         'id' => '_pw_acc_wheelchair_accessible',              'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_wheelchair_accessible_note',         'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Step-free entrance',            'id' => '_pw_acc_step_free_entrance',                 'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Step-free entrance',            'id' => '_pw_acc_step_free_entrance',                 'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_step_free_entrance_note',            'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Automatic doors',               'id' => '_pw_acc_automatic_doors',                    'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Automatic doors',               'id' => '_pw_acc_automatic_doors',                    'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_automatic_doors_note',               'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Accessible parking',            'id' => '_pw_acc_accessible_parking',                 'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Accessible parking',            'id' => '_pw_acc_accessible_parking',                 'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_accessible_parking_note',            'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Accessible path to entrance',   'id' => '_pw_acc_accessible_path_to_entrance',        'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Accessible path to entrance',   'id' => '_pw_acc_accessible_path_to_entrance',        'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_accessible_path_to_entrance_note',   'type' => 'text_small', 'desc' => 'Note' ] );
 
-	$cmb->add_field( [ 'name' => 'Guest rooms', 'type' => 'title', 'id' => '_pw_acc_title_rooms' ] );
-	$cmb->add_field( [ 'name' => 'Accessible room available',  'id' => '_pw_acc_accessible_room_available',       'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Accessible room available',  'id' => '_pw_acc_accessible_room_available',       'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_accessible_room_available_note',  'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Grab bars in bathroom',      'id' => '_pw_acc_grab_bars_bathroom',              'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Grab bars in bathroom',      'id' => '_pw_acc_grab_bars_bathroom',              'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_grab_bars_bathroom_note',         'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Roll-in shower',             'id' => '_pw_acc_roll_in_shower',                  'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Roll-in shower',             'id' => '_pw_acc_roll_in_shower',                  'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_roll_in_shower_note',             'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Adjustable showerhead',      'id' => '_pw_acc_adjustable_showerhead',           'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Adjustable showerhead',      'id' => '_pw_acc_adjustable_showerhead',           'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_adjustable_showerhead_note',      'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Lowered closet',             'id' => '_pw_acc_lowered_closet',                  'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Lowered closet',             'id' => '_pw_acc_lowered_closet',                  'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_lowered_closet_note',             'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Transfer-friendly bed',      'id' => '_pw_acc_transfer_friendly_bed',           'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Transfer-friendly bed',      'id' => '_pw_acc_transfer_friendly_bed',           'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_transfer_friendly_bed_note',      'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Emergency pull cords',       'id' => '_pw_acc_emergency_pull_cords',            'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Emergency pull cords',       'id' => '_pw_acc_emergency_pull_cords',            'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_emergency_pull_cords_note',       'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Reachable outlets',          'id' => '_pw_acc_reachable_outlets',               'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Reachable outlets',          'id' => '_pw_acc_reachable_outlets',               'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_reachable_outlets_note',          'type' => 'text_small', 'desc' => 'Note' ] );
 
-	$cmb->add_field( [ 'name' => 'Facilities', 'type' => 'title', 'id' => '_pw_acc_title_facilities' ] );
-	$cmb->add_field( [ 'name' => 'Elevator',              'id' => '_pw_acc_elevator',                   'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Elevator',              'id' => '_pw_acc_elevator',                   'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_elevator_note',              'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Elevator audio cues',   'id' => '_pw_acc_elevator_audio_cues',        'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Elevator audio cues',   'id' => '_pw_acc_elevator_audio_cues',        'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_elevator_audio_cues_note',   'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Pool lift',             'id' => '_pw_acc_pool_lift',                  'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Pool lift',             'id' => '_pw_acc_pool_lift',                  'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_pool_lift_note',             'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Accessible restaurant', 'id' => '_pw_acc_accessible_restaurant',      'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Accessible restaurant', 'id' => '_pw_acc_accessible_restaurant',      'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_accessible_restaurant_note', 'type' => 'text_small', 'desc' => 'Note' ] );
 
-	$cmb->add_field( [ 'name' => 'Communication', 'type' => 'title', 'id' => '_pw_acc_title_communication' ] );
-	$cmb->add_field( [ 'name' => 'Visual fire alarm',     'id' => '_pw_acc_visual_fire_alarm',          'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Visual fire alarm',     'id' => '_pw_acc_visual_fire_alarm',          'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_visual_fire_alarm_note',     'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Clear dietary labels',  'id' => '_pw_acc_clear_dietary_labels',       'type' => 'select', 'options' => $status_options ] );
+	$cmb->add_field( [ 'name' => 'Clear dietary labels',  'id' => '_pw_acc_clear_dietary_labels',       'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
 	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_clear_dietary_labels_note',  'type' => 'text_small', 'desc' => 'Note' ] );
 }
 
@@ -759,8 +1024,8 @@ function pw_register_property_pools_metabox() {
 			[ 'name' => 'Length (m)',   'id' => 'length_m',    'type' => 'text_small' ],
 			[ 'name' => 'Width (m)',    'id' => 'width_m',     'type' => 'text_small' ],
 			[ 'name' => 'Depth (m)',    'id' => 'depth_m',     'type' => 'text_small' ],
-			[ 'name' => 'Opens at',     'id' => 'open_time',   'type' => 'text_small', 'desc' => 'e.g. 07:00' ],
-			[ 'name' => 'Closes at',    'id' => 'close_time',  'type' => 'text_small', 'desc' => 'e.g. 22:00' ],
+			[ 'name' => 'Opens at',     'id' => 'open_time',   'type' => 'text_time' ],
+			[ 'name' => 'Closes at',    'id' => 'close_time',  'type' => 'text_time' ],
 			[ 'name' => 'Heated',       'id' => 'is_heated',   'type' => 'checkbox' ],
 			[ 'name' => 'Kids pool',    'id' => 'is_kids',     'type' => 'checkbox' ],
 			[ 'name' => 'Indoor',       'id' => 'is_indoor',   'type' => 'checkbox' ],
@@ -818,9 +1083,63 @@ function pw_register_property_seo_metabox() {
 	] );
 
 	$cmb->add_field( [
+		'name' => 'Meta title',
+		'desc' => 'Leave empty to use the post title. Recommended: under 60 characters.',
+		'id'   => '_pw_meta_title',
+		'type' => 'text',
+		'attributes' => [ 'maxlength' => '60' ],
+	] );
+	$cmb->add_field( [
+		'name' => 'Meta description',
+		'desc' => 'Leave empty to use the excerpt. Recommended: under 160 characters.',
+		'id'   => '_pw_meta_description',
+		'type' => 'textarea_small',
+		'attributes' => [ 'maxlength' => '160', 'rows' => '3' ],
+	] );
+	$cmb->add_field( [
 		'name' => 'Open Graph Image',
 		'desc' => 'Custom Open Graph image. Overrides WordPress default on social shares.',
 		'id'   => '_pw_og_image',
 		'type' => 'file',
 	] );
 }
+
+add_action( 'cmb2_admin_init', 'pw_register_seo_metabox' );
+
+function pw_register_seo_metabox() {
+	$seo_cpts = [
+		'pw_room_type', 'pw_restaurant', 'pw_spa', 'pw_meeting_room',
+		'pw_experience', 'pw_event', 'pw_offer', 'pw_nearby',
+	];
+
+	$cmb = new_cmb2_box( [
+		'id'           => 'pw_seo_metabox',
+		'title'        => 'SEO',
+		'object_types' => $seo_cpts,
+		'context'      => 'normal',
+		'priority'     => 'low',
+	] );
+
+	$cmb->add_field( [
+		'name' => 'Meta title',
+		'desc' => 'Leave empty to use the post title. Recommended: under 60 characters.',
+		'id'   => '_pw_meta_title',
+		'type' => 'text',
+		'attributes' => [ 'maxlength' => '60' ],
+	] );
+	$cmb->add_field( [
+		'name' => 'Meta description',
+		'desc' => 'Leave empty to use the excerpt. Recommended: under 160 characters.',
+		'id'   => '_pw_meta_description',
+		'type' => 'textarea_small',
+		'attributes' => [ 'maxlength' => '160', 'rows' => '3' ],
+	] );
+}
+
+add_action( 'admin_notices', function () {
+	$msg = get_transient( 'pw_sanitize_notice' );
+	if ( $msg ) {
+		delete_transient( 'pw_sanitize_notice' );
+		echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html( $msg ) . '</p></div>';
+	}
+} );
