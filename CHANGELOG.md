@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.2] - 2026-03-19
+
+### Fixed
+- Restore all CPT list-view entries in the Portico Webworks sidebar — `pw_remove_cpt_submenus()` was incorrectly hiding Properties, Room Types, Restaurants, Spa, Meeting Rooms, Amenities, Policies, FAQs; function is now a no-op since `admin-page.php` already handles the post-new duplicate removal
+
 ## [0.5.1] - 2026-03-19
 
 ### Fixed

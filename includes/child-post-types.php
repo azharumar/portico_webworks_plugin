@@ -753,24 +753,8 @@ add_action( 'init', 'pw_register_child_post_meta' );
 // ---------------------------------------------------------------------------
 
 function pw_remove_cpt_submenus() {
-	$cpts = [
-		'pw_property',
-		'pw_feature',
-		'pw_room_type',
-		'pw_restaurant',
-		'pw_spa',
-		'pw_meeting_room',
-		'pw_amenity',
-		'pw_policy',
-		'pw_faq',
-	];
-
-	foreach ( $cpts as $cpt ) {
-		remove_submenu_page(
-			'portico-webworks',
-			'edit.php?post_type=' . $cpt
-		);
-	}
+	// Intentionally empty — all CPT list-view entries are kept visible in the sidebar.
+	// post-new.php duplicate entries are removed via admin-page.php.
 }
 
 add_action( 'admin_menu', 'pw_remove_cpt_submenus', 999 );
