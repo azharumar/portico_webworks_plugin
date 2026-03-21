@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Portico Webworks Hotel Website Manager
  * Description: Portico Webworks plugin.
- * Version: 0.7.5
+ * Version: 0.7.7
  * Author: Portico Webworks
  * Author URI: https://porticowebworks.com
  * License: Proprietary (All Rights Reserved) - Unauthorized use by other companies or for any purposes is prohibited without written permission.
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 }
 
 define('PW_PLUGIN_FILE', __FILE__);
-define('PW_VERSION', '0.7.5');
+define('PW_VERSION', '0.7.7');
 
 function pw_apply_install_defaults() {
 	if (get_option('pw_install_defaults_applied', 0)) {
@@ -35,6 +35,7 @@ add_action( 'init', function() {
 	}
 	delete_option( 'pw_seed_taxonomies' );
 	pw_seed_taxonomy_terms();
+	update_option( 'pw_taxonomy_seed_prompt_status', 'auto_completed' );
 }, 999 );
 
 if ( file_exists( plugin_dir_path( __FILE__ ) . 'vendor/autoload.php' ) ) {
@@ -52,6 +53,7 @@ require_once __DIR__ . '/includes/child-post-types.php';
 require_once __DIR__ . '/includes/taxonomy-seeds.php';
 require_once __DIR__ . '/includes/child-post-type-metaboxes.php';
 require_once __DIR__ . '/includes/import-export.php';
+require_once __DIR__ . '/includes/sample-data-meta.php';
 require_once __DIR__ . '/includes/sample-data.php';
 require_once __DIR__ . '/includes/property-helpers.php';
 require_once __DIR__ . '/includes/backward-compat.php';

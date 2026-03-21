@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.7] - 2026-03-21
+
+### Added
+- Sample Data: **Remove sample data** action; deletes all posts/pages/CPT rows tagged with internal meta `_pw_is_sample_data`, then removes taxonomy terms that were created by the installer and carry the same flag
+- `includes/sample-data-meta.php`: registers hidden `_pw_is_sample_data` for plugin CPTs plus `post`/`page`, and for plugin taxonomies plus `category` / `post_tag` (`show_in_rest: false`, `auth_callback` blocks REST updates)
+- Sample installer adds a demo **page**, **post**, **category**, and **post_tag** (when those terms are newly created they are removable with the flag)
+
+## [0.7.6] - 2026-03-21
+
+### Added
+- Upgrade prompt for default taxonomy terms: admins must accept or dismiss; only missing term names are created (existing terms unchanged)
+- `pw_taxonomy_seed_prompt_status` option: `pending` | `dismissed` | `completed` | `auto_completed` (fresh activation path)
+
 ## [0.7.5] - 2026-03-21
 
 ### Added
