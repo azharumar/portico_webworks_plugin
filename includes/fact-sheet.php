@@ -26,4 +26,4 @@ add_action(
 	20
 );
 
-add_filter( 'the_content', 'pw_fact_sheet_replace_content_tokens', 12 );
+add_filter( 'render_block', 'pw_fact_sheet_render_block_portico_tokens', 10, 2 );

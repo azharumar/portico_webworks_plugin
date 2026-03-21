@@ -153,21 +153,20 @@ function pw_sanitize_property_base( $value, $field_args = null, $field = null ) 
 }
 
 /**
- * Full pw_settings array: merge DB blob with legacy top-level options so partial saves never drop keys.
+ * Full pw_settings array from option with defaults for missing keys.
  *
  * @return array<string, mixed>
  */
 function pw_get_merged_pw_settings() {
-	$raw     = get_option('pw_settings', []);
-	$stored  = is_array($raw) ? $raw : [];
-	$legacy = [
-		'pw_property_mode'       => get_option('pw_property_mode', 'single'),
-		'pw_property_base'       => get_option('pw_property_base', 'properties'),
-		'pw_default_property_id' => (int) get_option('pw_default_property_id', 0),
-		'pw_default_template'    => get_option('pw_default_template', ''),
+	$raw = get_option('pw_settings', []);
+	$raw = is_array($raw) ? $raw : [];
+	return wp_parse_args($raw, [
+		'pw_property_mode'       => 'single',
+		'pw_property_base'       => 'properties',
+		'pw_default_property_id' => 0,
+		'pw_default_template'    => '',
 		'pw_github_releases_url' => '',
-	];
-	return wp_parse_args($stored, $legacy);
+	]);
 }
 
 function pw_get_setting($key, $default = '') {
@@ -177,40 +176,6 @@ function pw_get_setting($key, $default = '') {
 	}
 	return get_option($key, $default);
 }
-
-add_filter('cmb2_override_option_get_pw_settings', function ($value, $default) {
-	return pw_get_merged_pw_settings();
-}, 10, 2);
-
-add_filter('pre_update_option_pw_settings', function ($value, $old_value) {
-	if (!is_array($value)) {
-		return $value;
-	}
-	$mode = isset($value['pw_property_mode']) && $value['pw_property_mode'] === 'multi' ? 'multi' : 'single';
-	if ($mode === 'multi') {
-		$value['pw_default_property_id'] = 0;
-		if (!array_key_exists('pw_github_releases_url', $value)) {
-			$value['pw_github_releases_url'] = is_array($old_value) && isset($old_value['pw_github_releases_url'])
-				? (string) $old_value['pw_github_releases_url']
-				: '';
-		}
-		return $value;
-	}
-	if (is_array($old_value) && array_key_exists('pw_default_property_id', $old_value) && !array_key_exists('pw_default_property_id', $value)) {
-		$value['pw_default_property_id'] = (int) $old_value['pw_default_property_id'];
-	}
-	$pid = isset($value['pw_default_property_id']) ? (int) $value['pw_default_property_id'] : 0;
-	if ($pid > 0 && (get_post_type($pid) !== 'pw_property' || get_post_status($pid) !== 'publish')) {
-		$value['pw_default_property_id'] = 0;
-		set_transient('pw_settings_notice_default_property', 1, 60);
-	}
-	if (!array_key_exists('pw_github_releases_url', $value)) {
-		$value['pw_github_releases_url'] = is_array($old_value) && isset($old_value['pw_github_releases_url'])
-			? (string) $old_value['pw_github_releases_url']
-			: '';
-	}
-	return $value;
-}, 10, 2);
 
 add_action('admin_notices', function () {
 	if (!current_user_can('manage_options')) {
@@ -238,19 +203,6 @@ add_action('admin_notices', function () {
 	}
 });
 
-add_action('update_option_pw_settings', function ($old_value, $value, $option) {
-	if (!function_exists('flush_rewrite_rules')) {
-		return;
-	}
-	$old_mode = is_array($old_value) ? ($old_value['pw_property_mode'] ?? '') : '';
-	$old_base = is_array($old_value) ? ($old_value['pw_property_base'] ?? '') : '';
-	$new_mode = is_array($value) ? ($value['pw_property_mode'] ?? '') : '';
-	$new_base = is_array($value) ? ($value['pw_property_base'] ?? '') : '';
-	if ($old_mode !== $new_mode || $old_base !== $new_base) {
-		flush_rewrite_rules();
-	}
-}, 10, 3);
-
 function pw_cmb2_published_property_options( $field = null ) {
 	$opts = array();
 	foreach ( pw_get_all_properties() as $row ) {
@@ -263,126 +215,44 @@ function pw_cmb2_published_property_options( $field = null ) {
 	return $opts;
 }
 
-add_action('cmb2_admin_init', 'pw_register_settings_cmb2');
-
-function pw_register_settings_cmb2() {
-	$cmb = new_cmb2_box([
-		'id'           => 'pw_settings',
-		'title'        => 'Portico Webworks Settings',
-		'object_types' => ['options-page'],
-		'option_key'   => 'pw_settings',
-		'parent_slug'  => pw_admin_page_slug(),
-		'menu_title'   => 'Settings',
-		'capability'   => 'manage_options',
-	]);
-
-	$cmb->add_field([
-		'name'            => 'Property Mode',
-		'id'              => 'pw_property_mode',
-		'type'            => 'radio_inline',
-		'options'         => [
-			'single' => 'Single Property',
-			'multi'  => 'Multi-Property',
-		],
-		'default'         => 'single',
-		'sanitization_cb' => function ($v) { return $v === 'multi' ? 'multi' : 'single'; },
-	]);
-
-	$cmb->add_field([
-		'name'             => 'Default property',
-		'desc'             => 'Used as the site-wide property context in Single Property mode (required).',
-		'id'               => 'pw_default_property_id',
-		'classes'          => 'pw-default-property-row',
-		'type'             => 'select',
-		'show_option_none' => '— Select property —',
-		'options_cb'       => 'pw_cmb2_published_property_options',
-		'sanitization_cb'  => function ( $v, $field_args = null, $field = null ) {
-			$v = (int) $v;
-			return $v > 0 ? $v : 0;
-		},
-		'show_on_cb'       => function ( $field ) {
-			return pw_get_setting('pw_property_mode', 'single') === 'single';
-		},
-	]);
-
-	$cmb->add_field([
-		'name'            => 'Properties Base Path',
-		'id'              => 'pw_property_base',
-		'type'            => 'text',
-		'desc'            => 'URL prefix for properties, e.g. /{base}/{slug}/... Only applies in Multi-Property mode.',
-		'default'         => 'properties',
-		'attributes'      => ['placeholder' => 'properties'],
-		'sanitization_cb' => 'pw_sanitize_property_base',
-	]);
-
-	$cmb->add_field([
-		'name'            => 'Default Template',
-		'id'              => 'pw_default_template',
-		'type'            => 'text',
-		'desc'            => 'Template slug used for front-end rendering. Applied across all properties.',
-		'attributes'      => ['placeholder' => 'e.g. default'],
-		'sanitization_cb' => function ( $v, $field_args = null, $field = null ) {
-			return sanitize_text_field( is_string( $v ) ? $v : '' );
-		},
-	]);
-
-	$cmb->add_field([
-		'name'            => 'GitHub releases URL',
-		'id'              => 'pw_github_releases_url',
-		'type'            => 'text',
-		'desc'            => 'Repository releases page, e.g. https://github.com/owner/repo/releases — latest release must include portico_webworks_plugin.zip.',
-		'default'         => '',
-		'attributes'      => ['placeholder' => 'https://github.com/owner/repo/releases'],
-		'sanitization_cb' => 'pw_sanitize_github_releases_url',
-	]);
-}
-
-/**
- * Persist General settings: CMB2 fields are rendered inside our tab (HTML table + CMB2 rows).
- * CMB2_Options_Hookup::save_options() can skip saving when can_save() fails on admin-post.php;
- * we save with the same nonce/checks then exit so the option is always written.
- */
-add_action( 'admin_post_pw_settings', 'pw_save_portico_cmb2_settings', 0 );
-function pw_save_portico_cmb2_settings() {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		return;
-	}
-	if ( ! isset( $_POST['submit-cmb'], $_POST['action'] ) || 'pw_settings' !== $_POST['action'] ) {
-		return;
-	}
-	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-		return;
-	}
-	if ( is_multisite() && ms_is_switched() ) {
+function pw_handle_settings_save() {
+	if (
+		!isset($_POST['pw_settings_nonce']) ||
+		!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['pw_settings_nonce'])), 'pw_save_settings') ||
+		!current_user_can('manage_options')
+	) {
 		return;
 	}
 
-	$cmb = cmb2_get_metabox( 'pw_settings', 'pw_settings', 'options-page' );
-	if ( ! $cmb || ! $cmb->prop( 'save_fields' ) ) {
-		return;
+	$existing = pw_get_merged_pw_settings();
+	$mode     = isset($_POST['pw_property_mode']) && $_POST['pw_property_mode'] === 'multi' ? 'multi' : 'single';
+
+	$settings = [
+		'pw_property_mode'       => $mode,
+		'pw_property_base'       => pw_sanitize_property_base(wp_unslash($_POST['pw_property_base'] ?? '')),
+		'pw_default_template'    => sanitize_text_field(wp_unslash($_POST['pw_default_template'] ?? '')),
+		'pw_github_releases_url' => pw_sanitize_github_releases_url(wp_unslash($_POST['pw_github_releases_url'] ?? '')),
+		'pw_default_property_id' => $mode === 'single' ? (int) ($_POST['pw_default_property_id'] ?? 0) : 0,
+	];
+
+	if ($mode === 'single' && $settings['pw_default_property_id'] > 0) {
+		$pid = $settings['pw_default_property_id'];
+		if (get_post_type($pid) !== 'pw_property' || get_post_status($pid) !== 'publish') {
+			$settings['pw_default_property_id'] = 0;
+			set_transient('pw_settings_notice_default_property', 1, 60);
+		}
 	}
 
-	$nonce_key = $cmb->nonce();
-	if ( ! isset( $_POST[ $nonce_key ] ) ) {
-		return;
-	}
-	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ $nonce_key ] ) ), $nonce_key ) ) {
-		return;
+	update_option('pw_settings', $settings);
+
+	if ($mode !== $existing['pw_property_mode'] || $settings['pw_property_base'] !== $existing['pw_property_base']) {
+		flush_rewrite_rules();
 	}
 
-	$updated = $cmb->save_fields( 'pw_settings', 'options-page', $_POST )->was_updated();
-
-	$target = wp_get_referer();
-	if ( ! $target ) {
-		$target = pw_admin_settings_url();
-	}
-	wp_safe_redirect( esc_url_raw( add_query_arg( 'settings-updated', $updated ? 'true' : 'false', $target ) ) );
+	wp_safe_redirect(add_query_arg('settings-updated', 'true', wp_get_referer() ?: pw_admin_settings_url()));
 	exit;
 }
-
-add_action('admin_menu', function () {
-	remove_submenu_page(pw_admin_page_slug(), 'pw_settings');
-}, 9999);
+add_action('admin_post_pw_save_settings', 'pw_handle_settings_save');
 
 function pw_render_root_page() {
 	if (!current_user_can('manage_options')) {
@@ -402,7 +272,6 @@ function pw_render_root_page() {
 		$tab = $valid_keys[0];
 	}
 
-	$mode = pw_get_setting('pw_property_mode', 'single');
 	$footer_link = 'https://porticowebworks.com/?utm_source=wp-admin&utm_medium=plugin&utm_campaign=portico_webworks&utm_content=footer';
 
 	echo '<div class="wrap pw-admin">';
@@ -491,14 +360,49 @@ function pw_render_root_page() {
 		echo '</td></tr>';
 		echo '</tbody></table>';
 
-		$cmb = cmb2_get_metabox('pw_settings', 'pw_settings');
-		if ($cmb) {
-			echo '<form class="cmb-form" action="' . esc_url(admin_url('admin-post.php')) . '" method="POST" id="pw_settings" enctype="multipart/form-data">';
-			echo '<input type="hidden" name="action" value="pw_settings" />';
-			$cmb->show_form();
-			submit_button(esc_attr__('Save Settings', 'cmb2'), 'primary', 'submit-cmb');
-			echo '</form>';
+		$settings_mode          = pw_get_setting('pw_property_mode', 'single');
+		$default_property_id    = (int) pw_get_setting('pw_default_property_id', 0);
+		$property_select_opts   = pw_cmb2_published_property_options();
+
+		echo '<form class="pw-settings-form" action="' . esc_url(admin_url('admin-post.php')) . '" method="post" id="pw_settings">';
+		echo '<input type="hidden" name="action" value="pw_save_settings" />';
+		wp_nonce_field('pw_save_settings', 'pw_settings_nonce');
+		echo '<table class="form-table" role="presentation"><tbody>';
+
+		echo '<tr><th scope="row">' . esc_html('Property Mode') . '</th><td>';
+		echo '<fieldset><label><input type="radio" name="pw_property_mode" value="single"' . checked($settings_mode, 'single', false) . ' /> ' . esc_html('Single Property') . '</label><br />';
+		echo '<label><input type="radio" name="pw_property_mode" value="multi"' . checked($settings_mode, 'multi', false) . ' /> ' . esc_html('Multi-Property') . '</label></fieldset>';
+		echo '</td></tr>';
+
+		echo '<tr class="pw-default-property-row"><th scope="row"><label for="pw_default_property_id">' . esc_html('Default property') . '</label></th><td>';
+		echo '<select name="pw_default_property_id" id="pw_default_property_id">';
+		echo '<option value="0"' . selected($default_property_id, 0, false) . '>' . esc_html('— Select property —') . '</option>';
+		foreach ($property_select_opts as $opt_id => $opt_label) {
+			$oid = (int) $opt_id;
+			echo '<option value="' . esc_attr((string) $oid) . '"' . selected($default_property_id, $oid, false) . '>' . esc_html($opt_label) . '</option>';
 		}
+		echo '</select>';
+		echo '<p class="description">' . esc_html('Used as the site-wide property context in Single Property mode (required).') . '</p>';
+		echo '</td></tr>';
+
+		echo '<tr><th scope="row"><label for="pw_property_base">' . esc_html('Properties Base Path') . '</label></th><td>';
+		echo '<input type="text" class="regular-text" name="pw_property_base" id="pw_property_base" value="' . esc_attr((string) pw_get_setting('pw_property_base')) . '" placeholder="properties" />';
+		echo '<p class="description">' . esc_html('URL prefix for properties, e.g. /{base}/{slug}/... Only applies in Multi-Property mode.') . '</p>';
+		echo '</td></tr>';
+
+		echo '<tr><th scope="row"><label for="pw_default_template">' . esc_html('Default Template') . '</label></th><td>';
+		echo '<input type="text" class="regular-text" name="pw_default_template" id="pw_default_template" value="' . esc_attr((string) pw_get_setting('pw_default_template')) . '" placeholder="' . esc_attr('e.g. default') . '" />';
+		echo '<p class="description">' . esc_html('Template slug used for front-end rendering. Applied across all properties.') . '</p>';
+		echo '</td></tr>';
+
+		echo '<tr><th scope="row"><label for="pw_github_releases_url">' . esc_html('GitHub releases URL') . '</label></th><td>';
+		echo '<input type="text" class="large-text" name="pw_github_releases_url" id="pw_github_releases_url" value="' . esc_attr((string) pw_get_setting('pw_github_releases_url')) . '" placeholder="' . esc_attr('https://github.com/owner/repo/releases') . '" />';
+		echo '<p class="description">' . esc_html('Repository releases page, e.g. https://github.com/owner/repo/releases — latest release must include portico_webworks_plugin.zip.') . '</p>';
+		echo '</td></tr>';
+
+		echo '</tbody></table>';
+		submit_button(esc_attr__('Save Settings', 'portico-webworks'), 'primary', 'pw-save-settings');
+		echo '</form>';
 
 		if ( current_user_can( 'update_plugins' ) ) {
 			$gh_url = pw_get_setting( 'pw_github_releases_url', '' );

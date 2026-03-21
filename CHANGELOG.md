@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.12] - 2026-03-22
+
+### Changed
+- **Fact sheet page**: GenerateBlocks-only block markup (`generateblocks/text`, `generateblocks/headline`, `generateblocks/element`); `{{portico:pw_fact_*}}` expansion uses `render_block` on GenerateBlocks blocks for the fact sheet page instead of a global `the_content` filter; `PW_FACT_SHEET_CONTENT_VERSION` 3 refreshes stored content; legacy core `group` + `pw-fact-sheet` layout is detected for one-time upgrade; fact sheet root styles also target `.gb-element-pwfse0`
+- **General settings**: native admin form + `admin_post_pw_save_settings` instead of CMB2 options hooks for `pw_settings`; `pw_get_merged_pw_settings()` uses defaults only (no legacy top-level option merge)
+
 ## [0.8.11] - 2026-03-22
 
 ### Changed

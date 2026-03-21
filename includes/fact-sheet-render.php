@@ -138,13 +138,20 @@ function pw_fact_sheet_render_tag( $tag ) {
 	}
 }
 
-function pw_fact_sheet_replace_content_tokens( $content ) {
+function pw_fact_sheet_render_block_portico_tokens( $block_content, $block ) {
 	if ( ! is_singular( 'page' ) ) {
-		return $content;
+		return $block_content;
 	}
 	$page_id = (int) get_option( 'pw_fact_sheet_page_id', 0 );
 	if ( $page_id <= 0 || (int) get_the_ID() !== $page_id ) {
-		return $content;
+		return $block_content;
+	}
+	$name = isset( $block['blockName'] ) ? (string) $block['blockName'] : '';
+	if ( $name === '' || strpos( $name, 'generateblocks/' ) !== 0 ) {
+		return $block_content;
+	}
+	if ( strpos( $block_content, '{{' ) === false ) {
+		return $block_content;
 	}
 
 	return preg_replace_callback(
@@ -152,6 +159,6 @@ function pw_fact_sheet_replace_content_tokens( $content ) {
 		static function ( $m ) {
 			return pw_fact_sheet_render_tag( $m[1] );
 		},
-		$content
+		$block_content
 	);
 }
