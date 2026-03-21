@@ -152,26 +152,36 @@ function pw_sanitize_property_base( $value, $field_args = null, $field = null ) 
 	return $value !== '' ? $value : 'properties';
 }
 
+/**
+ * Full pw_settings array: merge DB blob with legacy top-level options so partial saves never drop keys.
+ *
+ * @return array<string, mixed>
+ */
+function pw_get_merged_pw_settings() {
+	$raw     = get_option('pw_settings', []);
+	$stored  = is_array($raw) ? $raw : [];
+	$gh_leg  = get_option('pw_github_releases_url', '');
+	$gh_leg  = is_string($gh_leg) ? $gh_leg : '';
+	$legacy = [
+		'pw_property_mode'       => get_option('pw_property_mode', 'single'),
+		'pw_property_base'       => get_option('pw_property_base', 'properties'),
+		'pw_default_property_id' => (int) get_option('pw_default_property_id', 0),
+		'pw_default_template'    => get_option('pw_default_template', ''),
+		'pw_github_releases_url' => $gh_leg,
+	];
+	return wp_parse_args($stored, $legacy);
+}
+
 function pw_get_setting($key, $default = '') {
-	$opts = get_option('pw_settings', []);
-	if (is_array($opts) && array_key_exists($key, $opts)) {
+	$opts = pw_get_merged_pw_settings();
+	if (array_key_exists($key, $opts)) {
 		return $opts[$key];
 	}
 	return get_option($key, $default);
 }
 
 add_filter('cmb2_override_option_get_pw_settings', function ($value, $default) {
-	$opts = get_option('pw_settings', []);
-	if (is_array($opts) && !empty($opts)) {
-		return $opts;
-	}
-	return [
-		'pw_property_mode'         => get_option('pw_property_mode', 'single'),
-		'pw_property_base'         => get_option('pw_property_base', 'properties'),
-		'pw_default_property_id'   => (int) get_option('pw_default_property_id', 0),
-		'pw_default_template'      => get_option('pw_default_template', ''),
-		'pw_github_releases_url'   => '',
-	];
+	return pw_get_merged_pw_settings();
 }, 10, 2);
 
 add_filter('pre_update_option_pw_settings', function ($value, $old_value) {
@@ -181,10 +191,16 @@ add_filter('pre_update_option_pw_settings', function ($value, $old_value) {
 	$mode = isset($value['pw_property_mode']) && $value['pw_property_mode'] === 'multi' ? 'multi' : 'single';
 	if ($mode === 'multi') {
 		$value['pw_default_property_id'] = 0;
+		if (is_array($old_value) && array_key_exists('pw_github_releases_url', $old_value) && !array_key_exists('pw_github_releases_url', $value)) {
+			$value['pw_github_releases_url'] = is_string($old_value['pw_github_releases_url']) ? $old_value['pw_github_releases_url'] : '';
+		}
 		return $value;
 	}
 	if (is_array($old_value) && array_key_exists('pw_default_property_id', $old_value) && !array_key_exists('pw_default_property_id', $value)) {
 		$value['pw_default_property_id'] = (int) $old_value['pw_default_property_id'];
+	}
+	if (is_array($old_value) && array_key_exists('pw_github_releases_url', $old_value) && !array_key_exists('pw_github_releases_url', $value)) {
+		$value['pw_github_releases_url'] = is_string($old_value['pw_github_releases_url']) ? $old_value['pw_github_releases_url'] : '';
 	}
 	$pid = isset($value['pw_default_property_id']) ? (int) $value['pw_default_property_id'] : 0;
 	if ($pid > 0 && (get_post_type($pid) !== 'pw_property' || get_post_status($pid) !== 'publish')) {

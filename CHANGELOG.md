@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.9] - 2026-03-21
+
+### Fixed
+- **Settings persistence**: merge stored `pw_settings` with legacy option fallbacks via `pw_get_merged_pw_settings()` so `pw_default_property_id` and `pw_github_releases_url` stay visible after refresh when the DB array was partial; preserve `pw_github_releases_url` on save when omitted from POST (including multi-property mode)
+
 ## [0.8.8] - 2026-03-21
 
 ### Fixed
