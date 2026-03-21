@@ -19,7 +19,7 @@ Admin UI is built with **CMB2** (meta boxes) and custom metaboxes (property prof
 
 **REST base:** `pw-properties`  
 **Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `revisions`, `custom-fields`  
-**Public:** mode-dependent (`pw_property_mode` option: `single` | `multi`)
+**Public:** mode-dependent (`pw_settings['pw_property_mode']`, read via `pw_get_setting()`: `single` | `multi`)
 
 ### Meta Fields
 
@@ -37,7 +37,7 @@ Admin UI is built with **CMB2** (meta boxes) and custom metaboxes (property prof
 | `_pw_total_rooms`      | integer | `0`     | Total inventory count      | Custom metabox                              |
 
 
-> **Note:** The default front-end template is a plugin-level setting (Portico Webworks Settings → Default Template). Property profile fields (General, Address, Geo, Social) use custom metaboxes in `property-profile.php`, not CMB2.
+> **Note:** The default front-end template is a plugin-level setting (Portico Webworks → **General** → Default Template, stored in `pw_settings`). Property profile fields (General, Address, Geo, Social) use custom metaboxes in `property-profile.php`, not CMB2.
 
 #### Address
 
@@ -503,15 +503,41 @@ Check-in, Check-out, Cancellation, Pet, Child, Payment, Smoking, Custom
 
 ## Options Page: Portico Webworks Settings
 
-**CMB2 box:** `pw_settings` (options-page, `option_key: pw_settings`). Rendered on Portico Webworks → Settings tab.
+**WordPress option (single row):** `pw_settings` — associative array of the keys below.
 
+**CMB2 box:** `pw_settings` (`object_types: options-page`, `option_key: pw_settings`). Fields are **not** on a separate CMB2 submenu: the box is output inside **Portico Webworks → General** (first tab), wrapped in a custom `<form>` that posts to `admin-post.php` with `action=pw_settings`. The redundant CMB2 “Settings” submenu entry is removed.
 
-| Option Key            | Type   | Default        | Notes                                  |
-| --------------------- | ------ | -------------- | -------------------------------------- |
-| `pw_property_mode`    | string | `'single'`     | `single` | `multi`                     |
-| `pw_property_base`    | string | `'properties'` | URL prefix for properties (multi mode) |
-| `pw_default_template` | string | `''`           | Template slug for front-end rendering  |
+**Same screen (not in `pw_settings`):** “Search Engine Indexing” is static markup only; it links to **Settings → Reading** in core WordPress.
 
+### Keys stored in `pw_settings`
+
+| Option key                 | Type    | Default        | Notes |
+| -------------------------- | ------- | -------------- | ----- |
+| `pw_property_mode`         | string  | `'single'`     | `'single'` \| `'multi'` |
+| `pw_property_base`         | string  | `'properties'` | URL prefix for `pw_property` rewrite (multi mode only); `sanitize_title`-style slug |
+| `pw_default_property_id`   | int     | `0`            | **Single mode:** required site-wide context; must be a **published** `pw_property` post ID. **Multi mode:** forced to `0` on save. CMB2 field hidden when saved mode is multi; client script toggles row when switching radios before save (`assets/admin-settings.js`, class `pw-default-property-row`). |
+| `pw_default_template`      | string  | `''`           | Template slug for front-end rendering (all properties) |
+| `pw_github_releases_url`   | string  | `''`           | Normalized `https://github.com/{owner}/{repo}/releases`; used by “Update from GitHub” (`includes/github-plugin-update.php`). Release asset name: `portico_webworks_plugin.zip`. |
+
+### Read path (`pw_get_setting` / CMB2)
+
+- **`pw_get_merged_pw_settings()`** loads `get_option( 'pw_settings' )` and merges with **legacy** top-level options (same five keys, previously or still used as `get_option( 'pw_property_mode' )`, etc.) via `wp_parse_args( $stored, $legacy )`. Missing keys in the DB blob are filled from legacy so partial arrays do not “lose” GitHub URL or default property in the UI.
+- **`pw_get_setting( $key, $default )`** reads from that merged array, then falls back to `get_option( $key, $default )` for unknown keys.
+- **`cmb2_override_option_get_pw_settings`** returns `pw_get_merged_pw_settings()` so CMB2 always sees a complete field set.
+
+### Write path (`pre_update_option_pw_settings`)
+
+- **Multi mode:** sets `pw_default_property_id` to `0`; if `pw_github_releases_url` is absent from POST, preserved from previous value when possible.
+- **Single mode:** if `pw_default_property_id` or `pw_github_releases_url` is missing from POST, copy from old option array when possible (avoids CMB2 dropping keys when a field was not rendered/submitted).
+- Invalid default property (not `pw_property` or not `publish`) → cleared to `0` and a short admin notice.
+
+### Save handler (reliability)
+
+- **`admin_post_pw_settings` (priority 0):** `pw_save_portico_cmb2_settings()` — verifies capability, `submit-cmb`, action, and CMB2 nonce, then **`$cmb->save_fields( 'pw_settings', 'options-page', $_POST )`**, redirects with `settings-updated`, **`exit`**. Ensures the option is written even if `CMB2_Options_Hookup::can_save()` would skip on `admin-post.php`.
+
+### Related hooks
+
+- **`update_option_pw_settings`:** `flush_rewrite_rules()` when `pw_property_mode` or `pw_property_base` changes.
 
 ---
 

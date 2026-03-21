@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.11] - 2026-03-22
+
+### Changed
+- **Property context** (`pw_get_current_property_id`): returns `0` when unset instead of `WP_Error`; single mode uses the configured default only; multi mode resolves from the URL path; removed fallback to the first published property
+- **Multi-property URLs**: 404 on `template_redirect` when the request matches the property URL pattern but no property ID resolves
+- **Child CPTs**: set `publicly_queryable` to `true` for consistent query/REST behavior
+- **`_pw_is_sample_data` meta**: `show_in_rest` with `auth_callback` so the block editor can read it; term meta uses `edit_term` capability
+- **Settings merge / save**: stop merging `pw_github_releases_url` from the legacy `pw_*` option in `pw_get_merged_pw_settings()`; preserve GitHub URL from prior `pw_settings` when the field is omitted on save (single and multi)
+
+### Fixed
+- **Fact sheet and property helpers**: treat missing property ID as `0` (drop `WP_Error` handling where the return type is now always an integer)
+
+### Added
+- **Docs**: `google-lodging-format-schema.md`, `schema-org-hotel-reference.md`; **DATA-STRUCTURE.md** updates
+
 ## [0.8.10] - 2026-03-21
 
 ### Fixed

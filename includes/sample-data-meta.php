@@ -5,8 +5,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Internal flag for content created by the sample installer. Not exposed in REST or editor UI.
- * (Documented as sample-data identifier; storage uses leading underscore = protected in WP.)
+ * Internal flag for content created by the sample installer.
+ * REST-visible for block editor; auth_callback limits to users who can edit the object.
  */
 define( 'PW_IS_SAMPLE_DATA_META_KEY', '_pw_is_sample_data' );
 
@@ -50,28 +50,42 @@ function pw_get_sample_data_taxonomies_for_meta() {
 }
 
 function pw_register_sample_data_meta() {
-	$args = [
+	$sanitize = static function ( $value ) {
+		return $value ? '1' : '';
+	};
+
+	$post_args = [
 		'type'              => 'string',
 		'single'            => true,
-		'show_in_rest'      => false,
-		'auth_callback'     => '__return_false',
-		'sanitize_callback' => static function ( $value ) {
-			return $value ? '1' : '';
+		'show_in_rest'      => true,
+		'auth_callback'     => static function ( $allowed, $meta_key, $post_id ) {
+			return current_user_can( 'edit_post', (int) $post_id );
 		},
+		'sanitize_callback' => $sanitize,
+	];
+
+	$term_args = [
+		'type'              => 'string',
+		'single'            => true,
+		'show_in_rest'      => true,
+		'auth_callback'     => static function ( $allowed, $meta_key, $term_id ) {
+			return current_user_can( 'edit_term', (int) $term_id );
+		},
+		'sanitize_callback' => $sanitize,
 	];
 
 	foreach ( pw_get_sample_data_post_types_for_meta() as $post_type ) {
 		if ( ! post_type_exists( $post_type ) ) {
 			continue;
 		}
-		register_post_meta( $post_type, PW_IS_SAMPLE_DATA_META_KEY, $args );
+		register_post_meta( $post_type, PW_IS_SAMPLE_DATA_META_KEY, $post_args );
 	}
 
 	foreach ( pw_get_sample_data_taxonomies_for_meta() as $taxonomy ) {
 		if ( ! taxonomy_exists( $taxonomy ) ) {
 			continue;
 		}
-		register_term_meta( $taxonomy, PW_IS_SAMPLE_DATA_META_KEY, $args );
+		register_term_meta( $taxonomy, PW_IS_SAMPLE_DATA_META_KEY, $term_args );
 	}
 }
 

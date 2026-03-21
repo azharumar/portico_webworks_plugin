@@ -89,7 +89,7 @@ if ( ! function_exists( 'pw_fact_kv_table' ) ) {
 
 function pw_fact_sheet_buffer_property_id() {
 	$pid = pw_get_current_property_id();
-	if ( is_wp_error( $pid ) || ! $pid ) {
+	if ( ! $pid ) {
 		return 0;
 	}
 	return (int) $pid;

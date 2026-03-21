@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
 
 function pw_get_property_profile( $property_id = null ) {
 	$id = $property_id ?? pw_get_current_property_id();
-	if ( is_wp_error( $id ) || ! $id ) {
+	if ( ! $id ) {
 		return [];
 	}
 
@@ -129,55 +129,53 @@ function pw_resolve_property_id_from_url() {
 	return null;
 }
 
+function pw_request_matches_property_url_path() {
+	global $wp;
+
+	$request = '';
+	if ( isset( $wp ) && isset( $wp->request ) && is_string( $wp->request ) ) {
+		$request = $wp->request;
+	} else {
+		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		$path = $uri ? parse_url( $uri, PHP_URL_PATH ) : '';
+		$request = $path ? trim( $path, '/' ) : '';
+	}
+
+	$base = pw_property_base();
+	if ( $base === '' ) {
+		return false;
+	}
+
+	$segments = $request !== '' ? explode( '/', trim( $request, '/' ) ) : [];
+
+	return count( $segments ) >= 2 && $segments[0] === $base;
+}
+
 function pw_get_current_property_id() {
-	static $resolved = null;
+	static $done  = false;
+	static $value = 0;
 
-	if ($resolved !== null) {
-		return $resolved;
+	if ( $done ) {
+		return $value;
 	}
+	$done = true;
 
-	$mode = pw_get_setting('pw_property_mode', 'single');
+	$mode = pw_get_setting( 'pw_property_mode', 'single' );
 
-	if ($mode === 'multi') {
+	if ( $mode === 'multi' ) {
 		$from_url = pw_resolve_property_id_from_url();
-		if (!empty($from_url)) {
-			$resolved = (int) $from_url;
-			return $resolved;
-		}
+		$value    = ! empty( $from_url ) ? (int) $from_url : 0;
+		return $value;
 	}
 
-	if ($mode === 'single') {
-		$default_id = (int) pw_get_setting( 'pw_default_property_id', 0 );
-		if ( $default_id <= 0 || get_post_type( $default_id ) !== 'pw_property' || get_post_status( $default_id ) !== 'publish' ) {
-			$resolved = new WP_Error( 'pw_property_default_missing', 'No default property selected.' );
-			return $resolved;
-		}
-		$resolved = $default_id;
-		return $resolved;
+	if ( $mode === 'single' ) {
+		$rid = (int) pw_get_setting( 'pw_default_property_id', 0 );
+		$value = $rid > 0 ? $rid : 0;
+		return $value;
 	}
 
-	$all = get_posts(array(
-		'post_type' => 'pw_property',
-		'post_status' => 'publish',
-		'numberposts' => 2,
-		'fields' => 'ids',
-	));
-
-	$cnt = is_array($all) ? count($all) : 0;
-	if ($cnt >= 1 && !empty($all[0])) {
-		if ($mode === 'single' || $cnt === 1) {
-			$resolved = (int) $all[0];
-			return $resolved;
-		}
-	}
-
-	if ($cnt === 0) {
-		$resolved = new WP_Error('pw_property_missing', 'No properties found.');
-		return $resolved;
-	}
-
-	$resolved = new WP_Error('pw_property_not_found', 'Property not found.');
-	return $resolved;
+	$value = 0;
+	return $value;
 }
 
 function pw_get_current_property_profile() {
@@ -287,36 +285,98 @@ function pw_get_operating_hours( $post_id ) {
 
 function pw_get_property_currency( $property_id = null ) {
 	$id = $property_id ?? pw_get_current_property_id();
-	if ( is_wp_error( $id ) || ! $id ) {
+	if ( ! $id ) {
 		return 'USD';
 	}
 	return get_post_meta( (int) $id, '_pw_currency', true ) ?: 'USD';
 }
 
-add_action('template_redirect', function () {
-	if (is_admin() || wp_doing_ajax()) {
-		return;
+add_action(
+	'template_redirect',
+	function () {
+		if ( is_admin() || wp_doing_ajax() ) {
+			return;
+		}
+
+		if ( pw_get_setting( 'pw_property_mode', 'single' ) !== 'multi' ) {
+			return;
+		}
+
+		if ( ! pw_request_matches_property_url_path() ) {
+			return;
+		}
+
+		if ( pw_get_current_property_id() > 0 ) {
+			return;
+		}
+
+		global $wp_query;
+		if ( isset( $wp_query ) && is_object( $wp_query ) ) {
+			$wp_query->set_404();
+		}
+
+		wp_die(
+			'',
+			'',
+			array(
+				'response' => 404,
+			)
+		);
+	}
+);
+
+function pw_filter_generateblocks_query_loop_property_scope( $query_args, $attributes ) {
+	if ( empty( $attributes['pw_scope_to_property'] ) ) {
+		return $query_args;
 	}
 
-	$mode = pw_get_setting('pw_property_mode', 'single');
-	if ($mode === 'single') {
-		return;
+	$pid = pw_get_current_property_id();
+	if ( $pid <= 0 ) {
+		return $query_args;
 	}
 
-	$property_id = pw_get_current_property_id();
-	if (!is_wp_error($property_id)) {
-		return;
+	$clause = array(
+		'key'     => '_pw_property_id',
+		'value'   => (int) $pid,
+		'type'    => 'NUMERIC',
+		'compare' => '=',
+	);
+
+	$existing = isset( $query_args['meta_query'] ) && is_array( $query_args['meta_query'] ) ? $query_args['meta_query'] : array();
+
+	if ( empty( $existing ) ) {
+		$query_args['meta_query'] = array( $clause );
+	} else {
+		$query_args['meta_query'] = array(
+			'relation' => 'AND',
+			$existing,
+			$clause,
+		);
 	}
 
-	global $wp_query;
-	if (isset($wp_query) && is_object($wp_query)) {
-		$wp_query->set_404();
-	}
+	return $query_args;
+}
 
-	wp_die('', '', array(
-		'response' => 404,
-	));
-});
+add_filter( 'generateblocks_query_loop_args', 'pw_filter_generateblocks_query_loop_property_scope', 10, 2 );
+
+add_filter(
+	'register_block_type_args',
+	function ( $args, $name ) {
+		if ( ! in_array( $name, array( 'generateblocks/query', 'generateblocks/looper' ), true ) ) {
+			return $args;
+		}
+		if ( ! isset( $args['attributes'] ) || ! is_array( $args['attributes'] ) ) {
+			$args['attributes'] = array();
+		}
+		$args['attributes']['pw_scope_to_property'] = array(
+			'type'    => 'boolean',
+			'default' => false,
+		);
+		return $args;
+	},
+	10,
+	2
+);
 
 /**
  * IANA timezone for interpreting pw_event local datetimes (linked property, else WP timezone).

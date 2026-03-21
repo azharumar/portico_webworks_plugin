@@ -27,7 +27,7 @@ function pw_cpt_labels( $singular, $plural ) {
 function pw_child_cpt_defaults() {
 	return [
 		'public'             => false,
-		'publicly_queryable' => false,
+		'publicly_queryable' => true,
 		'show_ui'            => true,
 		'show_in_menu'       => 'portico-webworks',
 		'show_in_rest'       => true,

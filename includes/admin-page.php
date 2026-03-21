@@ -160,14 +160,12 @@ function pw_sanitize_property_base( $value, $field_args = null, $field = null ) 
 function pw_get_merged_pw_settings() {
 	$raw     = get_option('pw_settings', []);
 	$stored  = is_array($raw) ? $raw : [];
-	$gh_leg  = get_option('pw_github_releases_url', '');
-	$gh_leg  = is_string($gh_leg) ? $gh_leg : '';
 	$legacy = [
 		'pw_property_mode'       => get_option('pw_property_mode', 'single'),
 		'pw_property_base'       => get_option('pw_property_base', 'properties'),
 		'pw_default_property_id' => (int) get_option('pw_default_property_id', 0),
 		'pw_default_template'    => get_option('pw_default_template', ''),
-		'pw_github_releases_url' => $gh_leg,
+		'pw_github_releases_url' => '',
 	];
 	return wp_parse_args($stored, $legacy);
 }
@@ -191,21 +189,25 @@ add_filter('pre_update_option_pw_settings', function ($value, $old_value) {
 	$mode = isset($value['pw_property_mode']) && $value['pw_property_mode'] === 'multi' ? 'multi' : 'single';
 	if ($mode === 'multi') {
 		$value['pw_default_property_id'] = 0;
-		if (is_array($old_value) && array_key_exists('pw_github_releases_url', $old_value) && !array_key_exists('pw_github_releases_url', $value)) {
-			$value['pw_github_releases_url'] = is_string($old_value['pw_github_releases_url']) ? $old_value['pw_github_releases_url'] : '';
+		if (!array_key_exists('pw_github_releases_url', $value)) {
+			$value['pw_github_releases_url'] = is_array($old_value) && isset($old_value['pw_github_releases_url'])
+				? (string) $old_value['pw_github_releases_url']
+				: '';
 		}
 		return $value;
 	}
 	if (is_array($old_value) && array_key_exists('pw_default_property_id', $old_value) && !array_key_exists('pw_default_property_id', $value)) {
 		$value['pw_default_property_id'] = (int) $old_value['pw_default_property_id'];
 	}
-	if (is_array($old_value) && array_key_exists('pw_github_releases_url', $old_value) && !array_key_exists('pw_github_releases_url', $value)) {
-		$value['pw_github_releases_url'] = is_string($old_value['pw_github_releases_url']) ? $old_value['pw_github_releases_url'] : '';
-	}
 	$pid = isset($value['pw_default_property_id']) ? (int) $value['pw_default_property_id'] : 0;
 	if ($pid > 0 && (get_post_type($pid) !== 'pw_property' || get_post_status($pid) !== 'publish')) {
 		$value['pw_default_property_id'] = 0;
 		set_transient('pw_settings_notice_default_property', 1, 60);
+	}
+	if (!array_key_exists('pw_github_releases_url', $value)) {
+		$value['pw_github_releases_url'] = is_array($old_value) && isset($old_value['pw_github_releases_url'])
+			? (string) $old_value['pw_github_releases_url']
+			: '';
 	}
 	return $value;
 }, 10, 2);
