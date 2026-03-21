@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.10] - 2026-03-21
+
+### Fixed
+- **General settings save**: register `admin_post_pw_settings` at priority 0 to call CMB2 `save_fields()` after nonce/capability checks, then redirect and `exit`, so saves are not skipped when `CMB2_Options_Hookup::can_save()` fails on `admin-post.php` (values now persist for default property, GitHub URL, etc.)
+
 ## [0.8.9] - 2026-03-21
 
 ### Fixed

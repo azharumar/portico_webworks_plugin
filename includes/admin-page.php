@@ -335,6 +335,49 @@ function pw_register_settings_cmb2() {
 	]);
 }
 
+/**
+ * Persist General settings: CMB2 fields are rendered inside our tab (HTML table + CMB2 rows).
+ * CMB2_Options_Hookup::save_options() can skip saving when can_save() fails on admin-post.php;
+ * we save with the same nonce/checks then exit so the option is always written.
+ */
+add_action( 'admin_post_pw_settings', 'pw_save_portico_cmb2_settings', 0 );
+function pw_save_portico_cmb2_settings() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	if ( ! isset( $_POST['submit-cmb'], $_POST['action'] ) || 'pw_settings' !== $_POST['action'] ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( is_multisite() && ms_is_switched() ) {
+		return;
+	}
+
+	$cmb = cmb2_get_metabox( 'pw_settings', 'pw_settings', 'options-page' );
+	if ( ! $cmb || ! $cmb->prop( 'save_fields' ) ) {
+		return;
+	}
+
+	$nonce_key = $cmb->nonce();
+	if ( ! isset( $_POST[ $nonce_key ] ) ) {
+		return;
+	}
+	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ $nonce_key ] ) ), $nonce_key ) ) {
+		return;
+	}
+
+	$updated = $cmb->save_fields( 'pw_settings', 'options-page', $_POST )->was_updated();
+
+	$target = wp_get_referer();
+	if ( ! $target ) {
+		$target = pw_admin_settings_url();
+	}
+	wp_safe_redirect( esc_url_raw( add_query_arg( 'settings-updated', $updated ? 'true' : 'false', $target ) ) );
+	exit;
+}
+
 add_action('admin_menu', function () {
 	remove_submenu_page(pw_admin_page_slug(), 'pw_settings');
 }, 9999);
