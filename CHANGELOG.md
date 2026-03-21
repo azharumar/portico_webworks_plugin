@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.0] - 2026-03-21
+
+### Breaking
+- `pw_property` sustainability and accessibility: removed flat meta keys `_pw_sus_*`, `_pw_sus_*_note`, `_pw_acc_*`, `_pw_acc_*_note`. Replaced with `_pw_sustainability_items` and `_pw_accessibility_items` (arrays of `{ key, status, note }`). Canonical `key` slugs and labels live in `includes/property-facet-definitions.php`.
+
 ## [0.7.9] - 2026-03-21
 
 ### Added

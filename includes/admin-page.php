@@ -12,6 +12,28 @@ function pw_admin_settings_url() {
 	return admin_url('admin.php?page=' . rawurlencode(pw_admin_page_slug()) . '&tab=settings');
 }
 
+/**
+ * Keep General (settings) first and About last; other tabs stay in filter order between them.
+ */
+function pw_order_admin_tabs( $tabs ) {
+	if ( ! is_array( $tabs ) || $tabs === [] ) {
+		return $tabs;
+	}
+	$settings_key = 'settings';
+	$about_key    = 'about';
+	$general      = [];
+	$about        = [];
+	if ( isset( $tabs[ $settings_key ] ) ) {
+		$general[ $settings_key ] = $tabs[ $settings_key ];
+		unset( $tabs[ $settings_key ] );
+	}
+	if ( isset( $tabs[ $about_key ] ) ) {
+		$about[ $about_key ] = $tabs[ $about_key ];
+		unset( $tabs[ $about_key ] );
+	}
+	return array_merge( $general, $tabs, $about );
+}
+
 add_filter('plugin_action_links_' . plugin_basename(PW_PLUGIN_FILE), function ($links) {
 	if (!current_user_can('manage_options')) {
 		return $links;
@@ -221,8 +243,9 @@ function pw_render_root_page() {
 		'settings' => 'General',
 		'about'    => 'About',
 	);
-	$tabs = apply_filters('pw_admin_tabs', $base_tabs);
-	$valid_keys = array_keys($tabs);
+	$tabs       = apply_filters( 'pw_admin_tabs', $base_tabs );
+	$tabs       = pw_order_admin_tabs( $tabs );
+	$valid_keys = array_keys( $tabs );
 
 	$tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : '';
 	if (!in_array($tab, $valid_keys, true)) {

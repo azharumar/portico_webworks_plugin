@@ -549,44 +549,38 @@ function pw_register_child_post_meta() {
 		'type' => 'integer', 'single' => true, 'show_in_rest' => true, 'default' => 0,
 	] );
 
-	// --- pw_property: sustainability ---
+	// --- pw_property: sustainability & accessibility (facet rows) ---
 
-	$sus_keys = [
-		'_pw_sus_solar_power',
-		'_pw_sus_solar_water_heater',
-		'_pw_sus_energy_efficient_lighting',
-		'_pw_sus_energy_saving_thermostats',
-		'_pw_sus_green_building_design',
-		'_pw_sus_water_efficient_fixtures',
-		'_pw_sus_sewage_treatment_plant',
-		'_pw_sus_water_reuse_program',
-		'_pw_sus_waste_segregation',
-		'_pw_sus_recycling_program',
-		'_pw_sus_no_styrofoam',
-		'_pw_sus_electronics_disposal',
-		'_pw_sus_reusable_water_bottles',
-		'_pw_sus_wall_mounted_dispensers',
-		'_pw_sus_eco_friendly_toiletries',
-		'_pw_sus_towel_reuse_program',
-		'_pw_sus_linen_reuse_program',
-		'_pw_sus_local_food_sourcing',
-		'_pw_sus_organic_food_options',
+	$facet_item_schema = [
+		'type'       => 'object',
+		'properties' => [
+			'key'    => [ 'type' => 'string' ],
+			'status' => [ 'type' => 'string', 'enum' => [ 'unknown', 'available', 'not_available' ] ],
+			'note'   => [ 'type' => 'string' ],
+		],
 	];
 
-	foreach ( $sus_keys as $key ) {
-		register_post_meta( 'pw_property', $key, [
-			'type'         => 'string',
-			'single'       => true,
-			'show_in_rest' => true,
-			'default'      => 'unknown',
-		] );
-		register_post_meta( 'pw_property', $key . '_note', [
-			'type'         => 'string',
-			'single'       => true,
-			'show_in_rest' => true,
-			'default'      => '',
-		] );
-	}
+	register_post_meta( 'pw_property', PW_SUSTAINABILITY_ITEMS_META_KEY, [
+		'type'         => 'array',
+		'single'       => true,
+		'show_in_rest' => [
+			'schema' => [
+				'type'  => 'array',
+				'items' => $facet_item_schema,
+			],
+		],
+	] );
+
+	register_post_meta( 'pw_property', PW_ACCESSIBILITY_ITEMS_META_KEY, [
+		'type'         => 'array',
+		'single'       => true,
+		'show_in_rest' => [
+			'schema' => [
+				'type'  => 'array',
+				'items' => $facet_item_schema,
+			],
+		],
+	] );
 
 	register_post_meta( 'pw_property', '_pw_certifications', [
 		'type'         => 'array',
@@ -606,45 +600,6 @@ function pw_register_child_post_meta() {
 			],
 		],
 	] );
-
-	// --- pw_property: accessibility ---
-
-	$acc_keys = [
-		'_pw_acc_wheelchair_accessible',
-		'_pw_acc_step_free_entrance',
-		'_pw_acc_automatic_doors',
-		'_pw_acc_accessible_parking',
-		'_pw_acc_accessible_path_to_entrance',
-		'_pw_acc_accessible_room_available',
-		'_pw_acc_grab_bars_bathroom',
-		'_pw_acc_roll_in_shower',
-		'_pw_acc_adjustable_showerhead',
-		'_pw_acc_lowered_closet',
-		'_pw_acc_transfer_friendly_bed',
-		'_pw_acc_emergency_pull_cords',
-		'_pw_acc_reachable_outlets',
-		'_pw_acc_elevator',
-		'_pw_acc_elevator_audio_cues',
-		'_pw_acc_pool_lift',
-		'_pw_acc_accessible_restaurant',
-		'_pw_acc_visual_fire_alarm',
-		'_pw_acc_clear_dietary_labels',
-	];
-
-	foreach ( $acc_keys as $key ) {
-		register_post_meta( 'pw_property', $key, [
-			'type'         => 'string',
-			'single'       => true,
-			'show_in_rest' => true,
-			'default'      => 'unknown',
-		] );
-		register_post_meta( 'pw_property', $key . '_note', [
-			'type'         => 'string',
-			'single'       => true,
-			'show_in_rest' => true,
-			'default'      => '',
-		] );
-	}
 
 	// --- pw_property: pools ---
 

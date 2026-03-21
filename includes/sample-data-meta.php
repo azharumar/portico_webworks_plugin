@@ -173,49 +173,64 @@ function pw_get_plugin_taxonomies() {
 	];
 }
 
-function pw_count_sample_flagged_posts_only() {
-	$q = new WP_Query(
-		[
-			'post_type'              => 'any',
-			'post_status'            => 'any',
-			'posts_per_page'         => 1,
-			'fields'                 => 'ids',
-			'meta_key'               => PW_IS_SAMPLE_DATA_META_KEY,
-			'meta_value'             => '1',
-			'suppress_filters'       => true,
-			'no_found_rows'          => false,
-			'update_post_meta_cache' => false,
-			'update_post_term_cache' => false,
-		]
+/**
+ * Post IDs flagged as sample data (postmeta join). Bypasses WP_Query so all post types are included.
+ */
+function pw_get_sample_flagged_post_ids() {
+	global $wpdb;
+	$key = PW_IS_SAMPLE_DATA_META_KEY;
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- list/delete must match DB, not posts_clauses filters
+	$ids = $wpdb->get_col(
+		$wpdb->prepare(
+			"SELECT DISTINCT p.ID FROM {$wpdb->posts} AS p
+			INNER JOIN {$wpdb->postmeta} AS pm ON pm.post_id = p.ID
+			WHERE pm.meta_key = %s AND pm.meta_value = %s
+			AND p.post_type <> 'revision'",
+			$key,
+			'1'
+		)
 	);
-	return (int) $q->found_posts;
+	if ( empty( $ids ) ) {
+		return [];
+	}
+	return array_map( 'intval', $ids );
+}
+
+/**
+ * Term IDs in a taxonomy flagged as sample data (termmeta join).
+ */
+function pw_get_sample_flagged_term_ids_for_taxonomy( $taxonomy ) {
+	global $wpdb;
+	if ( ! taxonomy_exists( $taxonomy ) ) {
+		return [];
+	}
+	$key = PW_IS_SAMPLE_DATA_META_KEY;
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+	$ids = $wpdb->get_col(
+		$wpdb->prepare(
+			"SELECT DISTINCT tt.term_id FROM {$wpdb->term_taxonomy} AS tt
+			INNER JOIN {$wpdb->termmeta} AS tm ON tm.term_id = tt.term_id
+			WHERE tt.taxonomy = %s
+			AND tm.meta_key = %s AND tm.meta_value = %s",
+			$taxonomy,
+			$key,
+			'1'
+		)
+	);
+	if ( empty( $ids ) ) {
+		return [];
+	}
+	return array_map( 'intval', $ids );
+}
+
+function pw_count_sample_flagged_posts_only() {
+	return count( pw_get_sample_flagged_post_ids() );
 }
 
 function pw_count_sample_flagged_terms_only() {
 	$n = 0;
 	foreach ( pw_get_sample_data_taxonomies_for_meta() as $taxonomy ) {
-		if ( ! taxonomy_exists( $taxonomy ) ) {
-			continue;
-		}
-		$terms = get_terms(
-			[
-				'taxonomy'               => $taxonomy,
-				'hide_empty'             => false,
-				'fields'                 => 'ids',
-				'update_term_meta_cache' => false,
-				'suppress_filter'        => true,
-				'meta_query'             => [
-					[
-						'key'   => PW_IS_SAMPLE_DATA_META_KEY,
-						'value' => '1',
-					],
-				],
-			]
-		);
-		if ( is_wp_error( $terms ) || empty( $terms ) ) {
-			continue;
-		}
-		$n += count( $terms );
+		$n += count( pw_get_sample_flagged_term_ids_for_taxonomy( $taxonomy ) );
 	}
 	return $n;
 }
@@ -225,22 +240,14 @@ function pw_count_sample_flagged_items() {
 }
 
 function pw_list_sample_flagged_items() {
-	$posts = get_posts(
-		[
-			'post_type'              => 'any',
-			'post_status'            => 'any',
-			'posts_per_page'         => -1,
-			'orderby'                => 'ID',
-			'order'                  => 'ASC',
-			'meta_key'               => PW_IS_SAMPLE_DATA_META_KEY,
-			'meta_value'             => '1',
-			'suppress_filters'       => true,
-			'update_post_meta_cache' => false,
-			'update_post_term_cache' => false,
-		]
-	);
+	$post_ids = pw_get_sample_flagged_post_ids();
+	sort( $post_ids, SORT_NUMERIC );
 	$out_posts = [];
-	foreach ( $posts as $p ) {
+	foreach ( $post_ids as $pid ) {
+		$p = get_post( $pid );
+		if ( ! $p ) {
+			continue;
+		}
 		$out_posts[] = [
 			'id'    => (int) $p->ID,
 			'title' => get_the_title( $p ),
@@ -250,27 +257,13 @@ function pw_list_sample_flagged_items() {
 
 	$out_terms = [];
 	foreach ( pw_get_sample_data_taxonomies_for_meta() as $taxonomy ) {
-		if ( ! taxonomy_exists( $taxonomy ) ) {
-			continue;
-		}
-		$terms = get_terms(
-			[
-				'taxonomy'               => $taxonomy,
-				'hide_empty'             => false,
-				'update_term_meta_cache' => false,
-				'suppress_filter'        => true,
-				'meta_query'             => [
-					[
-						'key'   => PW_IS_SAMPLE_DATA_META_KEY,
-						'value' => '1',
-					],
-				],
-			]
-		);
-		if ( is_wp_error( $terms ) || empty( $terms ) ) {
-			continue;
-		}
-		foreach ( $terms as $t ) {
+		$term_ids = pw_get_sample_flagged_term_ids_for_taxonomy( $taxonomy );
+		sort( $term_ids, SORT_NUMERIC );
+		foreach ( $term_ids as $tid ) {
+			$t = get_term( $tid, $taxonomy );
+			if ( ! $t || is_wp_error( $t ) ) {
+				continue;
+			}
 			$out_terms[] = [
 				'id'       => (int) $t->term_id,
 				'name'     => $t->name,
@@ -356,47 +349,48 @@ function pw_purge_all_plugin_data() {
 }
 
 function pw_delete_all_sample_data() {
-	$post_ids = get_posts(
-		[
-			'post_type'              => 'any',
-			'post_status'            => 'any',
-			'posts_per_page'         => -1,
-			'fields'                 => 'ids',
-			'meta_key'               => PW_IS_SAMPLE_DATA_META_KEY,
-			'meta_value'             => '1',
-			'suppress_filters'       => true,
-			'update_post_meta_cache' => false,
-			'update_post_term_cache' => false,
-		]
-	);
-
+	$post_ids = pw_get_sample_flagged_post_ids();
+	rsort( $post_ids, SORT_NUMERIC );
 	foreach ( $post_ids as $pid ) {
 		wp_delete_post( (int) $pid, true );
 	}
 
 	foreach ( pw_get_sample_data_taxonomies_for_meta() as $taxonomy ) {
-		if ( ! taxonomy_exists( $taxonomy ) ) {
-			continue;
-		}
-		$terms = get_terms(
-			[
-				'taxonomy'        => $taxonomy,
-				'hide_empty'      => false,
-				'fields'          => 'ids',
-				'suppress_filter' => true,
-				'meta_query'      => [
-					[
-						'key'   => PW_IS_SAMPLE_DATA_META_KEY,
-						'value' => '1',
-					],
-				],
-			]
-		);
-		if ( is_wp_error( $terms ) || empty( $terms ) ) {
-			continue;
-		}
-		foreach ( $terms as $term_id ) {
+		$term_ids = pw_get_sample_flagged_term_ids_for_taxonomy( $taxonomy );
+		foreach ( $term_ids as $term_id ) {
 			wp_delete_term( (int) $term_id, $taxonomy );
 		}
 	}
+}
+
+function pw_data_accordion_open() {
+	echo '<div class="pw-data-accordion">';
+}
+
+function pw_data_accordion_close() {
+	echo '</div>';
+}
+
+function pw_data_accordion_item_begin( $title ) {
+	static $pw_acc_index = 0;
+	$is_first            = ( 0 === $pw_acc_index );
+	$tid                 = 'pw-data-acc-t-' . $pw_acc_index;
+	$pid                 = 'pw-data-acc-p-' . $pw_acc_index;
+	++$pw_acc_index;
+
+	$classes = 'pw-card pw-accordion-item';
+	if ( $is_first ) {
+		$classes .= ' is-expanded';
+	}
+	echo '<div class="' . esc_attr( $classes ) . '">';
+	echo '<button type="button" class="pw-card-head pw-accordion-trigger" aria-expanded="' . ( $is_first ? 'true' : 'false' ) . '" aria-controls="' . esc_attr( $pid ) . '" id="' . esc_attr( $tid ) . '">';
+	echo '<span class="pw-card-title">' . esc_html( $title ) . '</span>';
+	echo '<span class="pw-accordion-chevron" aria-hidden="true"></span>';
+	echo '</button>';
+	echo '<div class="pw-accordion-panel" id="' . esc_attr( $pid ) . '" role="region" aria-labelledby="' . esc_attr( $tid ) . '"' . ( $is_first ? '' : ' hidden' ) . '>';
+	echo '<div class="pw-card-body">';
+}
+
+function pw_data_accordion_item_end() {
+	echo '</div></div></div>';
 }

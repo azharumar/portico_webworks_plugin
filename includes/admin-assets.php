@@ -42,7 +42,7 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 	$is_pw_tax = $screen && ( $screen->taxonomy ?? '' ) !== '' && strpos( $screen->taxonomy, 'pw_' ) === 0;
 
 	if ( $is_pw_cpt || $is_pw_tax ) {
-		$css = '.cmb2-postbox .cmb-row:not(:last-of-type),.cmb2-postbox .cmb-repeatable-group:not(:last-of-type),.cmb-type-group .cmb-row:not(:last-of-type),.cmb-type-group .cmb-repeatable-group:not(:last-of-type){border-bottom:0}.cmb2-postbox .cmb-row,.cmb-type-group .cmb-row{padding:0 0 .6em;margin:0 0 .4em}';
+		$css = '.cmb2-postbox .cmb-row:not(:last-of-type),.cmb2-postbox .cmb-repeatable-group:not(:last-of-type),.cmb-type-group .cmb-row:not(:last-of-type),.cmb-type-group .cmb-repeatable-group:not(:last-of-type){border-bottom:0}.cmb2-postbox .cmb-row,.cmb-type-group .cmb-row{padding:0 0 .6em;margin:0 0 .4em}.pw-facet-fixed-rows .cmb-add-group-row,.pw-facet-fixed-rows .cmb-remove-group-row,.pw-facet-fixed-rows .cmb-remove-group-row-button,.pw-facet-fixed-rows .cmb-remove-field-row{display:none!important}';
 		wp_register_style( 'pw-cmb2-overrides', false, [ 'cmb2-styles' ], '0.1.0' );
 		wp_enqueue_style( 'pw-cmb2-overrides' );
 		wp_add_inline_style( 'pw-cmb2-overrides', $css );
@@ -83,9 +83,23 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 .pw-admin .pw-tab.is-active{color:var(--text);border-bottom-color:var(--primary)}
 
 .pw-admin .pw-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;max-width:980px}
-.pw-admin .pw-card-head{background:var(--card2);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
-.pw-admin .pw-card-title{font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--sub)}
-.pw-admin .pw-card-body{padding:14px}
+.pw-admin .pw-card + .pw-card{margin-top:22px}
+.pw-admin .pw-card-head{background:#252320;border-bottom:1px solid rgba(255,255,255,0.1);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.pw-admin button.pw-accordion-trigger{width:100%;margin:0;box-sizing:border-box;font:inherit;text-align:left;cursor:pointer;color:inherit;border:none;border-radius:0;appearance:none;-webkit-appearance:none}
+.pw-admin button.pw-accordion-trigger:focus{outline:2px solid rgba(255,255,255,0.35);outline-offset:-2px}
+.pw-admin .pw-accordion-item.is-expanded .pw-card-head{border-bottom:1px solid rgba(255,255,255,0.1)}
+.pw-admin .pw-accordion-item:not(.is-expanded) .pw-card-head{border-bottom:none}
+.pw-admin .pw-accordion-chevron{flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:28px;height:28px;opacity:0.85}
+.pw-admin .pw-accordion-chevron::before{content:'';display:block;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .18s ease;margin-top:-4px}
+.pw-admin .pw-accordion-item.is-expanded .pw-accordion-chevron::before{transform:rotate(-135deg);margin-top:4px}
+.pw-admin .pw-card-title{font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f5f2eb}
+.pw-admin .pw-card-body{padding:16px}
+.pw-admin .pw-subsection-title{margin:0 0 10px;font-size:14px;font-weight:700;color:var(--text);letter-spacing:0.02em}
+.pw-admin .pw-section-divider{border:0;border-top:1px solid var(--border);margin:20px 0}
+.pw-admin .pw-subsection + .pw-section-divider{margin-top:0}
+.pw-admin .button.pw-button-purge-all{background:#b32d2d!important;border-color:#8f2424!important;color:#fff!important;box-shadow:none!important;text-shadow:none!important}
+.pw-admin .button.pw-button-purge-all:hover,.pw-admin .button.pw-button-purge-all:focus{background:#961f1f!important;border-color:#6e1818!important;color:#fff!important}
+.pw-admin .button.pw-button-purge-all:focus{box-shadow:0 0 0 1px #fff,0 0 0 3px rgba(179,45,45,0.35)!important}
 .pw-admin .pw-card-body .form-table th{width:240px}
 .pw-admin .pw-card-body .cmb-form{margin-top:14px}
 .pw-admin .pw-card-body .cmb2-wrap .cmb-row{display:flex;flex-wrap:wrap;align-items:flex-start;margin-bottom:14px;clear:both}
@@ -400,4 +414,49 @@ add_action('admin_footer', function () {
 	</script>
 	<?php
 });
+
+add_action(
+	'admin_footer',
+	function () {
+		if ( ! isset( $_GET['page'] ) || $_GET['page'] !== pw_admin_page_slug() ) {
+			return;
+		}
+		?>
+	<script>
+	function pwConfirmPurgePluginData(form) {
+		var input = document.getElementById('pw-purge-password');
+		if (!input || input.value !== 'porticowebworks.com') {
+			window.alert('Enter the confirmation phrase exactly: porticowebworks.com');
+			return false;
+		}
+		return window.confirm('Permanently delete ALL Portico plugin posts and plugin taxonomy terms? This cannot be undone.');
+	}
+	(function () {
+		var root = document.querySelector('.pw-data-accordion');
+		if (!root) return;
+		root.addEventListener('click', function (e) {
+			var btn = e.target.closest('.pw-accordion-trigger');
+			if (!btn || !root.contains(btn)) return;
+			var item = btn.closest('.pw-accordion-item');
+			if (!item) return;
+			var panel = item.querySelector('.pw-accordion-panel');
+			var wasExpanded = item.classList.contains('is-expanded');
+			root.querySelectorAll('.pw-accordion-item').forEach(function (other) {
+				other.classList.remove('is-expanded');
+				var p = other.querySelector('.pw-accordion-panel');
+				var b = other.querySelector('.pw-accordion-trigger');
+				if (p) p.hidden = true;
+				if (b) b.setAttribute('aria-expanded', 'false');
+			});
+			if (!wasExpanded) {
+				item.classList.add('is-expanded');
+				if (panel) panel.hidden = false;
+				btn.setAttribute('aria-expanded', 'true');
+			}
+		});
+	})();
+	</script>
+		<?php
+	}
+);
 

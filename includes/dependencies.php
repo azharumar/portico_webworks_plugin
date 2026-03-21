@@ -150,19 +150,10 @@ add_action('pw_admin_notices', function () {
 // ---------------------------------------------------------------------------
 // Register the Dependencies tab in the existing admin page
 // ---------------------------------------------------------------------------
-add_filter('pw_admin_tabs', function ($tabs) {
-	$result = [];
-	foreach ($tabs as $key => $label) {
-		$result[$key] = $label;
-		if ($key === 'settings') {
-			$result['dependencies'] = 'Dependencies';
-		}
-	}
-	if (!isset($result['dependencies'])) {
-		$result['dependencies'] = 'Dependencies';
-	}
-	return $result;
-});
+add_filter( 'pw_admin_tabs', function ( $tabs ) {
+	$tabs['dependencies'] = 'Dependencies';
+	return $tabs;
+} );
 
 // ---------------------------------------------------------------------------
 // Render the Dependencies tab content

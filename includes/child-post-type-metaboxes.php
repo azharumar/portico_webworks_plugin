@@ -843,6 +843,19 @@ function pw_register_property_sustainability_metabox() {
 		'not_available' => 'Not available',
 	];
 
+	$defs         = pw_get_sustainability_facet_definitions();
+	$key_options  = [];
+	$default_rows = [];
+	foreach ( $defs as $d ) {
+		$key_options[ $d['key'] ] = $d['label'];
+		$default_rows[]           = [
+			'key'    => $d['key'],
+			'status' => 'unknown',
+			'note'   => '',
+		];
+	}
+	$key_sanitize = pw_sanitize_select_whitelist( $key_options );
+
 	$cmb = new_cmb2_box( [
 		'id'           => 'pw_property_sustainability',
 		'title'        => 'Sustainability practices',
@@ -851,49 +864,41 @@ function pw_register_property_sustainability_metabox() {
 		'priority'     => 'default',
 	] );
 
-	$cmb->add_field( [ 'name' => 'Solar power',                'id' => '_pw_sus_solar_power',                'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_solar_power_note',           'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Solar water heater',         'id' => '_pw_sus_solar_water_heater',         'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_solar_water_heater_note',    'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Energy-efficient lighting',  'id' => '_pw_sus_energy_efficient_lighting',  'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_energy_efficient_lighting_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Energy-saving thermostats',  'id' => '_pw_sus_energy_saving_thermostats',  'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_energy_saving_thermostats_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Green building design',      'id' => '_pw_sus_green_building_design',      'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_green_building_design_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-
-	$cmb->add_field( [ 'name' => 'Water-efficient fixtures',   'id' => '_pw_sus_water_efficient_fixtures',   'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_water_efficient_fixtures_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Sewage treatment plant',     'id' => '_pw_sus_sewage_treatment_plant',     'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_sewage_treatment_plant_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Water reuse program',        'id' => '_pw_sus_water_reuse_program',        'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_water_reuse_program_note',   'type' => 'text_small', 'desc' => 'Note' ] );
-
-	$cmb->add_field( [ 'name' => 'Waste segregation',          'id' => '_pw_sus_waste_segregation',          'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_waste_segregation_note',     'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Recycling program',          'id' => '_pw_sus_recycling_program',          'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_recycling_program_note',     'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'No styrofoam',               'id' => '_pw_sus_no_styrofoam',               'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_no_styrofoam_note',          'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Electronics disposal',       'id' => '_pw_sus_electronics_disposal',       'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_electronics_disposal_note',  'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Reusable water bottles',     'id' => '_pw_sus_reusable_water_bottles',     'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_reusable_water_bottles_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-
-	$cmb->add_field( [ 'name' => 'Wall-mounted dispensers',    'id' => '_pw_sus_wall_mounted_dispensers',    'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_wall_mounted_dispensers_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Eco-friendly toiletries',    'id' => '_pw_sus_eco_friendly_toiletries',    'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_eco_friendly_toiletries_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Towel reuse program',        'id' => '_pw_sus_towel_reuse_program',        'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_towel_reuse_program_note',   'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Linen reuse program',        'id' => '_pw_sus_linen_reuse_program',        'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_linen_reuse_program_note',   'type' => 'text_small', 'desc' => 'Note' ] );
-
-	$cmb->add_field( [ 'name' => 'Local food sourcing',        'id' => '_pw_sus_local_food_sourcing',        'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_local_food_sourcing_note',   'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Organic food options',       'id' => '_pw_sus_organic_food_options',       'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_sus_organic_food_options_note',  'type' => 'text_small', 'desc' => 'Note' ] );
-
+	$cmb->add_field( [
+		'name'        => 'Sustainability practices',
+		'id'          => PW_SUSTAINABILITY_ITEMS_META_KEY,
+		'type'        => 'group',
+		'description' => 'One row per practice. Rows are fixed; use status and note only.',
+		'repeatable'  => true,
+		'classes'     => 'pw-facet-fixed-rows',
+		'default'     => $default_rows,
+		'options'     => [
+			'group_title'   => '{#}. {key}',
+			'add_button'    => 'Add',
+			'remove_button' => 'Remove',
+		],
+		'fields'      => [
+			[
+				'name'            => 'Practice',
+				'id'              => 'key',
+				'type'            => 'select',
+				'options'         => $key_options,
+				'sanitization_cb' => $key_sanitize,
+			],
+			[
+				'name'            => 'Status',
+				'id'              => 'status',
+				'type'            => 'select',
+				'options'         => $status_options,
+				'sanitization_cb' => 'pw_sanitize_status_enum',
+			],
+			[
+				'name' => 'Note',
+				'id'   => 'note',
+				'type' => 'text_small',
+			],
+		],
+	] );
 }
 
 // ---------------------------------------------------------------------------
@@ -943,6 +948,19 @@ function pw_register_property_accessibility_metabox() {
 		'not_available' => 'Not available',
 	];
 
+	$defs         = pw_get_accessibility_facet_definitions();
+	$key_options  = [];
+	$default_rows = [];
+	foreach ( $defs as $d ) {
+		$key_options[ $d['key'] ] = $d['label'];
+		$default_rows[]           = [
+			'key'    => $d['key'],
+			'status' => 'unknown',
+			'note'   => '',
+		];
+	}
+	$key_sanitize = pw_sanitize_select_whitelist( $key_options );
+
 	$cmb = new_cmb2_box( [
 		'id'           => 'pw_property_accessibility',
 		'title'        => 'Accessibility features',
@@ -951,47 +969,41 @@ function pw_register_property_accessibility_metabox() {
 		'priority'     => 'default',
 	] );
 
-	$cmb->add_field( [ 'name' => 'Wheelchair accessible',         'id' => '_pw_acc_wheelchair_accessible',              'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_wheelchair_accessible_note',         'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Step-free entrance',            'id' => '_pw_acc_step_free_entrance',                 'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_step_free_entrance_note',            'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Automatic doors',               'id' => '_pw_acc_automatic_doors',                    'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_automatic_doors_note',               'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Accessible parking',            'id' => '_pw_acc_accessible_parking',                 'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_accessible_parking_note',            'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Accessible path to entrance',   'id' => '_pw_acc_accessible_path_to_entrance',        'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                              'id' => '_pw_acc_accessible_path_to_entrance_note',   'type' => 'text_small', 'desc' => 'Note' ] );
-
-	$cmb->add_field( [ 'name' => 'Accessible room available',  'id' => '_pw_acc_accessible_room_available',       'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_accessible_room_available_note',  'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Grab bars in bathroom',      'id' => '_pw_acc_grab_bars_bathroom',              'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_grab_bars_bathroom_note',         'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Roll-in shower',             'id' => '_pw_acc_roll_in_shower',                  'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_roll_in_shower_note',             'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Adjustable showerhead',      'id' => '_pw_acc_adjustable_showerhead',           'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_adjustable_showerhead_note',      'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Lowered closet',             'id' => '_pw_acc_lowered_closet',                  'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_lowered_closet_note',             'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Transfer-friendly bed',      'id' => '_pw_acc_transfer_friendly_bed',           'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_transfer_friendly_bed_note',      'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Emergency pull cords',       'id' => '_pw_acc_emergency_pull_cords',            'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_emergency_pull_cords_note',       'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Reachable outlets',          'id' => '_pw_acc_reachable_outlets',               'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                           'id' => '_pw_acc_reachable_outlets_note',          'type' => 'text_small', 'desc' => 'Note' ] );
-
-	$cmb->add_field( [ 'name' => 'Elevator',              'id' => '_pw_acc_elevator',                   'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_elevator_note',              'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Elevator audio cues',   'id' => '_pw_acc_elevator_audio_cues',        'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_elevator_audio_cues_note',   'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Pool lift',             'id' => '_pw_acc_pool_lift',                  'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_pool_lift_note',             'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Accessible restaurant', 'id' => '_pw_acc_accessible_restaurant',      'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_accessible_restaurant_note', 'type' => 'text_small', 'desc' => 'Note' ] );
-
-	$cmb->add_field( [ 'name' => 'Visual fire alarm',     'id' => '_pw_acc_visual_fire_alarm',          'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_visual_fire_alarm_note',     'type' => 'text_small', 'desc' => 'Note' ] );
-	$cmb->add_field( [ 'name' => 'Clear dietary labels',  'id' => '_pw_acc_clear_dietary_labels',       'type' => 'select', 'options' => $status_options, 'sanitization_cb' => 'pw_sanitize_status_enum' ] );
-	$cmb->add_field( [ 'name' => '',                      'id' => '_pw_acc_clear_dietary_labels_note',  'type' => 'text_small', 'desc' => 'Note' ] );
+	$cmb->add_field( [
+		'name'        => 'Accessibility features',
+		'id'          => PW_ACCESSIBILITY_ITEMS_META_KEY,
+		'type'        => 'group',
+		'description' => 'One row per feature. Rows are fixed; use status and note only.',
+		'repeatable'  => true,
+		'classes'     => 'pw-facet-fixed-rows',
+		'default'     => $default_rows,
+		'options'     => [
+			'group_title'   => '{#}. {key}',
+			'add_button'    => 'Add',
+			'remove_button' => 'Remove',
+		],
+		'fields'      => [
+			[
+				'name'            => 'Feature',
+				'id'              => 'key',
+				'type'            => 'select',
+				'options'         => $key_options,
+				'sanitization_cb' => $key_sanitize,
+			],
+			[
+				'name'            => 'Status',
+				'id'              => 'status',
+				'type'            => 'select',
+				'options'         => $status_options,
+				'sanitization_cb' => 'pw_sanitize_status_enum',
+			],
+			[
+				'name' => 'Note',
+				'id'   => 'note',
+				'type' => 'text_small',
+			],
+		],
+	] );
 }
 
 // ---------------------------------------------------------------------------

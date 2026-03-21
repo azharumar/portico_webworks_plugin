@@ -15,11 +15,9 @@ if ( ! class_exists( '\PhpOffice\PhpSpreadsheet\Spreadsheet' ) ) {
 
 function pw_render_import_export_section() {
 	if ( ! class_exists( '\PhpOffice\PhpSpreadsheet\Spreadsheet' ) ) {
-		echo '<div class="pw-card">';
-		echo '<div class="pw-card-head"><div class="pw-card-title">Import / Export</div></div>';
-		echo '<div class="pw-card-body">';
+		pw_data_accordion_item_begin( 'Import / Export' );
 		echo '<p><strong>Portico Webworks:</strong> PhpSpreadsheet is not installed. Run <code>composer install</code> in the plugin directory to enable Import / Export.</p>';
-		echo '</div></div>';
+		pw_data_accordion_item_end();
 		return;
 	}
 
@@ -55,13 +53,9 @@ function pw_render_import_export_section() {
 		'pw_event'        => 'Events',
 	];
 
-	if ( isset( $_GET['pw_imported'] ) ) {
-		echo '<div class="notice notice-success is-dismissible"><p>Import completed successfully.</p></div>';
-	}
-
-	echo '<div class="pw-card">';
-	echo '<div class="pw-card-head"><div class="pw-card-title">Export</div></div>';
-	echo '<div class="pw-card-body">';
+	pw_data_accordion_item_begin( 'Import / Export' );
+	echo '<div class="pw-subsection">';
+	echo '<h3 class="pw-subsection-title">' . esc_html( 'Export' ) . '</h3>';
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 	echo '<input type="hidden" name="action" value="pw_export" />';
 	wp_nonce_field( 'pw_export' );
@@ -76,11 +70,10 @@ function pw_render_import_export_section() {
 	echo '</tr></tbody></table>';
 	submit_button( 'Download Excel' );
 	echo '</form>';
-	echo '</div></div>';
-
-	echo '<div class="pw-card">';
-	echo '<div class="pw-card-head"><div class="pw-card-title">Import</div></div>';
-	echo '<div class="pw-card-body">';
+	echo '</div>';
+	echo '<hr class="pw-section-divider" />';
+	echo '<div class="pw-subsection">';
+	echo '<h3 class="pw-subsection-title">' . esc_html( 'Import' ) . '</h3>';
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" enctype="multipart/form-data">';
 	echo '<input type="hidden" name="action" value="pw_import" />';
 	wp_nonce_field( 'pw_import' );
@@ -97,7 +90,8 @@ function pw_render_import_export_section() {
 	echo '</tbody></table>';
 	submit_button( 'Import' );
 	echo '</form>';
-	echo '</div></div>';
+	echo '</div>';
+	pw_data_accordion_item_end();
 }
 
 if ( class_exists( '\PhpOffice\PhpSpreadsheet\Spreadsheet' ) ) {

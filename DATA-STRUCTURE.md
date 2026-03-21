@@ -126,32 +126,16 @@ Admin UI is built with **CMB2** (meta boxes) and custom metaboxes (property prof
 | `icon`        | string | Icon slug or SVG                    |
 
 
-#### Sustainability — string enum (`unknown` | `available` | `not_available`) + optional note
+#### Sustainability (`_pw_sustainability_items`) — repeatable group
 
-Each parameter has a paired `_note` key (string, `''`). CMB2: `pw_property_sustainability`
+Ordered array of rows (one entry per canonical practice). CMB2: `pw_property_sustainability`. Canonical keys and labels are defined in `includes/property-facet-definitions.php` (`pw_get_sustainability_facet_definitions()`). On save, the list is normalized to that order; unknown keys are dropped.
 
 
-| Meta Key                            | Note Key                                 | Group                |
-| ----------------------------------- | ---------------------------------------- | -------------------- |
-| `_pw_sus_solar_power`               | `_pw_sus_solar_power_note`               | Energy               |
-| `_pw_sus_solar_water_heater`        | `_pw_sus_solar_water_heater_note`        | Energy               |
-| `_pw_sus_energy_efficient_lighting` | `_pw_sus_energy_efficient_lighting_note` | Energy               |
-| `_pw_sus_energy_saving_thermostats` | `_pw_sus_energy_saving_thermostats_note` | Energy               |
-| `_pw_sus_green_building_design`     | `_pw_sus_green_building_design_note`     | Energy               |
-| `_pw_sus_water_efficient_fixtures`  | `_pw_sus_water_efficient_fixtures_note`  | Water                |
-| `_pw_sus_sewage_treatment_plant`    | `_pw_sus_sewage_treatment_plant_note`    | Water                |
-| `_pw_sus_water_reuse_program`       | `_pw_sus_water_reuse_program_note`       | Water                |
-| `_pw_sus_waste_segregation`         | `_pw_sus_waste_segregation_note`         | Waste reduction      |
-| `_pw_sus_recycling_program`         | `_pw_sus_recycling_program_note`         | Waste reduction      |
-| `_pw_sus_no_styrofoam`              | `_pw_sus_no_styrofoam_note`              | Waste reduction      |
-| `_pw_sus_electronics_disposal`      | `_pw_sus_electronics_disposal_note`      | Waste reduction      |
-| `_pw_sus_reusable_water_bottles`    | `_pw_sus_reusable_water_bottles_note`    | Waste reduction      |
-| `_pw_sus_wall_mounted_dispensers`   | `_pw_sus_wall_mounted_dispensers_note`   | Guest amenities      |
-| `_pw_sus_eco_friendly_toiletries`   | `_pw_sus_eco_friendly_toiletries_note`   | Guest amenities      |
-| `_pw_sus_towel_reuse_program`       | `_pw_sus_towel_reuse_program_note`       | Guest amenities      |
-| `_pw_sus_linen_reuse_program`       | `_pw_sus_linen_reuse_program_note`       | Guest amenities      |
-| `_pw_sus_local_food_sourcing`       | `_pw_sus_local_food_sourcing_note`       | Sustainable sourcing |
-| `_pw_sus_organic_food_options`      | `_pw_sus_organic_food_options_note`      | Sustainable sourcing |
+| Field    | Type   | Notes                                                                 |
+| -------- | ------ | --------------------------------------------------------------------- |
+| `key`    | string | Stable slug (e.g. `solar_power`, `recycling_program`)                 |
+| `status` | string | `unknown` \| `available` \| `not_available`                          |
+| `note`   | string | Optional detail                                                       |
 
 
 #### Certifications & Awards (`_pw_certifications`) — repeatable group
@@ -165,32 +149,16 @@ Each parameter has a paired `_note` key (string, `''`). CMB2: `pw_property_susta
 | `url`    | string  | Link to certificate                   |                                    |
 
 
-#### Accessibility — string enum (`unknown` | `available` | `not_available`) + optional note
+#### Accessibility (`_pw_accessibility_items`) — repeatable group
 
-CMB2: `pw_property_accessibility`
+Same shape as sustainability. CMB2: `pw_property_accessibility`. Definitions: `pw_get_accessibility_facet_definitions()` in `includes/property-facet-definitions.php`.
 
 
-| Meta Key                              | Note Key                                   | Group           |
-| ------------------------------------- | ------------------------------------------ | --------------- |
-| `_pw_acc_wheelchair_accessible`       | `_pw_acc_wheelchair_accessible_note`       | Property access |
-| `_pw_acc_step_free_entrance`          | `_pw_acc_step_free_entrance_note`          | Property access |
-| `_pw_acc_automatic_doors`             | `_pw_acc_automatic_doors_note`             | Property access |
-| `_pw_acc_accessible_parking`          | `_pw_acc_accessible_parking_note`          | Property access |
-| `_pw_acc_accessible_path_to_entrance` | `_pw_acc_accessible_path_to_entrance_note` | Property access |
-| `_pw_acc_accessible_room_available`   | `_pw_acc_accessible_room_available_note`   | Guest rooms     |
-| `_pw_acc_grab_bars_bathroom`          | `_pw_acc_grab_bars_bathroom_note`          | Guest rooms     |
-| `_pw_acc_roll_in_shower`              | `_pw_acc_roll_in_shower_note`              | Guest rooms     |
-| `_pw_acc_adjustable_showerhead`       | `_pw_acc_adjustable_showerhead_note`       | Guest rooms     |
-| `_pw_acc_lowered_closet`              | `_pw_acc_lowered_closet_note`              | Guest rooms     |
-| `_pw_acc_transfer_friendly_bed`       | `_pw_acc_transfer_friendly_bed_note`       | Guest rooms     |
-| `_pw_acc_emergency_pull_cords`        | `_pw_acc_emergency_pull_cords_note`        | Guest rooms     |
-| `_pw_acc_reachable_outlets`           | `_pw_acc_reachable_outlets_note`           | Guest rooms     |
-| `_pw_acc_elevator`                    | `_pw_acc_elevator_note`                    | Facilities      |
-| `_pw_acc_elevator_audio_cues`         | `_pw_acc_elevator_audio_cues_note`         | Facilities      |
-| `_pw_acc_pool_lift`                   | `_pw_acc_pool_lift_note`                   | Facilities      |
-| `_pw_acc_accessible_restaurant`       | `_pw_acc_accessible_restaurant_note`       | Facilities      |
-| `_pw_acc_visual_fire_alarm`           | `_pw_acc_visual_fire_alarm_note`           | Communication   |
-| `_pw_acc_clear_dietary_labels`        | `_pw_acc_clear_dietary_labels_note`        | Communication   |
+| Field    | Type   | Notes                                                                 |
+| -------- | ------ | --------------------------------------------------------------------- |
+| `key`    | string | Stable slug (e.g. `wheelchair_accessible`, `elevator`)                |
+| `status` | string | `unknown` \| `available` \| `not_available`                          |
+| `note`   | string | Optional detail                                                       |
 
 
 ---

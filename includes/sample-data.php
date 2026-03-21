@@ -50,16 +50,21 @@ function pw_render_data_tab() {
 	if ( isset( $_GET['pw_plugin_purged'] ) ) {
 		echo '<div class="notice notice-success is-dismissible"><p>All plugin content and taxonomy terms were removed.</p></div>';
 	}
+	if ( isset( $_GET['pw_purge_denied'] ) ) {
+		echo '<div class="notice notice-error is-dismissible"><p>That action was cancelled: the confirmation phrase did not match.</p></div>';
+	}
+	if ( isset( $_GET['pw_imported'] ) ) {
+		echo '<div class="notice notice-success is-dismissible"><p>Import completed successfully.</p></div>';
+	}
 
+	pw_data_accordion_open();
 	pw_render_import_export_section();
 
 	$flagged_posts = pw_count_sample_flagged_posts_only();
 	$flagged_terms = pw_count_sample_flagged_terms_only();
 	$flagged       = pw_count_sample_flagged_items();
 
-	echo '<div class="pw-card">';
-	echo '<div class="pw-card-head"><div class="pw-card-title">Sample content</div></div>';
-	echo '<div class="pw-card-body">';
+	pw_data_accordion_item_begin( 'Sample content' );
 	echo '<p>Install a sample hotel property with room types, restaurants, spa, amenities, policies, FAQs, offers, and more. Use this to quickly populate a fresh site for testing or demonstration.</p>';
 
 	if ( ! empty( $has_properties ) ) {
@@ -101,29 +106,32 @@ function pw_render_data_tab() {
 		echo '</form>';
 	}
 
-	echo '</div></div>';
+	pw_data_accordion_item_end();
 
-	echo '<div class="pw-card">';
-	echo '<div class="pw-card-head"><div class="pw-card-title">Default taxonomy terms</div></div>';
-	echo '<div class="pw-card-body">';
+	pw_data_accordion_item_begin( 'Default taxonomy terms' );
 	echo '<p>' . esc_html( 'Re-run the default taxonomy term lists (bed types, views, meal periods, etc.): only missing names are created; nothing is renamed or removed.' ) . '</p>';
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 	echo '<input type="hidden" name="action" value="pw_reseed_taxonomies" />';
 	wp_nonce_field( 'pw_reseed_taxonomies' );
 	submit_button( 'Reinstall default taxonomy terms', 'secondary', 'submit', false );
 	echo '</form>';
-	echo '</div></div>';
+	pw_data_accordion_item_end();
 
-	echo '<div class="pw-card">';
-	echo '<div class="pw-card-head"><div class="pw-card-title">Remove all plugin data</div></div>';
-	echo '<div class="pw-card-body">';
+	pw_data_accordion_item_begin( 'Remove all plugin data' );
 	echo '<p><strong>' . esc_html( 'Remove all plugin data' ) . '</strong> — ' . esc_html( 'Deletes every property, room type, and all other Portico hotel content, all terms in plugin taxonomies, clears orphaned post/term meta rows, and resets the taxonomy seed prompt option. Does not delete normal WordPress posts, pages, categories, or tags.' ) . '</p>';
-	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" onsubmit="return confirm(\'' . esc_js( 'Permanently delete ALL Portico plugin posts and plugin taxonomy terms? This cannot be undone.' ) . '\');">';
+	echo '<form id="pw-purge-plugin-form" class="pw-purge-plugin-form" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" onsubmit="return pwConfirmPurgePluginData(this);">';
 	echo '<input type="hidden" name="action" value="pw_purge_plugin_data" />';
 	wp_nonce_field( 'pw_purge_plugin_data' );
-	submit_button( 'Remove all plugin data', 'delete', 'submit', false );
+	echo '<table class="form-table" role="presentation"><tbody>';
+	echo '<tr><th scope="row"><label for="pw-purge-password">' . esc_html( 'Confirmation phrase' ) . '</label></th>';
+	echo '<td><input type="password" id="pw-purge-password" name="pw_purge_password" class="regular-text" value="" autocomplete="off" required />';
+	echo '<p class="description">' . esc_html( 'Enter porticowebworks.com to confirm this irreversible action.' ) . '</p></td></tr>';
+	echo '</tbody></table>';
+	submit_button( 'Remove all plugin data', 'primary', 'submit', false, [ 'class' => 'button pw-button-purge-all' ] );
 	echo '</form>';
-	echo '</div></div>';
+	pw_data_accordion_item_end();
+
+	pw_data_accordion_close();
 }
 
 function pw_handle_install_sample_data() {
@@ -206,6 +214,19 @@ function pw_handle_purge_plugin_data() {
 		wp_die( 'Unauthorised' );
 	}
 	check_admin_referer( 'pw_purge_plugin_data' );
+
+	$phrase = isset( $_POST['pw_purge_password'] ) ? sanitize_text_field( wp_unslash( $_POST['pw_purge_password'] ) ) : '';
+	if ( ! hash_equals( 'porticowebworks.com', $phrase ) ) {
+		wp_safe_redirect(
+			add_query_arg(
+				'pw_purge_denied',
+				'1',
+				admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=data' )
+			)
+		);
+		exit;
+	}
+
 	pw_purge_all_plugin_data();
 	wp_safe_redirect(
 		add_query_arg(
@@ -438,13 +459,54 @@ function pw_install_sample_data() {
 		]
 	);
 
-	update_post_meta( $property_id, '_pw_sus_solar_power', 'available' );
-	update_post_meta( $property_id, '_pw_sus_solar_power_note', 'Rooftop solar supplements common-area electricity.' );
-	update_post_meta( $property_id, '_pw_sus_recycling_program', 'available' );
-	update_post_meta( $property_id, '_pw_sus_local_food_sourcing', 'available' );
-	update_post_meta( $property_id, '_pw_acc_wheelchair_accessible', 'available' );
-	update_post_meta( $property_id, '_pw_acc_elevator', 'available' );
-	update_post_meta( $property_id, '_pw_acc_accessible_room_available', 'available' );
+	update_post_meta(
+		$property_id,
+		PW_SUSTAINABILITY_ITEMS_META_KEY,
+		pw_normalize_facet_items(
+			[
+				[
+					'key'    => 'solar_power',
+					'status' => 'available',
+					'note'   => 'Rooftop solar supplements common-area electricity.',
+				],
+				[
+					'key'    => 'recycling_program',
+					'status' => 'available',
+					'note'   => '',
+				],
+				[
+					'key'    => 'local_food_sourcing',
+					'status' => 'available',
+					'note'   => '',
+				],
+			],
+			pw_get_sustainability_facet_definitions()
+		)
+	);
+	update_post_meta(
+		$property_id,
+		PW_ACCESSIBILITY_ITEMS_META_KEY,
+		pw_normalize_facet_items(
+			[
+				[
+					'key'    => 'wheelchair_accessible',
+					'status' => 'available',
+					'note'   => '',
+				],
+				[
+					'key'    => 'elevator',
+					'status' => 'available',
+					'note'   => '',
+				],
+				[
+					'key'    => 'accessible_room_available',
+					'status' => 'available',
+					'note'   => '',
+				],
+			],
+			pw_get_accessibility_facet_definitions()
+		)
+	);
 
 	$feature_defs = [
 		[ 'title' => 'High-speed Wi-Fi', 'icon' => 'wifi', 'group' => 'Connectivity' ],
