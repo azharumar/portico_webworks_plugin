@@ -4,6 +4,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+function pw_term_name_is_taxonomy_seed_value( $name, $taxonomy ) {
+	if ( ! is_string( $name ) || $name === '' || ! is_string( $taxonomy ) || $taxonomy === '' ) {
+		return false;
+	}
+	$seeds = pw_get_taxonomy_seed_terms();
+	return isset( $seeds[ $taxonomy ] ) && in_array( $name, $seeds[ $taxonomy ], true );
+}
+
 function pw_get_taxonomy_seed_terms() {
 	return [
 		'pw_policy_type' => [

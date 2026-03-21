@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.8] - 2026-03-21
+
+### Added
+- Sample Data: expandable list of items tagged `_pw_is_sample_data` (posts + terms) with counts; **Reinstall default taxonomy terms**; **Remove all plugin data** (all plugin CPTs, plugin taxonomy terms, orphan relationship/meta cleanup, reset seed prompt options)
+- `pw_term_name_is_taxonomy_seed_value()`; taxonomy terms that match `pw_get_taxonomy_seed_terms()` are not tagged as sample data; existing seed-named terms are un-tagged when viewing Sample Data or before install/purge
+- `pw_sample_wp_insert_post()` so the sample installer reliably flags every created post
+- Plugins list **Settings** link; post-install and activation links to plugin settings; dismissible activation notice pointing to settings
+- Overview tab: direct link to **Settings → Reading** for search visibility
+
+### Changed
+- `register_activation_hook` calls `pw_plugin_activation()` (defaults plus settings-notice transient)
+
 ## [0.7.7] - 2026-03-21
 
 ### Added

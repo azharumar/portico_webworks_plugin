@@ -138,7 +138,42 @@ add_action(
 	0
 );
 
-function pw_count_sample_flagged_posts() {
+function pw_get_plugin_post_types() {
+	return [
+		'pw_property',
+		'pw_feature',
+		'pw_room_type',
+		'pw_restaurant',
+		'pw_spa',
+		'pw_meeting_room',
+		'pw_amenity',
+		'pw_policy',
+		'pw_faq',
+		'pw_offer',
+		'pw_nearby',
+		'pw_experience',
+		'pw_event',
+	];
+}
+
+function pw_get_plugin_taxonomies() {
+	return [
+		'pw_bed_type',
+		'pw_view_type',
+		'pw_meal_period',
+		'pw_treatment_type',
+		'pw_av_equipment',
+		'pw_feature_group',
+		'pw_nearby_type',
+		'pw_transport_mode',
+		'pw_experience_category',
+		'pw_event_type',
+		'pw_policy_type',
+		'pw_event_organiser',
+	];
+}
+
+function pw_count_sample_flagged_posts_only() {
 	$q = new WP_Query(
 		[
 			'post_type'              => 'any',
@@ -153,6 +188,167 @@ function pw_count_sample_flagged_posts() {
 		]
 	);
 	return (int) $q->found_posts;
+}
+
+function pw_count_sample_flagged_terms_only() {
+	$n = 0;
+	foreach ( pw_get_sample_data_taxonomies_for_meta() as $taxonomy ) {
+		if ( ! taxonomy_exists( $taxonomy ) ) {
+			continue;
+		}
+		$terms = get_terms(
+			[
+				'taxonomy'               => $taxonomy,
+				'hide_empty'             => false,
+				'fields'                 => 'ids',
+				'update_term_meta_cache' => false,
+				'meta_query'             => [
+					[
+						'key'   => PW_IS_SAMPLE_DATA_META_KEY,
+						'value' => '1',
+					],
+				],
+			]
+		);
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			continue;
+		}
+		$n += count( $terms );
+	}
+	return $n;
+}
+
+function pw_count_sample_flagged_items() {
+	return pw_count_sample_flagged_posts_only() + pw_count_sample_flagged_terms_only();
+}
+
+function pw_list_sample_flagged_items() {
+	$posts = get_posts(
+		[
+			'post_type'              => 'any',
+			'post_status'            => 'any',
+			'posts_per_page'         => -1,
+			'orderby'                => 'ID',
+			'order'                  => 'ASC',
+			'meta_key'               => PW_IS_SAMPLE_DATA_META_KEY,
+			'meta_value'             => '1',
+			'suppress_filters'       => false,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		]
+	);
+	$out_posts = [];
+	foreach ( $posts as $p ) {
+		$out_posts[] = [
+			'id'    => (int) $p->ID,
+			'title' => get_the_title( $p ),
+			'type'  => $p->post_type,
+		];
+	}
+
+	$out_terms = [];
+	foreach ( pw_get_sample_data_taxonomies_for_meta() as $taxonomy ) {
+		if ( ! taxonomy_exists( $taxonomy ) ) {
+			continue;
+		}
+		$terms = get_terms(
+			[
+				'taxonomy'               => $taxonomy,
+				'hide_empty'             => false,
+				'update_term_meta_cache' => false,
+				'meta_query'             => [
+					[
+						'key'   => PW_IS_SAMPLE_DATA_META_KEY,
+						'value' => '1',
+					],
+				],
+			]
+		);
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			continue;
+		}
+		foreach ( $terms as $t ) {
+			$out_terms[] = [
+				'id'       => (int) $t->term_id,
+				'name'     => $t->name,
+				'taxonomy' => $taxonomy,
+			];
+		}
+	}
+
+	return [
+		'posts' => $out_posts,
+		'terms' => $out_terms,
+	];
+}
+
+function pw_strip_sample_flags_from_seed_terms() {
+	foreach ( pw_get_taxonomy_seed_terms() as $taxonomy => $names ) {
+		if ( ! taxonomy_exists( $taxonomy ) ) {
+			continue;
+		}
+		foreach ( $names as $name ) {
+			$t = get_term_by( 'name', $name, $taxonomy );
+			if ( $t && ! is_wp_error( $t ) ) {
+				delete_term_meta( $t->term_id, PW_IS_SAMPLE_DATA_META_KEY );
+			}
+		}
+	}
+}
+
+function pw_purge_all_plugin_data() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	pw_strip_sample_flags_from_seed_terms();
+
+	foreach ( pw_get_plugin_post_types() as $post_type ) {
+		if ( ! post_type_exists( $post_type ) ) {
+			continue;
+		}
+		$ids = get_posts(
+			[
+				'post_type'              => $post_type,
+				'post_status'            => 'any',
+				'posts_per_page'         => -1,
+				'fields'                 => 'ids',
+				'suppress_filters'       => false,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			]
+		);
+		foreach ( $ids as $pid ) {
+			wp_delete_post( (int) $pid, true );
+		}
+	}
+
+	foreach ( pw_get_plugin_taxonomies() as $taxonomy ) {
+		if ( ! taxonomy_exists( $taxonomy ) ) {
+			continue;
+		}
+		$term_ids = get_terms(
+			[
+				'taxonomy'               => $taxonomy,
+				'hide_empty'             => false,
+				'fields'                 => 'ids',
+				'update_term_meta_cache' => false,
+			]
+		);
+		if ( is_wp_error( $term_ids ) || empty( $term_ids ) ) {
+			continue;
+		}
+		foreach ( $term_ids as $term_id ) {
+			wp_delete_term( (int) $term_id, $taxonomy );
+		}
+	}
+
+	global $wpdb;
+	$wpdb->query( "DELETE pm FROM {$wpdb->postmeta} pm LEFT JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE p.ID IS NULL" );
+	$wpdb->query( "DELETE tr FROM {$wpdb->term_relationships} tr LEFT JOIN {$wpdb->posts} p ON p.ID = tr.object_id WHERE p.ID IS NULL" );
+	$wpdb->query( "DELETE tm FROM {$wpdb->termmeta} tm LEFT JOIN {$wpdb->terms} t ON t.term_id = tm.term_id WHERE t.term_id IS NULL" );
+
+	delete_option( 'pw_taxonomy_seed_prompt_status' );
+	delete_option( 'pw_seed_taxonomies' );
 }
 
 function pw_delete_all_sample_data() {

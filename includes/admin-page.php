@@ -8,6 +8,39 @@ function pw_admin_page_slug() {
 	return 'portico-webworks';
 }
 
+function pw_admin_settings_url() {
+	return admin_url('admin.php?page=' . rawurlencode(pw_admin_page_slug()) . '&tab=settings');
+}
+
+add_filter('plugin_action_links_' . plugin_basename(PW_PLUGIN_FILE), function ($links) {
+	if (!current_user_can('manage_options')) {
+		return $links;
+	}
+	$settings = '<a href="' . esc_url(pw_admin_settings_url()) . '">' . esc_html('Settings') . '</a>';
+	array_unshift($links, $settings);
+	return $links;
+});
+
+add_filter('install_plugin_complete_actions', function ($install_actions, $api, $plugin_file) {
+	if (plugin_basename(PW_PLUGIN_FILE) !== $plugin_file || !current_user_can('manage_options')) {
+		return $install_actions;
+	}
+	$install_actions['pw_plugin_settings'] = '<a href="' . esc_url(pw_admin_settings_url()) . '" target="_parent">' . esc_html('Plugin settings') . '</a>';
+	return $install_actions;
+}, 10, 3);
+
+add_action('admin_notices', function () {
+	if (!current_user_can('manage_options') || !get_transient('pw_activation_settings_notice')) {
+		return;
+	}
+	delete_transient('pw_activation_settings_notice');
+	$url = pw_admin_settings_url();
+	echo '<div class="notice notice-success is-dismissible"><p>';
+	echo esc_html('Portico Webworks Hotel Website Manager activated.') . ' ';
+	echo '<a href="' . esc_url($url) . '">' . esc_html('Open plugin settings') . '</a>';
+	echo '</p></div>';
+});
+
 function pw_add_menu_divider( $label, $slug_suffix ) {
 	add_submenu_page(
 		pw_admin_page_slug(),
@@ -279,7 +312,9 @@ function pw_render_root_page() {
 		echo '<table class="form-table" role="presentation"><tbody>';
 		echo '<tr><th scope="row">Search Engine Indexing</th><td>';
 		echo '<strong>' . esc_html($indexing_on ? 'ON' : 'OFF') . '</strong>';
-		echo '<p class="description">Controlled by WordPress Settings -> Reading -> "Discourage search engines from indexing this site".</p>';
+		$reading_url = admin_url('options-reading.php');
+		echo '<p class="description">Controlled by WordPress Settings → Reading → "Discourage search engines from indexing this site". ';
+		echo '<a href="' . esc_url($reading_url) . '">Open Reading settings</a></p>';
 		echo '</td></tr>';
 		echo '</tbody></table>';
 

@@ -17,8 +17,12 @@ add_action( 'pw_render_tab_sample_data', 'pw_render_sample_data_tab' );
 
 add_action( 'admin_post_pw_install_sample_data', 'pw_handle_install_sample_data' );
 add_action( 'admin_post_pw_remove_sample_data', 'pw_handle_remove_sample_data' );
+add_action( 'admin_post_pw_reseed_taxonomies', 'pw_handle_reseed_taxonomies' );
+add_action( 'admin_post_pw_purge_plugin_data', 'pw_handle_purge_plugin_data' );
 
 function pw_render_sample_data_tab() {
+	pw_strip_sample_flags_from_seed_terms();
+
 	$has_properties = get_posts(
 		[
 			'post_type'      => 'pw_property',
@@ -37,8 +41,16 @@ function pw_render_sample_data_tab() {
 	if ( isset( $_GET['pw_sample_removed'] ) ) {
 		echo '<div class="notice notice-success is-dismissible"><p>Sample data removed.</p></div>';
 	}
+	if ( isset( $_GET['pw_taxonomy_reseeded'] ) ) {
+		echo '<div class="notice notice-success is-dismissible"><p>Default taxonomy terms were added where they were missing.</p></div>';
+	}
+	if ( isset( $_GET['pw_plugin_purged'] ) ) {
+		echo '<div class="notice notice-success is-dismissible"><p>All plugin content and taxonomy terms were removed.</p></div>';
+	}
 
-	$flagged = pw_count_sample_flagged_posts();
+	$flagged_posts = pw_count_sample_flagged_posts_only();
+	$flagged_terms = pw_count_sample_flagged_terms_only();
+	$flagged       = pw_count_sample_flagged_items();
 
 	echo '<div class="pw-card">';
 	echo '<div class="pw-card-head"><div class="pw-card-title">Sample Data</div></div>';
@@ -57,13 +69,48 @@ function pw_render_sample_data_tab() {
 
 	if ( $flagged > 0 ) {
 		echo '<hr style="margin:1.25em 0;" />';
-		echo '<p>' . esc_html( 1 === $flagged ? '1 item is tagged as sample data.' : sprintf( '%d items are tagged as sample data.', $flagged ) ) . '</p>';
+		echo '<p>' . esc_html(
+			sprintf(
+				1 === $flagged
+					? '%1$d item is tagged as sample data (%2$d posts, %3$d terms).'
+					: '%1$d items are tagged as sample data (%2$d posts, %3$d terms).',
+				$flagged,
+				$flagged_posts,
+				$flagged_terms
+			)
+		) . '</p>';
+		$items = pw_list_sample_flagged_items();
+		echo '<details style="margin-bottom:1em;"><summary>' . esc_html( 'Tagged items' ) . '</summary>';
+		echo '<ul style="list-style:disc;margin:0.5em 0 0 1.5em;max-height:16em;overflow:auto;">';
+		foreach ( $items['posts'] as $row ) {
+			echo '<li>' . esc_html( sprintf( '[%1$s] %2$s (ID %3$d)', $row['type'], $row['title'], $row['id'] ) ) . '</li>';
+		}
+		foreach ( $items['terms'] as $row ) {
+			echo '<li>' . esc_html( sprintf( '[term:%1$s] %2$s (ID %3$d)', $row['taxonomy'], $row['name'], $row['id'] ) ) . '</li>';
+		}
+		echo '</ul></details>';
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" onsubmit="return confirm(\'' . esc_js( 'Delete all posts, pages, and plugin content tagged as sample data, and remove sample-only taxonomy terms?' ) . '\');">';
 		echo '<input type="hidden" name="action" value="pw_remove_sample_data" />';
 		wp_nonce_field( 'pw_remove_sample_data' );
 		submit_button( 'Remove sample data', 'delete', 'submit', false );
 		echo '</form>';
 	}
+
+	echo '<hr style="margin:1.25em 0;" />';
+	echo '<p>' . esc_html( 'Re-run the default taxonomy term lists (bed types, views, meal periods, etc.): only missing names are created; nothing is renamed or removed.' ) . '</p>';
+	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+	echo '<input type="hidden" name="action" value="pw_reseed_taxonomies" />';
+	wp_nonce_field( 'pw_reseed_taxonomies' );
+	submit_button( 'Reinstall default taxonomy terms', 'secondary', 'submit', false );
+	echo '</form>';
+
+	echo '<hr style="margin:1.25em 0;" />';
+	echo '<p><strong>' . esc_html( 'Remove all plugin data' ) . '</strong> — ' . esc_html( 'Deletes every property, room type, and all other Portico hotel content, all terms in plugin taxonomies, clears orphaned post/term meta rows, and resets the taxonomy seed prompt option. Does not delete normal WordPress posts, pages, categories, or tags.' ) . '</p>';
+	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" onsubmit="return confirm(\'' . esc_js( 'Permanently delete ALL Portico plugin posts and plugin taxonomy terms? This cannot be undone.' ) . '\');">';
+	echo '<input type="hidden" name="action" value="pw_purge_plugin_data" />';
+	wp_nonce_field( 'pw_purge_plugin_data' );
+	submit_button( 'Remove all plugin data', 'delete', 'submit', false );
+	echo '</form>';
 
 	echo '</div></div>';
 }
@@ -124,6 +171,46 @@ function pw_handle_remove_sample_data() {
 	exit;
 }
 
+function pw_handle_reseed_taxonomies() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( 'Unauthorised' );
+	}
+	check_admin_referer( 'pw_reseed_taxonomies' );
+	pw_seed_taxonomy_terms();
+	wp_safe_redirect(
+		add_query_arg(
+			'pw_taxonomy_reseeded',
+			'1',
+			admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=sample_data' )
+		)
+	);
+	exit;
+}
+
+function pw_handle_purge_plugin_data() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( 'Unauthorised' );
+	}
+	check_admin_referer( 'pw_purge_plugin_data' );
+	pw_purge_all_plugin_data();
+	wp_safe_redirect(
+		add_query_arg(
+			'pw_plugin_purged',
+			'1',
+			admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=sample_data' )
+		)
+	);
+	exit;
+}
+
+function pw_sample_wp_insert_post( $postarr, $wp_error = false ) {
+	$post_id = wp_insert_post( $postarr, $wp_error );
+	if ( ! is_wp_error( $post_id ) && $post_id ) {
+		pw_sample_flag_post( (int) $post_id );
+	}
+	return $post_id;
+}
+
 function pw_sample_ensure_term( $name, $taxonomy ) {
 	$exists = term_exists( $name, $taxonomy );
 	if ( $exists ) {
@@ -134,7 +221,9 @@ function pw_sample_ensure_term( $name, $taxonomy ) {
 		return 0;
 	}
 	$tid = (int) $inserted['term_id'];
-	pw_sample_flag_term( $tid );
+	if ( ! pw_term_name_is_taxonomy_seed_value( $name, $taxonomy ) ) {
+		pw_sample_flag_term( $tid );
+	}
 	return $tid;
 }
 
@@ -171,6 +260,7 @@ function pw_sample_spa_weekday() {
 }
 
 function pw_install_sample_data() {
+	pw_strip_sample_flags_from_seed_terms();
 	pw_sample_install_lock_open();
 	try {
 	$base_url = 'https://www.grandsunsetresort.com';
@@ -199,7 +289,7 @@ function pw_install_sample_data() {
 		update_term_meta( $organiser_id, 'organiser_url', $base_url . '/events/' );
 	}
 
-	$property_id = wp_insert_post(
+	$property_id = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_property',
 			'post_status'  => 'publish',
@@ -358,7 +448,7 @@ function pw_install_sample_data() {
 
 	foreach ( $feature_defs as $fd ) {
 		$gid = pw_sample_ensure_term( $fd['group'], 'pw_feature_group' );
-		$fid = wp_insert_post(
+		$fid = pw_sample_wp_insert_post(
 			[
 				'post_type'   => 'pw_feature',
 				'post_status' => 'publish',
@@ -463,7 +553,7 @@ function pw_install_sample_data() {
 	$room_type_ids = [];
 
 	foreach ( $room_defs as $rd ) {
-		$rid = wp_insert_post(
+		$rid = pw_sample_wp_insert_post(
 			[
 				'post_type'    => 'pw_room_type',
 				'post_status'  => 'publish',
@@ -517,7 +607,7 @@ function pw_install_sample_data() {
 	}
 
 	$main_rest_id = 0;
-	$main_ins     = wp_insert_post(
+	$main_ins     = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_restaurant',
 			'post_status'  => 'publish',
@@ -552,7 +642,7 @@ function pw_install_sample_data() {
 	}
 
 	$pool_bar_id = 0;
-	$pool_ins    = wp_insert_post(
+	$pool_ins    = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_restaurant',
 			'post_status'  => 'publish',
@@ -590,7 +680,7 @@ function pw_install_sample_data() {
 	}
 
 	$coral_grill_id = 0;
-	$coral_ins      = wp_insert_post(
+	$coral_ins      = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_restaurant',
 			'post_status'  => 'publish',
@@ -631,7 +721,7 @@ function pw_install_sample_data() {
 	);
 
 	$spa_id = 0;
-	$spa_insert = wp_insert_post(
+	$spa_insert = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_spa',
 			'post_status'  => 'publish',
@@ -664,7 +754,7 @@ function pw_install_sample_data() {
 	$screen_tid = pw_sample_ensure_term( 'Screen', 'pw_av_equipment' );
 
 	$meeting_id = 0;
-	$meeting_insert = wp_insert_post(
+	$meeting_insert = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_meeting_room',
 			'post_status'  => 'publish',
@@ -698,7 +788,7 @@ function pw_install_sample_data() {
 	}
 
 	$boardroom_id = 0;
-	$board_ins    = wp_insert_post(
+	$board_ins    = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_meeting_room',
 			'post_status'  => 'publish',
@@ -740,7 +830,7 @@ function pw_install_sample_data() {
 	];
 
 	foreach ( $amenity_defs as $ad ) {
-		$aid = wp_insert_post(
+		$aid = pw_sample_wp_insert_post(
 			[
 				'post_type'   => 'pw_amenity',
 				'post_status' => 'publish',
@@ -771,7 +861,7 @@ function pw_install_sample_data() {
 	];
 
 	foreach ( $policy_defs as $pd ) {
-		$pid = wp_insert_post(
+		$pid = pw_sample_wp_insert_post(
 			[
 				'post_type'   => 'pw_policy',
 				'post_status' => 'publish',
@@ -872,7 +962,7 @@ function pw_install_sample_data() {
 		if ( empty( $conn ) ) {
 			$conn[] = [ 'type' => 'pw_property', 'id' => $property_id ];
 		}
-		$fqid = wp_insert_post(
+		$fqid = pw_sample_wp_insert_post(
 			[
 				'post_type'   => 'pw_faq',
 				'post_status' => 'publish',
@@ -889,7 +979,7 @@ function pw_install_sample_data() {
 		update_post_meta( $fqid, '_pw_connected_to', $conn );
 	}
 
-	$offer_ins = wp_insert_post(
+	$offer_ins = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_offer',
 			'post_status'  => 'publish',
@@ -921,7 +1011,7 @@ function pw_install_sample_data() {
 	if ( $spa_id > 0 ) {
 		$pkg_parents[] = [ 'type' => 'pw_spa', 'id' => $spa_id ];
 	}
-	$pkg_ins = wp_insert_post(
+	$pkg_ins = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_offer',
 			'post_status'  => 'publish',
@@ -947,7 +1037,7 @@ function pw_install_sample_data() {
 	}
 
 	if ( $main_rest_id > 0 ) {
-		$dine_ins = wp_insert_post(
+		$dine_ins = pw_sample_wp_insert_post(
 			[
 				'post_type'    => 'pw_offer',
 				'post_status'  => 'publish',
@@ -1023,7 +1113,7 @@ function pw_install_sample_data() {
 	];
 
 	foreach ( $nearby_defs as $i => $nd ) {
-		$nid = wp_insert_post(
+		$nid = pw_sample_wp_insert_post(
 			[
 				'post_type'    => 'pw_nearby',
 				'post_status'  => 'publish',
@@ -1053,7 +1143,7 @@ function pw_install_sample_data() {
 	$culinary_tid = pw_sample_ensure_term( 'Culinary', 'pw_experience_category' );
 	$water_tid   = pw_sample_ensure_term( 'Water Sports', 'pw_experience_category' );
 
-	$exp1_ins = wp_insert_post(
+	$exp1_ins = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_experience',
 			'post_status'  => 'publish',
@@ -1083,7 +1173,7 @@ function pw_install_sample_data() {
 		}
 	}
 
-	$exp2_ins = wp_insert_post(
+	$exp2_ins = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_experience',
 			'post_status'  => 'publish',
@@ -1113,7 +1203,7 @@ function pw_install_sample_data() {
 	}
 
 	if ( $coral_grill_id > 0 ) {
-		$exp3_ins = wp_insert_post(
+		$exp3_ins = pw_sample_wp_insert_post(
 			[
 				'post_type'    => 'pw_experience',
 				'post_status'  => 'publish',
@@ -1146,7 +1236,7 @@ function pw_install_sample_data() {
 		}
 	}
 
-	$exp4_ins = wp_insert_post(
+	$exp4_ins = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_experience',
 			'post_status'  => 'publish',
@@ -1175,7 +1265,7 @@ function pw_install_sample_data() {
 		}
 	}
 
-	$exp5_ins = wp_insert_post(
+	$exp5_ins = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_experience',
 			'post_status'  => 'publish',
@@ -1208,7 +1298,7 @@ function pw_install_sample_data() {
 	$wedding_tid = pw_sample_ensure_term( 'Wedding', 'pw_event_type' );
 	$social_ev_tid = pw_sample_ensure_term( 'Social Event', 'pw_event_type' );
 
-	$summit_ins = wp_insert_post(
+	$summit_ins = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_event',
 			'post_status'  => 'publish',
@@ -1243,7 +1333,7 @@ function pw_install_sample_data() {
 		}
 	}
 
-	$wedding_ins = wp_insert_post(
+	$wedding_ins = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_event',
 			'post_status'  => 'publish',
@@ -1277,7 +1367,7 @@ function pw_install_sample_data() {
 		}
 	}
 
-	$yoga_ins = wp_insert_post(
+	$yoga_ins = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_event',
 			'post_status'  => 'publish',
@@ -1311,7 +1401,7 @@ function pw_install_sample_data() {
 		}
 	}
 
-	$db_ins = wp_insert_post(
+	$db_ins = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'pw_offer',
 			'post_status'  => 'publish',
@@ -1337,7 +1427,7 @@ function pw_install_sample_data() {
 	}
 
 	$sample_cat_id = pw_sample_ensure_term( 'Grand Sunset Resort', 'category' );
-	wp_insert_post(
+	pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'page',
 			'post_status'  => 'publish',
@@ -1349,7 +1439,7 @@ function pw_install_sample_data() {
 		true
 	);
 
-	$blog_post_ins = wp_insert_post(
+	$blog_post_ins = pw_sample_wp_insert_post(
 		[
 			'post_type'    => 'post',
 			'post_status'  => 'publish',
