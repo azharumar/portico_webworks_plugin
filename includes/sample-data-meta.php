@@ -182,6 +182,7 @@ function pw_count_sample_flagged_posts_only() {
 			'fields'                 => 'ids',
 			'meta_key'               => PW_IS_SAMPLE_DATA_META_KEY,
 			'meta_value'             => '1',
+			'suppress_filters'       => true,
 			'no_found_rows'          => false,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
@@ -202,6 +203,7 @@ function pw_count_sample_flagged_terms_only() {
 				'hide_empty'             => false,
 				'fields'                 => 'ids',
 				'update_term_meta_cache' => false,
+				'suppress_filter'        => true,
 				'meta_query'             => [
 					[
 						'key'   => PW_IS_SAMPLE_DATA_META_KEY,
@@ -232,7 +234,7 @@ function pw_list_sample_flagged_items() {
 			'order'                  => 'ASC',
 			'meta_key'               => PW_IS_SAMPLE_DATA_META_KEY,
 			'meta_value'             => '1',
-			'suppress_filters'       => false,
+			'suppress_filters'       => true,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 		]
@@ -256,6 +258,7 @@ function pw_list_sample_flagged_items() {
 				'taxonomy'               => $taxonomy,
 				'hide_empty'             => false,
 				'update_term_meta_cache' => false,
+				'suppress_filter'        => true,
 				'meta_query'             => [
 					[
 						'key'   => PW_IS_SAMPLE_DATA_META_KEY,
@@ -312,7 +315,7 @@ function pw_purge_all_plugin_data() {
 				'post_status'            => 'any',
 				'posts_per_page'         => -1,
 				'fields'                 => 'ids',
-				'suppress_filters'       => false,
+				'suppress_filters'       => true,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 			]
@@ -332,6 +335,7 @@ function pw_purge_all_plugin_data() {
 				'hide_empty'             => false,
 				'fields'                 => 'ids',
 				'update_term_meta_cache' => false,
+				'suppress_filter'        => true,
 			]
 		);
 		if ( is_wp_error( $term_ids ) || empty( $term_ids ) ) {
@@ -360,7 +364,7 @@ function pw_delete_all_sample_data() {
 			'fields'                 => 'ids',
 			'meta_key'               => PW_IS_SAMPLE_DATA_META_KEY,
 			'meta_value'             => '1',
-			'suppress_filters'       => false,
+			'suppress_filters'       => true,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 		]
@@ -376,10 +380,11 @@ function pw_delete_all_sample_data() {
 		}
 		$terms = get_terms(
 			[
-				'taxonomy'   => $taxonomy,
-				'hide_empty' => false,
-				'fields'     => 'ids',
-				'meta_query' => [
+				'taxonomy'        => $taxonomy,
+				'hide_empty'      => false,
+				'fields'          => 'ids',
+				'suppress_filter' => true,
+				'meta_query'      => [
 					[
 						'key'   => PW_IS_SAMPLE_DATA_META_KEY,
 						'value' => '1',

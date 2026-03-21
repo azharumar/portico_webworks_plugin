@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.9] - 2026-03-21
+
+### Added
+- Admin **Data** tab combines Import/Export with sample content, default taxonomy reinstall, and remove-all-plugin-data actions
+
+### Changed
+- Import/Export UI renders inside the Data tab; separate Import/Export tab removed
+- Sample data removal, counts, and tagged-item listing use `suppress_filters` / `suppress_filter` on internal queries so third-party query filters (e.g. multilingual) do not skip plugin CPTs and terms
+
 ## [0.7.8] - 2026-03-21
 
 ### Added

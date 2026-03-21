@@ -7,28 +7,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_filter(
 	'pw_admin_tabs',
 	function ( $tabs ) {
-		$tabs['sample_data'] = 'Sample Data';
+		$tabs['data'] = 'Data';
 		return $tabs;
 	},
 	20
 );
 
-add_action( 'pw_render_tab_sample_data', 'pw_render_sample_data_tab' );
+add_action( 'pw_render_tab_data', 'pw_render_data_tab' );
 
 add_action( 'admin_post_pw_install_sample_data', 'pw_handle_install_sample_data' );
 add_action( 'admin_post_pw_remove_sample_data', 'pw_handle_remove_sample_data' );
 add_action( 'admin_post_pw_reseed_taxonomies', 'pw_handle_reseed_taxonomies' );
 add_action( 'admin_post_pw_purge_plugin_data', 'pw_handle_purge_plugin_data' );
 
-function pw_render_sample_data_tab() {
+function pw_render_data_tab() {
 	pw_strip_sample_flags_from_seed_terms();
 
 	$has_properties = get_posts(
 		[
-			'post_type'      => 'pw_property',
-			'post_status'    => 'any',
-			'posts_per_page' => 1,
-			'fields'         => 'ids',
+			'post_type'              => 'pw_property',
+			'post_status'            => 'any',
+			'posts_per_page'         => 1,
+			'fields'                 => 'ids',
+			'suppress_filters'       => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
 		]
 	);
 
@@ -48,12 +51,14 @@ function pw_render_sample_data_tab() {
 		echo '<div class="notice notice-success is-dismissible"><p>All plugin content and taxonomy terms were removed.</p></div>';
 	}
 
+	pw_render_import_export_section();
+
 	$flagged_posts = pw_count_sample_flagged_posts_only();
 	$flagged_terms = pw_count_sample_flagged_terms_only();
 	$flagged       = pw_count_sample_flagged_items();
 
 	echo '<div class="pw-card">';
-	echo '<div class="pw-card-head"><div class="pw-card-title">Sample Data</div></div>';
+	echo '<div class="pw-card-head"><div class="pw-card-title">Sample content</div></div>';
 	echo '<div class="pw-card-body">';
 	echo '<p>Install a sample hotel property with room types, restaurants, spa, amenities, policies, FAQs, offers, and more. Use this to quickly populate a fresh site for testing or demonstration.</p>';
 
@@ -96,22 +101,28 @@ function pw_render_sample_data_tab() {
 		echo '</form>';
 	}
 
-	echo '<hr style="margin:1.25em 0;" />';
+	echo '</div></div>';
+
+	echo '<div class="pw-card">';
+	echo '<div class="pw-card-head"><div class="pw-card-title">Default taxonomy terms</div></div>';
+	echo '<div class="pw-card-body">';
 	echo '<p>' . esc_html( 'Re-run the default taxonomy term lists (bed types, views, meal periods, etc.): only missing names are created; nothing is renamed or removed.' ) . '</p>';
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 	echo '<input type="hidden" name="action" value="pw_reseed_taxonomies" />';
 	wp_nonce_field( 'pw_reseed_taxonomies' );
 	submit_button( 'Reinstall default taxonomy terms', 'secondary', 'submit', false );
 	echo '</form>';
+	echo '</div></div>';
 
-	echo '<hr style="margin:1.25em 0;" />';
+	echo '<div class="pw-card">';
+	echo '<div class="pw-card-head"><div class="pw-card-title">Remove all plugin data</div></div>';
+	echo '<div class="pw-card-body">';
 	echo '<p><strong>' . esc_html( 'Remove all plugin data' ) . '</strong> — ' . esc_html( 'Deletes every property, room type, and all other Portico hotel content, all terms in plugin taxonomies, clears orphaned post/term meta rows, and resets the taxonomy seed prompt option. Does not delete normal WordPress posts, pages, categories, or tags.' ) . '</p>';
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" onsubmit="return confirm(\'' . esc_js( 'Permanently delete ALL Portico plugin posts and plugin taxonomy terms? This cannot be undone.' ) . '\');">';
 	echo '<input type="hidden" name="action" value="pw_purge_plugin_data" />';
 	wp_nonce_field( 'pw_purge_plugin_data' );
 	submit_button( 'Remove all plugin data', 'delete', 'submit', false );
 	echo '</form>';
-
 	echo '</div></div>';
 }
 
@@ -123,10 +134,13 @@ function pw_handle_install_sample_data() {
 
 	$existing = get_posts(
 		[
-			'post_type'      => 'pw_property',
-			'post_status'    => 'any',
-			'posts_per_page' => 1,
-			'fields'         => 'ids',
+			'post_type'              => 'pw_property',
+			'post_status'            => 'any',
+			'posts_per_page'         => 1,
+			'fields'                 => 'ids',
+			'suppress_filters'       => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
 		]
 	);
 
@@ -135,7 +149,7 @@ function pw_handle_install_sample_data() {
 			add_query_arg(
 				'pw_sample_error',
 				'1',
-				admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=sample_data' )
+				admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=data' )
 			)
 		);
 		exit;
@@ -147,7 +161,7 @@ function pw_handle_install_sample_data() {
 		add_query_arg(
 			'pw_sample_installed',
 			'1',
-			admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=sample_data' )
+			admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=data' )
 		)
 	);
 	exit;
@@ -165,7 +179,7 @@ function pw_handle_remove_sample_data() {
 		add_query_arg(
 			'pw_sample_removed',
 			'1',
-			admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=sample_data' )
+			admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=data' )
 		)
 	);
 	exit;
@@ -181,7 +195,7 @@ function pw_handle_reseed_taxonomies() {
 		add_query_arg(
 			'pw_taxonomy_reseeded',
 			'1',
-			admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=sample_data' )
+			admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=data' )
 		)
 	);
 	exit;
@@ -197,7 +211,7 @@ function pw_handle_purge_plugin_data() {
 		add_query_arg(
 			'pw_plugin_purged',
 			'1',
-			admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=sample_data' )
+			admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=data' )
 		)
 	);
 	exit;

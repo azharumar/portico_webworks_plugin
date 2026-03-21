@@ -5,24 +5,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! class_exists( '\PhpOffice\PhpSpreadsheet\Spreadsheet' ) ) {
-	add_action( 'pw_admin_notices', function() {
-		echo '<div class="notice notice-warning"><p><strong>Portico Webworks:</strong> PhpSpreadsheet is not installed. Run <code>composer install</code> in the plugin directory to enable Import / Export.</p></div>';
-	} );
-	return;
+	add_action(
+		'pw_admin_notices',
+		function () {
+			echo '<div class="notice notice-warning"><p><strong>Portico Webworks:</strong> PhpSpreadsheet is not installed. Run <code>composer install</code> in the plugin directory to enable Import / Export.</p></div>';
+		}
+	);
 }
 
-// ---------------------------------------------------------------------------
-// Admin tab registration
-// ---------------------------------------------------------------------------
+function pw_render_import_export_section() {
+	if ( ! class_exists( '\PhpOffice\PhpSpreadsheet\Spreadsheet' ) ) {
+		echo '<div class="pw-card">';
+		echo '<div class="pw-card-head"><div class="pw-card-title">Import / Export</div></div>';
+		echo '<div class="pw-card-body">';
+		echo '<p><strong>Portico Webworks:</strong> PhpSpreadsheet is not installed. Run <code>composer install</code> in the plugin directory to enable Import / Export.</p>';
+		echo '</div></div>';
+		return;
+	}
 
-add_filter( 'pw_admin_tabs', function( $tabs ) {
-	$tabs['import_export'] = 'Import / Export';
-	return $tabs;
-} );
-
-add_action( 'pw_render_tab_import_export', 'pw_render_import_export_tab' );
-
-function pw_render_import_export_tab() {
 	$allowed_types = [
 		'pw_property',
 		'pw_room_type',
@@ -100,14 +100,15 @@ function pw_render_import_export_tab() {
 	echo '</div></div>';
 }
 
-// ---------------------------------------------------------------------------
-// Export handler
-// ---------------------------------------------------------------------------
-
-add_action( 'admin_post_pw_export', 'pw_handle_export' );
+if ( class_exists( '\PhpOffice\PhpSpreadsheet\Spreadsheet' ) ) {
+	add_action( 'admin_post_pw_export', 'pw_handle_export' );
+	add_action( 'admin_post_pw_import', 'pw_handle_import' );
+}
 
 function pw_handle_export() {
-	if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Unauthorised' );
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( 'Unauthorised' );
+	}
 	check_admin_referer( 'pw_export' );
 
 	$post_type = sanitize_key( $_POST['post_type'] );
@@ -117,17 +118,23 @@ function pw_handle_export() {
 		'pw_offer', 'pw_nearby', 'pw_experience', 'pw_event',
 	];
 
-	if ( ! in_array( $post_type, $allowed, true ) ) wp_die( 'Invalid post type' );
+	if ( ! in_array( $post_type, $allowed, true ) ) {
+		wp_die( 'Invalid post type' );
+	}
 
 	$autoload = plugin_dir_path( PW_PLUGIN_FILE ) . 'vendor/autoload.php';
-	if ( ! file_exists( $autoload ) ) wp_die( 'PhpSpreadsheet is not installed. Run: composer require phpoffice/phpspreadsheet' );
+	if ( ! file_exists( $autoload ) ) {
+		wp_die( 'PhpSpreadsheet is not installed. Run: composer require phpoffice/phpspreadsheet' );
+	}
 	require_once $autoload;
 
-	$posts = get_posts( [
-		'post_type'      => $post_type,
-		'post_status'    => 'any',
-		'posts_per_page' => -1,
-	] );
+	$posts = get_posts(
+		[
+			'post_type'      => $post_type,
+			'post_status'    => 'any',
+			'posts_per_page' => -1,
+		]
+	);
 
 	$headers        = [ 'ID', 'Title', 'Status' ];
 	$meta_keys_seen = [];
@@ -172,14 +179,10 @@ function pw_handle_export() {
 	exit;
 }
 
-// ---------------------------------------------------------------------------
-// Import handler
-// ---------------------------------------------------------------------------
-
-add_action( 'admin_post_pw_import', 'pw_handle_import' );
-
 function pw_handle_import() {
-	if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Unauthorised' );
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( 'Unauthorised' );
+	}
 	check_admin_referer( 'pw_import' );
 
 	$post_type = sanitize_key( $_POST['post_type'] );
@@ -191,26 +194,32 @@ function pw_handle_import() {
 		'pw_offer', 'pw_nearby', 'pw_experience', 'pw_event',
 	];
 
-	if ( ! in_array( $post_type, $allowed, true ) ) wp_die( 'Invalid post type' );
+	if ( ! in_array( $post_type, $allowed, true ) ) {
+		wp_die( 'Invalid post type' );
+	}
 
-	if ( ! $file || $file['error'] !== UPLOAD_ERR_OK ) wp_die( 'Upload failed' );
+	if ( ! $file || $file['error'] !== UPLOAD_ERR_OK ) {
+		wp_die( 'Upload failed' );
+	}
 
 	$autoload = plugin_dir_path( PW_PLUGIN_FILE ) . 'vendor/autoload.php';
-	if ( ! file_exists( $autoload ) ) wp_die( 'PhpSpreadsheet is not installed. Run: composer require phpoffice/phpspreadsheet' );
+	if ( ! file_exists( $autoload ) ) {
+		wp_die( 'PhpSpreadsheet is not installed. Run: composer require phpoffice/phpspreadsheet' );
+	}
 	require_once $autoload;
 
 	$spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load( $file['tmp_name'] );
 	$rows        = $spreadsheet->getActiveSheet()->toArray();
 	$headers     = array_shift( $rows );
 
-	$id_index     = array_search( 'ID',     $headers );
-	$title_index  = array_search( 'Title',  $headers );
-	$status_index = array_search( 'Status', $headers );
+	$id_index     = array_search( 'ID', $headers, true );
+	$title_index  = array_search( 'Title', $headers, true );
+	$status_index = array_search( 'Status', $headers, true );
 
 	foreach ( $rows as $row ) {
 		$post_id     = ! empty( $row[ $id_index ] ) ? (int) $row[ $id_index ] : 0;
-		$post_title  = sanitize_text_field( $row[ $title_index ]  ?? '' );
-		$post_status = sanitize_key(        $row[ $status_index ] ?? 'draft' );
+		$post_title  = sanitize_text_field( $row[ $title_index ] ?? '' );
+		$post_status = sanitize_key( $row[ $status_index ] ?? 'draft' );
 
 		$post_data = [
 			'post_type'   => $post_type,
@@ -226,13 +235,19 @@ function pw_handle_import() {
 		}
 
 		foreach ( $headers as $i => $key ) {
-			if ( in_array( $key, [ 'ID', 'Title', 'Status' ], true ) ) continue;
+			if ( in_array( $key, [ 'ID', 'Title', 'Status' ], true ) ) {
+				continue;
+			}
 			$value   = $row[ $i ] ?? '';
 			$decoded = json_decode( $value, true );
 			update_post_meta( $post_id, $key, $decoded !== null ? $decoded : sanitize_text_field( $value ) );
 		}
 	}
 
-	wp_redirect( add_query_arg( 'pw_imported', '1', wp_get_referer() ) );
+	$referer = wp_get_referer();
+	if ( ! $referer ) {
+		$referer = admin_url( 'admin.php?page=' . rawurlencode( pw_admin_page_slug() ) . '&tab=data' );
+	}
+	wp_safe_redirect( add_query_arg( 'pw_imported', '1', $referer ) );
 	exit;
 }
