@@ -110,6 +110,64 @@ function pw_sanitize_float_nonneg( $value, $field_args, $field ) {
 	return (string) max( 0.0, $v );
 }
 
+function pw_sanitize_geo_lat( $value, $field_args, $field ) {
+	$raw = is_string( $value ) ? trim( $value ) : $value;
+	if ( $raw === '' || $raw === null ) {
+		return '0';
+	}
+	$f = max( -90.0, min( 90.0, (float) $raw ) );
+	return (string) $f;
+}
+
+function pw_sanitize_geo_lng( $value, $field_args, $field ) {
+	$raw = is_string( $value ) ? trim( $value ) : $value;
+	if ( $raw === '' || $raw === null ) {
+		return '0';
+	}
+	$f = max( -180.0, min( 180.0, (float) $raw ) );
+	return (string) $f;
+}
+
+/**
+ * Normalizes pw_room_type _pw_rates for storage and REST (schema.org Offer rows).
+ */
+function pw_sanitize_pw_rates_meta( $value ) {
+	if ( ! is_array( $value ) ) {
+		return [];
+	}
+	$allowed_types = [ 'rack', 'seasonal', 'advance', 'package' ];
+	$out           = [];
+	foreach ( $value as $row ) {
+		if ( ! is_array( $row ) ) {
+			continue;
+		}
+		$type = isset( $row['rate_type'] ) ? (string) $row['rate_type'] : 'rack';
+		if ( ! in_array( $type, $allowed_types, true ) ) {
+			$type = 'rack';
+		}
+		$vf = isset( $row['valid_from'] ) ? trim( (string) $row['valid_from'] ) : '';
+		if ( $vf !== '' && ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $vf ) ) {
+			$vf = '';
+		}
+		$vt = isset( $row['valid_to'] ) ? trim( (string) $row['valid_to'] ) : '';
+		if ( $vt !== '' && ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $vt ) ) {
+			$vt = '';
+		}
+		$bf_raw = $row['includes_breakfast'] ?? false;
+		$bf     = ( $bf_raw === true || $bf_raw === 'on' || $bf_raw === '1' || $bf_raw === 1 );
+		$out[]  = [
+			'rate_label'         => isset( $row['rate_label'] ) ? sanitize_text_field( (string) $row['rate_label'] ) : '',
+			'rate_type'          => $type,
+			'price'              => isset( $row['price'] ) ? max( 0.0, (float) $row['price'] ) : 0.0,
+			'valid_from'         => $vf,
+			'valid_to'           => $vt,
+			'advance_days'       => isset( $row['advance_days'] ) ? max( 0, (int) $row['advance_days'] ) : 0,
+			'includes_breakfast' => $bf,
+		];
+	}
+	return $out;
+}
+
 function pw_sanitize_select_whitelist( $allowed ) {
 	return function ( $value, $field_args, $field ) use ( $allowed ) {
 		$v = is_string( $value ) ? $value : '';
@@ -297,8 +355,40 @@ function pw_register_child_metaboxes() {
 		'options' => 'pw_property_options',
 	] );
 
-	$cmb->add_field( [ 'name' => 'Rate from',     'desc' => 'Starting rate. Currency is set on the parent property.', 'id' => '_pw_rate_from',     'type' => 'text_money' ] );
-	$cmb->add_field( [ 'name' => 'Rate to',       'desc' => 'Upper end of rate range.',                              'id' => '_pw_rate_to',       'type' => 'text_money' ] );
+	$cmb->add_field( [ 'name' => 'Rate from',     'desc' => 'Starting rate (summary). Currency is set on the parent property.', 'id' => '_pw_rate_from',     'type' => 'text_money' ] );
+	$cmb->add_field( [ 'name' => 'Rate to',       'desc' => 'Upper end of rate range (summary). Use Rates below for multiple schema.org Offers.', 'id' => '_pw_rate_to',       'type' => 'text_money' ] );
+	$cmb->add_field( [
+		'name'       => 'Rates',
+		'id'         => '_pw_rates',
+		'type'       => 'group',
+		'repeatable' => true,
+		'desc'       => 'Repeatable rate plans (rack, seasonal windows, advance purchase, packages). Maps to separate Offer entities in structured data.',
+		'options'    => [
+			'group_title'   => 'Rate {#}',
+			'add_button'    => 'Add rate',
+			'remove_button' => 'Remove',
+		],
+		'fields'     => [
+			[ 'name' => 'Label', 'id' => 'rate_label', 'type' => 'text', 'desc' => 'e.g. Best Available, Peak Season, Advance 7-day' ],
+			[
+				'name'    => 'Type',
+				'id'      => 'rate_type',
+				'type'    => 'select',
+				'options' => [
+					'rack'     => 'Rack',
+					'seasonal' => 'Seasonal',
+					'advance'  => 'Advance purchase',
+					'package'  => 'Package (e.g. B&B)',
+				],
+				'default' => 'rack',
+			],
+			[ 'name' => 'Price', 'id' => 'price', 'type' => 'text_money' ],
+			[ 'name' => 'Valid from', 'id' => 'valid_from', 'type' => 'text_date', 'date_format' => 'Y-m-d', 'sanitization_cb' => 'pw_sanitize_date_ymd' ],
+			[ 'name' => 'Valid to', 'id' => 'valid_to', 'type' => 'text_date', 'date_format' => 'Y-m-d', 'sanitization_cb' => 'pw_sanitize_date_ymd' ],
+			[ 'name' => 'Advance days', 'id' => 'advance_days', 'type' => 'text_small', 'desc' => 'Min. days before arrival (advance purchase).', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ],
+			[ 'name' => 'Includes breakfast', 'id' => 'includes_breakfast', 'type' => 'checkbox' ],
+		],
+	] );
 	$cmb->add_field( [ 'name' => 'Max occupancy', 'id' => '_pw_max_occupancy', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 	$cmb->add_field( [ 'name' => 'Max adults',    'id' => '_pw_max_adults',    'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_occupancy' ] );
 	$cmb->add_field( [ 'name' => 'Max children',  'id' => '_pw_max_children',  'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_occupancy' ] );
@@ -532,6 +622,14 @@ function pw_register_spa_operating_hours_metabox() {
 	] );
 
 	$cmb->add_field( [
+		'name' => 'Property',
+		'desc' => 'Scopes this FAQ to a property (e.g. FAQPage per hotel). Use Connected to below for a specific restaurant, spa, or meeting room on that property — both can be set.',
+		'id'   => '_pw_property_id',
+		'type' => 'select',
+		'options' => 'pw_property_options',
+	] );
+
+	$cmb->add_field( [
 		'name'    => 'Answer',
 		'id'      => '_pw_answer',
 		'type'    => 'wysiwyg',
@@ -588,6 +686,14 @@ function pw_register_spa_operating_hours_metabox() {
 		'type'            => 'select',
 		'options'         => $offer_type_opts,
 		'sanitization_cb' => pw_sanitize_select_whitelist( $offer_type_opts ),
+	] );
+
+	$cmb->add_field( [
+		'name' => 'Property',
+		'desc' => 'Scopes this offer for queries (multi-property / REST). Use Attach to below for property, restaurant, or spa links — both can be set.',
+		'id'   => '_pw_property_id',
+		'type' => 'select',
+		'options' => 'pw_property_options',
 	] );
 
 	$cmb->add_field( [
@@ -682,6 +788,8 @@ function pw_register_spa_operating_hours_metabox() {
 	$cmb->add_field( [ 'name' => 'Property',          'id' => '_pw_property_id',     'type' => 'select',     'options'  => 'pw_property_options' ] );
 	$cmb->add_field( [ 'name' => 'Distance (km)',      'id' => '_pw_distance_km',     'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_float_nonneg' ] );
 	$cmb->add_field( [ 'name' => 'Travel time (min)',  'id' => '_pw_travel_time_min', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [ 'name' => 'Latitude',            'id' => '_pw_lat',             'type' => 'text_small', 'attributes' => [ 'placeholder' => 'e.g. 25.7907' ], 'sanitization_cb' => 'pw_sanitize_geo_lat' ] );
+	$cmb->add_field( [ 'name' => 'Longitude',           'id' => '_pw_lng',             'type' => 'text_small', 'attributes' => [ 'placeholder' => 'e.g. -80.1300' ], 'sanitization_cb' => 'pw_sanitize_geo_lng' ] );
 	$cmb->add_field( [ 'name' => 'Place URL',          'id' => '_pw_place_url',       'type' => 'text_url',   'desc' => 'Google Maps or website URL', 'sanitization_cb' => 'pw_sanitize_url' ] );
 	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 
@@ -693,6 +801,14 @@ function pw_register_spa_operating_hours_metabox() {
 		'object_types' => [ 'pw_experience' ],
 		'context'      => 'normal',
 		'priority'     => 'high',
+	] );
+
+	$cmb->add_field( [
+		'name' => 'Property',
+		'desc' => 'Scopes this experience for property-level archives and `meta_query`. Use Connected to below for specific restaurant/spa links — both can be set.',
+		'id'   => '_pw_property_id',
+		'type' => 'select',
+		'options' => 'pw_property_options',
 	] );
 
 	$cmb->add_field( [
@@ -749,7 +865,7 @@ function pw_register_spa_operating_hours_metabox() {
 		'name'            => 'Start',
 		'id'              => '_pw_start_datetime',
 		'type'            => 'text_datetime_timestamp_timezone',
-		'desc'            => 'Used for schema.org Event markup. Stored as Y-m-d H:i:s.',
+		'desc'            => 'Wall time stored as Y-m-d H:i:s (no offset). For schema.org / ISO 8601, use the linked property’s Timezone (`_pw_timezone`) — `pw_event_local_datetime_to_iso8601()` or REST `pw_start_datetime_iso8601`.',
 		'date_format'     => 'Y-m-d',
 		'time_format'     => 'H:i:s',
 		'sanitization_cb' => 'pw_sanitize_event_datetime',
@@ -758,6 +874,7 @@ function pw_register_spa_operating_hours_metabox() {
 		'name'            => 'End',
 		'id'              => '_pw_end_datetime',
 		'type'            => 'text_datetime_timestamp_timezone',
+		'desc'            => 'Same as Start: local wall time; ISO 8601 offset from linked property `_pw_timezone` at render time (`pw_end_datetime_iso8601` in REST).',
 		'date_format'     => 'Y-m-d',
 		'time_format'     => 'H:i:s',
 		'sanitization_cb' => 'pw_sanitize_event_datetime',

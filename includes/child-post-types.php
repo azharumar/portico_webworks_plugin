@@ -245,6 +245,30 @@ function pw_register_child_post_meta() {
 		'default'      => 0,
 	] );
 
+	register_post_meta( 'pw_room_type', '_pw_rates', [
+		'type'              => 'array',
+		'single'            => true,
+		'show_in_rest'      => [
+			'schema' => [
+				'type'  => 'array',
+				'items' => [
+					'type'       => 'object',
+					'properties' => [
+						'rate_label'         => [ 'type' => 'string' ],
+						'rate_type'          => [ 'type' => 'string' ],
+						'price'              => [ 'type' => 'number' ],
+						'valid_from'         => [ 'type' => 'string' ],
+						'valid_to'           => [ 'type' => 'string' ],
+						'advance_days'       => [ 'type' => 'integer' ],
+						'includes_breakfast' => [ 'type' => 'boolean' ],
+					],
+				],
+			],
+		],
+		'default'           => [],
+		'sanitize_callback' => 'pw_sanitize_pw_rates_meta',
+	] );
+
 	foreach ( [ '_pw_max_occupancy', '_pw_max_adults', '_pw_max_children', '_pw_size_sqft', '_pw_size_sqm', '_pw_max_extra_beds', '_pw_display_order' ] as $key ) {
 		register_post_meta( 'pw_room_type', $key, [
 			'type'         => 'integer',
@@ -522,6 +546,13 @@ function pw_register_child_post_meta() {
 
 	// --- pw_faq ---
 
+	register_post_meta( 'pw_faq', '_pw_property_id', [
+		'type'         => 'integer',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => 0,
+	] );
+
 	register_post_meta( 'pw_faq', '_pw_answer', [
 		'type'         => 'string',
 		'single'       => true,
@@ -650,6 +681,13 @@ function pw_register_child_post_meta() {
 
 	// --- pw_offer ---
 
+	register_post_meta( 'pw_offer', '_pw_property_id', [
+		'type'         => 'integer',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => 0,
+	] );
+
 	register_post_meta( 'pw_offer', '_pw_parents', [
 		'type'         => 'array',
 		'single'       => true,
@@ -718,11 +756,24 @@ function pw_register_child_post_meta() {
 	register_post_meta( 'pw_nearby', '_pw_place_url', [
 		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
 	] );
+	register_post_meta( 'pw_nearby', '_pw_lat', [
+		'type' => 'number', 'single' => true, 'show_in_rest' => true, 'default' => 0,
+	] );
+	register_post_meta( 'pw_nearby', '_pw_lng', [
+		'type' => 'number', 'single' => true, 'show_in_rest' => true, 'default' => 0,
+	] );
 	register_post_meta( 'pw_nearby', '_pw_display_order', [
 		'type' => 'integer', 'single' => true, 'show_in_rest' => true, 'default' => 0,
 	] );
 
 	// --- pw_experience ---
+
+	register_post_meta( 'pw_experience', '_pw_property_id', [
+		'type'         => 'integer',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => 0,
+	] );
 
 	register_post_meta( 'pw_experience', '_pw_connected_to', [
 		'type'         => 'array',

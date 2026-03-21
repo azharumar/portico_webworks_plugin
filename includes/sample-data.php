@@ -551,6 +551,8 @@ function pw_install_sample_data() {
 	$garden_tid  = pw_sample_ensure_term( 'Garden', 'pw_view_type' );
 	$city_tid    = pw_sample_ensure_term( 'City', 'pw_view_type' );
 
+	$rate_y = (int) gmdate( 'Y' );
+
 	$room_defs = [
 		[
 			'title'     => 'Deluxe King, Partial Ocean',
@@ -569,6 +571,11 @@ function pw_install_sample_data() {
 			'order'     => 1,
 			'meta_title'=> 'Deluxe King Room | Grand Sunset Resort',
 			'meta_desc' => 'Partial ocean views, king bed, and rain shower on Miami Beach.',
+			'rates'     => [
+				[ 'rate_label' => 'Best Available', 'rate_type' => 'rack', 'price' => 289, 'valid_from' => '', 'valid_to' => '', 'advance_days' => 0, 'includes_breakfast' => false ],
+				[ 'rate_label' => 'Peak Season', 'rate_type' => 'seasonal', 'price' => 379, 'valid_from' => $rate_y . '-06-01', 'valid_to' => $rate_y . '-08-31', 'advance_days' => 0, 'includes_breakfast' => false ],
+				[ 'rate_label' => 'Advance 7-day', 'rate_type' => 'advance', 'price' => 259, 'valid_from' => '', 'valid_to' => '', 'advance_days' => 7, 'includes_breakfast' => false ],
+			],
 		],
 		[
 			'title'     => 'Oceanfront One-Bedroom Suite',
@@ -587,6 +594,11 @@ function pw_install_sample_data() {
 			'order'     => 2,
 			'meta_title'=> 'Oceanfront Suite Miami Beach | Grand Sunset Resort',
 			'meta_desc' => 'Spacious oceanfront suite with balcony, living room, and premium amenities.',
+			'rates'     => [
+				[ 'rate_label' => 'Best Available', 'rate_type' => 'rack', 'price' => 529, 'valid_from' => '', 'valid_to' => '', 'advance_days' => 0, 'includes_breakfast' => false ],
+				[ 'rate_label' => 'Peak Season', 'rate_type' => 'seasonal', 'price' => 719, 'valid_from' => $rate_y . '-06-01', 'valid_to' => $rate_y . '-08-31', 'advance_days' => 0, 'includes_breakfast' => false ],
+				[ 'rate_label' => 'Bed & Breakfast', 'rate_type' => 'package', 'price' => 629, 'valid_from' => '', 'valid_to' => '', 'advance_days' => 0, 'includes_breakfast' => true ],
+			],
 		],
 		[
 			'title'     => 'Garden Wing Family Room',
@@ -605,6 +617,10 @@ function pw_install_sample_data() {
 			'order'     => 3,
 			'meta_title'=> 'Family Room Miami Beach | Grand Sunset Resort',
 			'meta_desc' => 'Two queens, garden views, and space for up to five guests.',
+			'rates'     => [
+				[ 'rate_label' => 'Best Available', 'rate_type' => 'rack', 'price' => 319, 'valid_from' => '', 'valid_to' => '', 'advance_days' => 0, 'includes_breakfast' => false ],
+				[ 'rate_label' => 'Advance 14-day', 'rate_type' => 'advance', 'price' => 289, 'valid_from' => '', 'valid_to' => '', 'advance_days' => 14, 'includes_breakfast' => false ],
+			],
 		],
 		[
 			'title'     => 'Classic Twin City View',
@@ -623,6 +639,9 @@ function pw_install_sample_data() {
 			'order'     => 4,
 			'meta_title'=> 'Twin Room City View | Grand Sunset Resort',
 			'meta_desc' => 'Two twin beds, city views, near the beach in Miami Beach.',
+			'rates'     => [
+				[ 'rate_label' => 'Best Available', 'rate_type' => 'rack', 'price' => 219, 'valid_from' => '', 'valid_to' => '', 'advance_days' => 0, 'includes_breakfast' => false ],
+			],
 		],
 	];
 
@@ -648,6 +667,7 @@ function pw_install_sample_data() {
 		update_post_meta( $rid, '_pw_property_id', $property_id );
 		update_post_meta( $rid, '_pw_rate_from', (float) $rd['rate_from'] );
 		update_post_meta( $rid, '_pw_rate_to', (float) $rd['rate_to'] );
+		update_post_meta( $rid, '_pw_rates', pw_sanitize_pw_rates_meta( $rd['rates'] ?? [] ) );
 		update_post_meta( $rid, '_pw_max_occupancy', (int) $rd['occ'] );
 		update_post_meta( $rid, '_pw_max_adults', (int) $rd['adults'] );
 		update_post_meta( $rid, '_pw_max_children', (int) $rd['children'] );
@@ -1050,6 +1070,7 @@ function pw_install_sample_data() {
 			continue;
 		}
 		$fqid = (int) $fqid;
+		update_post_meta( $fqid, '_pw_property_id', $property_id );
 		update_post_meta( $fqid, '_pw_answer', $fd['a'] );
 		update_post_meta( $fqid, '_pw_display_order', $i + 1 );
 		update_post_meta( $fqid, '_pw_connected_to', $conn );
@@ -1068,6 +1089,7 @@ function pw_install_sample_data() {
 	if ( ! is_wp_error( $offer_ins ) && $offer_ins ) {
 		$offer_id = (int) $offer_ins;
 		update_post_meta( $offer_id, '_pw_offer_type', 'promotion' );
+		update_post_meta( $offer_id, '_pw_property_id', $property_id );
 		update_post_meta( $offer_id, '_pw_parents', [ [ 'type' => 'pw_property', 'id' => $property_id ] ] );
 		update_post_meta( $offer_id, '_pw_valid_from', gmdate( 'Y-m-d', strtotime( '+7 days' ) ) );
 		update_post_meta( $offer_id, '_pw_valid_to', gmdate( 'Y-m-d', strtotime( '+120 days' ) ) );
@@ -1100,6 +1122,7 @@ function pw_install_sample_data() {
 	if ( ! is_wp_error( $pkg_ins ) && $pkg_ins ) {
 		$pkg_id = (int) $pkg_ins;
 		update_post_meta( $pkg_id, '_pw_offer_type', 'package' );
+		update_post_meta( $pkg_id, '_pw_property_id', $property_id );
 		update_post_meta( $pkg_id, '_pw_parents', $pkg_parents );
 		update_post_meta( $pkg_id, '_pw_valid_from', gmdate( 'Y-m-d', strtotime( '+1 day' ) ) );
 		update_post_meta( $pkg_id, '_pw_valid_to', gmdate( 'Y-m-d', strtotime( '+365 days' ) ) );
@@ -1126,6 +1149,7 @@ function pw_install_sample_data() {
 		if ( ! is_wp_error( $dine_ins ) && $dine_ins ) {
 			$dine_id = (int) $dine_ins;
 			update_post_meta( $dine_id, '_pw_offer_type', 'promotion' );
+			update_post_meta( $dine_id, '_pw_property_id', $property_id );
 			update_post_meta( $dine_id, '_pw_parents', [ [ 'type' => 'pw_restaurant', 'id' => $main_rest_id ] ] );
 			update_post_meta( $dine_id, '_pw_valid_from', gmdate( 'Y-m-d' ) );
 			update_post_meta( $dine_id, '_pw_valid_to', gmdate( 'Y-m-d', strtotime( '+180 days' ) ) );
@@ -1155,36 +1179,42 @@ function pw_install_sample_data() {
 			'excerpt' => 'Iconic stretch of sand, nightlife, and Art Deco architecture.',
 			'content' => '<p>Five minutes by car to the heart of South Beach. Ask concierge for guest-list access at partner beach clubs.</p>',
 			'km' => 2.8, 'min' => 10, 'type' => $beach_tid, 'trans' => $drive_tid,
+			'lat' => 25.7817, 'lng' => -80.1288,
 		],
 		[
 			'title'   => 'Miami International Airport (MIA)',
 			'excerpt' => 'Major hub with domestic and international carriers.',
 			'content' => '<p>Approximately 25 minutes by car depending on traffic. Private sedan transfers can be arranged through the front desk.</p>',
 			'km' => 17.5, 'min' => 28, 'type' => $airport_tid, 'trans' => $shuttle_tid,
+			'lat' => 25.7959, 'lng' => -80.2870,
 		],
 		[
 			'title'   => 'Lincoln Road Mall',
 			'excerpt' => 'Open-air shopping, dining, and weekend farmers market.',
 			'content' => '<p>Pedestrian promenade 15 minutes on foot. Our house car drops within a three-mile radius when available.</p>',
 			'km' => 1.6, 'min' => 18, 'type' => $shopping_tid, 'trans' => $walk_tid,
+			'lat' => 25.7906, 'lng' => -80.1345,
 		],
 		[
 			'title'   => 'Wynwood Walls',
 			'excerpt' => 'Outdoor street art museum and gallery district.',
 			'content' => '<p>Twenty minutes by taxi. Combine with a craft brewery tour — itineraries available from concierge.</p>',
 			'km' => 9.2, 'min' => 22, 'type' => $attr_tid, 'trans' => $taxi_tid,
+			'lat' => 25.8010, 'lng' => -80.1995,
 		],
 		[
 			'title'   => 'Joe\'s Stone Crab',
 			'excerpt' => 'Historic seafood institution (seasonal stone crab).',
 			'content' => '<p>Reservations strongly recommended October–May. Located on Washington Avenue, eight minutes by car.</p>',
 			'km' => 2.1, 'min' => 9, 'type' => $dining_tid, 'trans' => $drive_tid,
+			'lat' => 25.7687, 'lng' => -80.1356,
 		],
 		[
 			'title'   => 'Art Deco Welcome Center',
 			'excerpt' => 'Walking tours and preservation exhibits.',
 			'content' => '<p>Start here for guided walks through the historic district — a pleasant stroll from the resort.</p>',
 			'km' => 0.9, 'min' => 12, 'type' => $attr_tid, 'trans' => $walk_tid,
+			'lat' => 25.7808, 'lng' => -80.1304,
 		],
 	];
 
@@ -1206,6 +1236,8 @@ function pw_install_sample_data() {
 		update_post_meta( $nid, '_pw_property_id', $property_id );
 		update_post_meta( $nid, '_pw_distance_km', (float) $nd['km'] );
 		update_post_meta( $nid, '_pw_travel_time_min', (int) $nd['min'] );
+		update_post_meta( $nid, '_pw_lat', (float) $nd['lat'] );
+		update_post_meta( $nid, '_pw_lng', (float) $nd['lng'] );
 		update_post_meta( $nid, '_pw_place_url', 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode( $nd['title'] . ' Miami Beach FL' ) );
 		update_post_meta( $nid, '_pw_display_order', $i + 1 );
 		update_post_meta( $nid, '_pw_meta_title', $nd['title'] . ' | Near Grand Sunset Resort' );
@@ -1236,6 +1268,7 @@ function pw_install_sample_data() {
 			$exp1_connections[] = [ 'type' => 'pw_spa', 'id' => $spa_id ];
 		}
 		update_post_meta( $exp1, '_pw_connected_to', $exp1_connections );
+		update_post_meta( $exp1, '_pw_property_id', $property_id );
 		update_post_meta( $exp1, '_pw_description', 'Includes 75-minute massage, 50-minute facial, and $45 Coral Grill credit.' );
 		update_post_meta( $exp1, '_pw_duration_hours', 6 );
 		update_post_meta( $exp1, '_pw_price_from', 389 );
@@ -1266,6 +1299,7 @@ function pw_install_sample_data() {
 			'_pw_connected_to',
 			[ [ 'type' => 'pw_property', 'id' => $property_id ] ]
 		);
+		update_post_meta( $exp2, '_pw_property_id', $property_id );
 		update_post_meta( $exp2, '_pw_description', 'Departs 5:30 PM; returns after sunset. Private buyouts available.' );
 		update_post_meta( $exp2, '_pw_duration_hours', 2 );
 		update_post_meta( $exp2, '_pw_price_from', 125 );
@@ -1299,6 +1333,7 @@ function pw_install_sample_data() {
 					[ 'type' => 'pw_restaurant', 'id' => $coral_grill_id ],
 				]
 			);
+			update_post_meta( $exp3, '_pw_property_id', $property_id );
 			update_post_meta( $exp3, '_pw_description', '10:00 AM–2:00 PM; 12 seats per class.' );
 			update_post_meta( $exp3, '_pw_duration_hours', 4 );
 			update_post_meta( $exp3, '_pw_price_from', 165 );
@@ -1329,6 +1364,7 @@ function pw_install_sample_data() {
 			'_pw_connected_to',
 			[ [ 'type' => 'pw_property', 'id' => $property_id ] ]
 		);
+		update_post_meta( $exp4, '_pw_property_id', $property_id );
 		update_post_meta( $exp4, '_pw_description', 'Tuesday, Thursday, and Saturday at 7:00 AM; approximately 45 minutes.' );
 		update_post_meta( $exp4, '_pw_duration_hours', 0.75 );
 		update_post_meta( $exp4, '_pw_price_from', 0 );
@@ -1358,6 +1394,7 @@ function pw_install_sample_data() {
 			'_pw_connected_to',
 			[ [ 'type' => 'pw_property', 'id' => $property_id ] ]
 		);
+		update_post_meta( $exp5, '_pw_property_id', $property_id );
 		update_post_meta( $exp5, '_pw_description', 'Morning and afternoon departures from 17th Street launch.' );
 		update_post_meta( $exp5, '_pw_duration_hours', 1.5 );
 		update_post_meta( $exp5, '_pw_price_from', 175 );
@@ -1490,6 +1527,7 @@ function pw_install_sample_data() {
 	if ( ! is_wp_error( $db_ins ) && $db_ins ) {
 		$db_id = (int) $db_ins;
 		update_post_meta( $db_id, '_pw_offer_type', 'direct_booking_benefit' );
+		update_post_meta( $db_id, '_pw_property_id', $property_id );
 		update_post_meta( $db_id, '_pw_parents', [ [ 'type' => 'pw_property', 'id' => $property_id ] ] );
 		update_post_meta( $db_id, '_pw_valid_from', gmdate( 'Y-m-d' ) );
 		update_post_meta( $db_id, '_pw_valid_to', gmdate( 'Y-m-d', strtotime( '+730 days' ) ) );

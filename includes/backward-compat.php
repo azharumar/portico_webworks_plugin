@@ -38,8 +38,9 @@ function pw_backward_compat_meta( $value, $object_id, $meta_key, $single ) {
 		add_filter( 'get_post_metadata', 'pw_backward_compat_meta', 10, 4 );
 
 		if ( is_string( $stored ) && preg_match( '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', trim( $stored ) ) ) {
-			$tz = wp_timezone();
-			$dt = DateTime::createFromFormat( 'Y-m-d H:i:s', trim( $stored ), $tz );
+			$prop_id = (int) get_post_meta( $object_id, '_pw_property_id', true );
+			$tz      = pw_event_timezone_for_property( $prop_id );
+			$dt      = DateTime::createFromFormat( 'Y-m-d H:i:s', trim( $stored ), $tz );
 			if ( $dt ) {
 				return $single ? json_encode( $dt ) : [ json_encode( $dt ) ];
 			}

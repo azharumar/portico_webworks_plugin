@@ -200,47 +200,65 @@ function pw_get_room_features( $room_type_id ) {
 }
 
 function pw_get_experiences_for( $post_type, $post_id ) {
+	$post_id = (int) $post_id;
 	$experiences = get_posts( [
 		'post_type'      => 'pw_experience',
 		'post_status'    => 'publish',
 		'posts_per_page' => -1,
 	] );
 
-	return array_filter( $experiences, function( $exp ) use ( $post_type, $post_id ) {
+	return array_values( array_filter( $experiences, function( $exp ) use ( $post_type, $post_id ) {
+		if ( $post_type === 'pw_property' && $post_id > 0 ) {
+			$scope = (int) get_post_meta( $exp->ID, '_pw_property_id', true );
+			if ( $scope === $post_id ) {
+				return true;
+			}
+		}
 		$connections = get_post_meta( $exp->ID, '_pw_connected_to', true );
-		if ( empty( $connections ) || ! is_array( $connections ) ) return false;
+		if ( empty( $connections ) || ! is_array( $connections ) ) {
+			return false;
+		}
 		foreach ( $connections as $c ) {
 			if ( isset( $c['type'], $c['id'] ) &&
 				$c['type'] === $post_type &&
-				(int) $c['id'] === (int) $post_id ) {
+				(int) $c['id'] === $post_id ) {
 				return true;
 			}
 		}
 		return false;
-	} );
+	} ) );
 }
 
 function pw_get_faqs_for( $post_type, $post_id ) {
-	$faqs = get_posts( [
+	$post_id = (int) $post_id;
+	$faqs    = get_posts( [
 		'post_type'      => 'pw_faq',
 		'post_status'    => 'publish',
 		'posts_per_page' => -1,
 	] );
 
-	return array_filter( $faqs, function( $faq ) use ( $post_type, $post_id ) {
+	return array_values( array_filter( $faqs, function( $faq ) use ( $post_type, $post_id ) {
+		if ( $post_type === 'pw_property' && $post_id > 0 ) {
+			$scope = (int) get_post_meta( $faq->ID, '_pw_property_id', true );
+			if ( $scope === $post_id ) {
+				return true;
+			}
+		}
 		$connections = get_post_meta( $faq->ID, '_pw_connected_to', true );
-		if ( empty( $connections ) || ! is_array( $connections ) ) return false;
+		if ( empty( $connections ) || ! is_array( $connections ) ) {
+			return false;
+		}
 		foreach ( $connections as $connection ) {
 			if (
 				isset( $connection['type'], $connection['id'] ) &&
 				$connection['type'] === $post_type &&
-				(int) $connection['id'] === (int) $post_id
+				(int) $connection['id'] === $post_id
 			) {
 				return true;
 			}
 		}
 		return false;
-	} );
+	} ) );
 }
 
 function pw_get_operating_hours( $post_id ) {
@@ -284,4 +302,83 @@ add_action('template_redirect', function () {
 		'response' => 404,
 	));
 });
+
+/**
+ * IANA timezone for interpreting pw_event local datetimes (linked property, else WP timezone).
+ */
+function pw_event_timezone_for_property( $property_id ) {
+	$id = (int) $property_id;
+	if ( $id > 0 ) {
+		$tz_id = (string) get_post_meta( $id, '_pw_timezone', true );
+		if ( $tz_id !== '' ) {
+			try {
+				return new DateTimeZone( $tz_id );
+			} catch ( Exception $e ) {
+				// Invalid IANA id — fall back.
+			}
+		}
+	}
+	return wp_timezone();
+}
+
+/**
+ * Interprets stored event wall time (Y-m-d H:i:s) in the property timezone; returns ISO 8601 with offset (schema.org Event startDate/endDate).
+ */
+function pw_event_local_datetime_to_iso8601( $local_ymd_his, $property_id ) {
+	$local_ymd_his = is_string( $local_ymd_his ) ? trim( $local_ymd_his ) : '';
+	if ( $local_ymd_his === '' || ! preg_match( '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $local_ymd_his ) ) {
+		return '';
+	}
+	$tz = pw_event_timezone_for_property( $property_id );
+	$dt = DateTime::createFromFormat( 'Y-m-d H:i:s', $local_ymd_his, $tz );
+	if ( ! $dt ) {
+		return '';
+	}
+	return $dt->format( 'c' );
+}
+
+add_action( 'rest_api_init', function () {
+	register_rest_field(
+		'pw_event',
+		'pw_start_datetime_iso8601',
+		[
+			'get_callback' => function ( $obj ) {
+				$post_id = isset( $obj['id'] ) ? (int) $obj['id'] : 0;
+				if ( ! $post_id ) {
+					return '';
+				}
+				$prop = (int) get_post_meta( $post_id, '_pw_property_id', true );
+				$raw  = get_post_meta( $post_id, '_pw_start_datetime', true );
+				return pw_event_local_datetime_to_iso8601( $raw, $prop );
+			},
+			'schema'       => [
+				'description' => 'startDate: ISO 8601 with offset; _pw_start_datetime interpreted in linked property _pw_timezone.',
+				'type'        => 'string',
+				'context'     => [ 'view', 'edit', 'embed' ],
+				'readonly'    => true,
+			],
+		]
+	);
+	register_rest_field(
+		'pw_event',
+		'pw_end_datetime_iso8601',
+		[
+			'get_callback' => function ( $obj ) {
+				$post_id = isset( $obj['id'] ) ? (int) $obj['id'] : 0;
+				if ( ! $post_id ) {
+					return '';
+				}
+				$prop = (int) get_post_meta( $post_id, '_pw_property_id', true );
+				$raw  = get_post_meta( $post_id, '_pw_end_datetime', true );
+				return pw_event_local_datetime_to_iso8601( $raw, $prop );
+			},
+			'schema'       => [
+				'description' => 'endDate: ISO 8601 with offset; _pw_end_datetime interpreted in linked property _pw_timezone.',
+				'type'        => 'string',
+				'context'     => [ 'view', 'edit', 'embed' ],
+				'readonly'    => true,
+			],
+		]
+	);
+} );
 

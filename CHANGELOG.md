@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.1] - 2026-03-21
+
+### Added
+- `pw_event`: `pw_event_timezone_for_property()`, `pw_event_local_datetime_to_iso8601()`; REST read-only `pw_start_datetime_iso8601` / `pw_end_datetime_iso8601` (local wall times interpreted in linked property `_pw_timezone`); FAQ-style admin backward-compat for datetime fields uses property timezone
+- `pw_nearby`: `_pw_lat`, `_pw_lng` for schema/map coordinates
+- `pw_room_type`: repeatable `_pw_rates` (label, `rack` | `seasonal` | `advance` | `package`, price, optional validity dates, `advance_days`, `includes_breakfast`) with `pw_sanitize_pw_rates_meta`
+- `pw_faq`: `_pw_property_id` (flat FK alongside `_pw_connected_to`); `pw_get_faqs_for( 'pw_property', $id )` matches it
+- `pw_offer`, `pw_experience`: `_pw_property_id`; `pw_get_experiences_for( 'pw_property', $id )` matches it
+
+### Changed
+- `DATA-STRUCTURE.md` for the above
+
 ## [0.8.0] - 2026-03-21
 
 ### Breaking

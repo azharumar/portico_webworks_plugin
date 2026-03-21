@@ -185,8 +185,9 @@ Same shape as sustainability. CMB2: `pw_property_accessibility`. Definitions: `p
 | Meta Key             | Type         | Default | Notes                                     | CMB2                                  |
 | -------------------- | ------------ | ------- | ----------------------------------------- | ------------------------------------- |
 | `_pw_property_id`    | integer      | `0`     | FK → `pw_property`                        | CMB2: `pw_room_type_metabox` (select) |
-| `_pw_rate_from`      | number       | `0`     | Starting rate                             | text_money                            |
-| `_pw_rate_to`        | number       | `0`     | Upper rate range                          | text_money                            |
+| `_pw_rate_from`      | number       | `0`     | Summary starting rate (optional; use `_pw_rates` for schema Offers) | text_money                            |
+| `_pw_rate_to`        | number       | `0`     | Summary upper rate                        | text_money                            |
+| `_pw_rates`          | array        | `[]`    | Repeatable rate plans → multiple schema.org `Offer` rows. Each row: `rate_label` (string), `rate_type` (`rack` \| `seasonal` \| `advance` \| `package`), `price` (number), `valid_from` / `valid_to` (`Y-m-d` or empty), `advance_days` (int), `includes_breakfast` (bool) | CMB2 group (repeatable)               |
 | `_pw_max_occupancy`  | integer      | `0`     | Total guest limit                         | text_small                            |
 | `_pw_max_adults`     | integer      | `0`     | max_adults + max_children ≤ max_occupancy | text_small                            |
 | `_pw_max_children`   | integer      | `0`     | max_adults + max_children ≤ max_occupancy | text_small                            |
@@ -323,9 +324,12 @@ Policy type is set via taxonomy `pw_policy_type`. Post title is the policy title
 
 **Supports:** `title`, `custom-fields`
 
+For property-scoped FAQ lists (e.g. FAQPage in multi-property mode), query `meta_key` `_pw_property_id` instead of scanning `_pw_connected_to`. `pw_get_faqs_for( 'pw_property', $id )` also treats a matching `_pw_property_id` as a hit, and still honors legacy rows that only use `_pw_connected_to`.
+
 
 | Meta Key            | Type    | Default | CMB2                             |
 | ------------------- | ------- | ------- | -------------------------------- |
+| `_pw_property_id`   | integer | `0`     | FK → `pw_property`; scopes FAQ for multi-property / FAQPage queries (alongside connections below) | select |
 | `_pw_answer`        | string  | `''`    | CMB2: `pw_faq_metabox` (wysiwyg) |
 | `_pw_display_order` | integer | `0`     | text_small                       |
 
@@ -345,10 +349,12 @@ Policy type is set via taxonomy `pw_policy_type`. Post title is the policy title
 
 **Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`
 
+For property-scoped offer lists, query `meta_key` `_pw_property_id`. `_pw_parents` remains the multi-entity attach list.
 
 | Meta Key                  | Type         | Default       | Notes                                                           | CMB2                              |
 | ------------------------- | ------------ | ------------- | --------------------------------------------------------------- | --------------------------------- |
 | `_pw_offer_type`          | string       | `'promotion'` | `promotion` | `package` | `direct_booking_benefit`              | CMB2: `pw_offer_metabox` (select) |
+| `_pw_property_id`         | integer      | `0`           | FK → `pw_property`; flat scope for multi-property / REST        | select                            |
 | `_pw_parents`             | array        | —             | Repeatable: `type`, `id` → pw_property | pw_restaurant | pw_spa | group                             |
 | `_pw_valid_from`          | string       | `''`          | Date `Y-m-d`                                                    | text_date                         |
 | `_pw_valid_to`            | string       | `''`          | Date `Y-m-d`                                                    | text_date                         |
@@ -376,6 +382,8 @@ Description/terms: use post `editor` and `excerpt` as needed.
 | `_pw_property_id`     | integer | `0`     | CMB2: `pw_nearby_metabox` (select) |
 | `_pw_distance_km`     | number  | `0`     | text_small                         |
 | `_pw_travel_time_min` | integer | `0`     | text_small                         |
+| `_pw_lat`             | number  | `0`     | WGS84; schema.org `geo` / map rich results (`0` = unset) |
+| `_pw_lng`             | number  | `0`     | WGS84                                |
 | `_pw_place_url`       | string  | `''`    | Google Maps or website URL         |
 | `_pw_display_order`   | integer | `0`     | text_small                         |
 
@@ -387,9 +395,11 @@ Description/terms: use post `editor` and `excerpt` as needed.
 **Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
 **Taxonomies:** `pw_experience_category`
 
+For property-level experience archives, query `_pw_property_id`. `pw_get_experiences_for( 'pw_property', $id )` also matches that meta and still honors `_pw_connected_to`-only legacy rows.
 
 | Meta Key               | Type         | Default | Notes                                                           | CMB2                                  |
 | ---------------------- | ------------ | ------- | --------------------------------------------------------------- | ------------------------------------- |
+| `_pw_property_id`      | integer      | `0`     | FK → `pw_property`                                              | select                                |
 | `_pw_connected_to`     | array        | —       | Repeatable: `type`, `id` → pw_property | pw_restaurant | pw_spa | CMB2: `pw_experience_metabox` (group) |
 | `_pw_description`      | string       | `''`    |                                                                 | textarea                              |
 | `_pw_duration_hours`   | number       | `0`     |                                                                 | text_small                            |
@@ -413,8 +423,8 @@ Description/terms: use post `editor` and `excerpt` as needed.
 | `_pw_property_id`           | integer      | `0`                            |                                                                                   | CMB2: `pw_event_metabox` (select) |
 | `_pw_venue_id`              | integer      | `0`                            | FK → `pw_meeting_room`                                                            | select (pw_meeting_room_options)  |
 | `_pw_description`           | string       | `''`                           |                                                                                   | textarea                          |
-| `_pw_start_datetime`        | string       | `''`                           | Stored as `Y-m-d H:i:s`                                                           | text_datetime_timestamp_timezone  |
-| `_pw_end_datetime`          | string       | `''`                           | Stored as `Y-m-d H:i:s`                                                           | text_datetime_timestamp_timezone  |
+| `_pw_start_datetime`        | string       | `''`                           | Wall time `Y-m-d H:i:s` (no TZ in DB). **Convention:** interpret in `pw_property._pw_timezone` for schema.org (`pw_event_local_datetime_to_iso8601()` or REST `pw_start_datetime_iso8601`). | text_datetime_timestamp_timezone  |
+| `_pw_end_datetime`          | string       | `''`                           | Same as start.                                                                  | text_datetime_timestamp_timezone  |
 | `_pw_capacity`              | integer      | `0`                            |                                                                                   | text_small                        |
 | `_pw_price_from`            | number       | `0`                            |                                                                                   | text_money                        |
 | `_pw_booking_url`           | string       | `''`                           |                                                                                   | text_url                          |
@@ -425,6 +435,8 @@ Description/terms: use post `editor` and `excerpt` as needed.
 
 
 **Organiser:** Use taxonomy `pw_event_organiser` (term name = organiser name). Term meta `organiser_url` stores the URL. Used for schema.org Event markup.
+
+**REST (computed, read-only):** `pw_start_datetime_iso8601`, `pw_end_datetime_iso8601` — same convention as above.
 
 ---
 
@@ -529,10 +541,10 @@ pw_property (1)
   ├── pw_amenity         (_pw_property_id)
   ├── pw_policy          (_pw_property_id)
   ├── pw_nearby          (_pw_property_id)
-  ├── pw_experience      (_pw_connected_to[] → pw_property | pw_restaurant | pw_spa)
+  ├── pw_experience      (_pw_property_id; _pw_connected_to[] → pw_property | pw_restaurant | pw_spa)
   └── pw_event           (_pw_property_id, _pw_venue_id → pw_meeting_room)
 
-pw_offer               (_pw_parents[] → pw_property | pw_restaurant | pw_spa)
-pw_faq                 (_pw_connected_to[] → pw_property | pw_restaurant | pw_meeting_room | pw_spa)
+pw_offer               (_pw_property_id; _pw_parents[] → pw_property | pw_restaurant | pw_spa)
+pw_faq                 (_pw_property_id; _pw_connected_to[] → pw_property | pw_restaurant | pw_meeting_room | pw_spa)
 ```
 
