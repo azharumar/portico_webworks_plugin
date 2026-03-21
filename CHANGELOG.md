@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.2] - 2026-03-21
+
+### Added
+- Property **Fact Sheet** page (`/fact-sheet`): auto-created on plugin activation with `[pw_fact_sheet]`; `includes/fact-sheet.php` and `includes/fact-sheet-template.php` output all property meta and child CPT data via direct `get_post_meta` / `get_posts` (scoped by `_pw_property_id`); `pw_ensure_fact_sheet_page()` and option `pw_fact_sheet_page_id`
+
 ## [0.8.1] - 2026-03-21
 
 ### Added
