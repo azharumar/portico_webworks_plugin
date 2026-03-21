@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.8.6] - 2026-03-21
+
+### Fixed
+- **PHP 8 `ArgumentCountError`**: WordPress passes arguments to `login_headerurl`, `login_headertext`, and `admin_footer_text`; CMB2 calls `options_cb`, `sanitization_cb`, and callable `options` with extra arguments — callbacks updated to accept them
+- **Offer metabox** `show_on_cb` helpers now read post ID from the CMB2 field object (was treating the field as an array and could error on PHP 8)
+- **Default Template** setting no longer uses `sanitize_text_field` directly as CMB2 sanitization callback (WordPress only accepts one argument)
+
+### Added
+- **Fatal error log** (no `WP_DEBUG` required): on shutdown, plugin-related fatals append one line to `wp-content/portico-webworks-fatal.log`
+
 ## [0.8.5] - 2026-03-21
 
 ### Fixed

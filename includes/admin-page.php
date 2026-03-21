@@ -145,7 +145,7 @@ function pw_version() {
 	return defined('PW_VERSION') ? PW_VERSION : '';
 }
 
-function pw_sanitize_property_base($value) {
+function pw_sanitize_property_base( $value, $field_args = null, $field = null ) {
 	$value = is_string($value) ? trim($value) : '';
 	$value = trim($value, '/');
 	$value = sanitize_title($value);
@@ -230,7 +230,7 @@ add_action('update_option_pw_settings', function ($old_value, $value, $option) {
 	}
 }, 10, 3);
 
-function pw_cmb2_published_property_options() {
+function pw_cmb2_published_property_options( $field = null ) {
 	$opts = array();
 	foreach ( pw_get_all_properties() as $row ) {
 		$id = isset( $row['id'] ) ? (int) $row['id'] : 0;
@@ -274,7 +274,7 @@ function pw_register_settings_cmb2() {
 		'type'             => 'select',
 		'show_option_none' => '— Select property —',
 		'options_cb'       => 'pw_cmb2_published_property_options',
-		'sanitization_cb'  => function ($v) {
+		'sanitization_cb'  => function ( $v, $field_args = null, $field = null ) {
 			$v = (int) $v;
 			return $v > 0 ? $v : 0;
 		},
@@ -299,7 +299,9 @@ function pw_register_settings_cmb2() {
 		'type'            => 'text',
 		'desc'            => 'Template slug used for front-end rendering. Applied across all properties.',
 		'attributes'      => ['placeholder' => 'e.g. default'],
-		'sanitization_cb' => 'sanitize_text_field',
+		'sanitization_cb' => function ( $v, $field_args = null, $field = null ) {
+			return sanitize_text_field( is_string( $v ) ? $v : '' );
+		},
 	]);
 
 	$cmb->add_field([

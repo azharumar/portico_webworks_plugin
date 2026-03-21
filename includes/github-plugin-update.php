@@ -9,7 +9,7 @@ const PW_GITHUB_PLUGIN_RELEASE_ZIP = 'portico_webworks_plugin.zip';
 /**
  * Normalize and validate a GitHub releases page URL; empty if invalid.
  */
-function pw_sanitize_github_releases_url( $value ) {
+function pw_sanitize_github_releases_url( $value, $field_args = null, $field = null ) {
 	$value = is_string( $value ) ? trim( $value ) : '';
 	if ( $value === '' ) {
 		return '';

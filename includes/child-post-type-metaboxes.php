@@ -181,8 +181,8 @@ function pw_sanitize_status_enum( $value, $field_args, $field ) {
 	return array_key_exists( $v, $allowed ) ? $v : 'unknown';
 }
 
-function pw_show_if_discount_value( $field_args ) {
-	$post_id = $field_args['object_id'] ?? 0;
+function pw_show_if_discount_value( $field ) {
+	$post_id = ( is_object( $field ) && method_exists( $field, 'object_id' ) ) ? (int) $field->object_id() : 0;
 	if ( ! $post_id ) {
 		return true;
 	}
@@ -190,8 +190,8 @@ function pw_show_if_discount_value( $field_args ) {
 	return ! empty( $discount_type ) && $discount_type !== 'value_add';
 }
 
-function pw_show_if_minimum_stay( $field_args ) {
-	$post_id = $field_args['object_id'] ?? 0;
+function pw_show_if_minimum_stay( $field ) {
+	$post_id = ( is_object( $field ) && method_exists( $field, 'object_id' ) ) ? (int) $field->object_id() : 0;
 	if ( ! $post_id ) {
 		return true;
 	}
@@ -401,7 +401,7 @@ function pw_register_child_metaboxes() {
 		'desc'    => 'Select all applicable features',
 		'id'      => '_pw_features',
 		'type'    => 'multicheck',
-		'options' => function() {
+		'options' => function ( $field ) {
 			$features = get_posts( [
 				'post_type'      => 'pw_feature',
 				'post_status'    => 'publish',
@@ -758,7 +758,7 @@ function pw_register_spa_operating_hours_metabox() {
 		'desc'    => 'Leave blank to apply to all room types',
 		'id'      => '_pw_room_types',
 		'type'    => 'multicheck',
-		'options' => function() {
+		'options' => function ( $field ) {
 			$rooms = get_posts( [
 				'post_type'      => 'pw_room_type',
 				'post_status'    => 'publish',

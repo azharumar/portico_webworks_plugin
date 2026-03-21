@@ -25,15 +25,15 @@ add_action('login_enqueue_scripts', function () {
 	wp_add_inline_style('pw-login-logo', $css);
 });
 
-add_filter('login_headerurl', function () {
+add_filter('login_headerurl', function ( $_login_header_url ) {
 	return home_url('/');
 });
 
-add_filter('login_headertext', function () {
+add_filter('login_headertext', function ( $_login_header_text ) {
 	return 'Portico Webworks';
 });
 
-add_filter('admin_footer_text', function () {
+add_filter('admin_footer_text', function ( $_text ) {
 	return sprintf(
 		'Hotel website tools by <a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>.',
 		esc_url('https://porticowebworks.com'),
