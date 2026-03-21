@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.7.4] - 2026-03-21
+
+### Added
+- Favicon by RealFaviconGenerator as required dependency
+
 ## [0.7.3] - 2026-03-19
 
 ### Fixed

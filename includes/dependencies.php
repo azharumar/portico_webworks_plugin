@@ -72,6 +72,14 @@ function pw_get_dependencies() {
 			'file'       => 'gp-premium/gp-premium.php',
 			'required'   => true,
 		),
+		array(
+			'name'       => 'Favicon by RealFaviconGenerator',
+			'slug'       => 'favicon-by-realfavicongenerator',
+			'type'       => 'plugin',
+			'source'     => 'repo',
+			'file'       => 'favicon-by-realfavicongenerator/favicon-by-realfavicongenerator.php',
+			'required'   => true,
+		),
 	);
 
 	return apply_filters( 'pw_dependencies', $deps );
