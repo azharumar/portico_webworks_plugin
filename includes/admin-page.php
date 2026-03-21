@@ -183,6 +183,9 @@ add_filter('pre_update_option_pw_settings', function ($value, $old_value) {
 		$value['pw_default_property_id'] = 0;
 		return $value;
 	}
+	if (is_array($old_value) && array_key_exists('pw_default_property_id', $old_value) && !array_key_exists('pw_default_property_id', $value)) {
+		$value['pw_default_property_id'] = (int) $old_value['pw_default_property_id'];
+	}
 	$pid = isset($value['pw_default_property_id']) ? (int) $value['pw_default_property_id'] : 0;
 	if ($pid > 0 && (get_post_type($pid) !== 'pw_property' || get_post_status($pid) !== 'publish')) {
 		$value['pw_default_property_id'] = 0;
@@ -271,6 +274,7 @@ function pw_register_settings_cmb2() {
 		'name'             => 'Default property',
 		'desc'             => 'Used as the site-wide property context in Single Property mode (required).',
 		'id'               => 'pw_default_property_id',
+		'classes'          => 'pw-default-property-row',
 		'type'             => 'select',
 		'show_option_none' => '— Select property —',
 		'options_cb'       => 'pw_cmb2_published_property_options',

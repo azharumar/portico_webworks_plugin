@@ -154,11 +154,23 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
   .pw-admin .pw-card-body .cmb2-wrap .cmb-th{flex:1 1 auto;width:100%}
   .pw-admin .pw-card-body .cmb2-wrap .cmb-td{min-width:0}
 }
+.pw-admin .pw-default-property-row.pw-is-hidden{display:none!important}
 ";
 
 	wp_register_style('pw-admin', false, array(), '0.1.0');
 	wp_enqueue_style('pw-admin');
 	wp_add_inline_style('pw-admin', $css);
+
+	$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+	if ( $tab === '' || $tab === 'settings' ) {
+		wp_enqueue_script(
+			'pw-admin-settings',
+			plugins_url( 'assets/admin-settings.js', PW_PLUGIN_FILE ),
+			array(),
+			defined( 'PW_VERSION' ) ? PW_VERSION : '0',
+			true
+		);
+	}
 });
 
 add_action('admin_footer', function () {

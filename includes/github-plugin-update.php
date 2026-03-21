@@ -84,50 +84,16 @@ function pw_github_versions_equal( $a, $b ) {
 }
 
 /**
- * @return array{zip_url:string,tag_name:string}|WP_Error
+ * @param array<string,mixed> $data Single release object from GitHub API.
+ * @return array{zip_url:string,tag_name:string}|null
  */
-function pw_github_get_latest_release_package( $releases_url ) {
-	$repo = pw_parse_github_repo_from_releases_url( $releases_url );
-	if ( ! is_array( $repo ) ) {
-		return new WP_Error( 'pw_github_bad_url', __( 'Set a valid GitHub repository URL (e.g. https://github.com/owner/repo/releases).', 'portico-webworks' ) );
-	}
-	$api = sprintf(
-		'https://api.github.com/repos/%s/%s/releases/latest',
-		rawurlencode( $repo['owner'] ),
-		rawurlencode( $repo['repo'] )
-	);
-	$response = wp_remote_get(
-		$api,
-		array(
-			'timeout' => 20,
-			'headers' => array(
-				'Accept'     => 'application/vnd.github+json',
-				'User-Agent' => 'PorticoWebworks-WordPress-Plugin/' . ( defined( 'PW_VERSION' ) ? PW_VERSION : '0' ),
-			),
-		)
-	);
-	if ( is_wp_error( $response ) ) {
-		return $response;
-	}
-	$code = wp_remote_retrieve_response_code( $response );
-	$body = wp_remote_retrieve_body( $response );
-	if ( $code !== 200 ) {
-		return new WP_Error(
-			'pw_github_api',
-			sprintf(
-				/* translators: %s: HTTP status code */
-				__( 'GitHub API error (HTTP %s).', 'portico-webworks' ),
-				(string) $code
-			)
-		);
-	}
-	$data = json_decode( $body, true );
+function pw_github_zip_from_release_payload( $data ) {
 	if ( ! is_array( $data ) ) {
-		return new WP_Error( 'pw_github_json', __( 'Invalid response from GitHub.', 'portico-webworks' ) );
+		return null;
 	}
-	$tag = isset( $data['tag_name'] ) ? (string) $data['tag_name'] : '';
+	$tag    = isset( $data['tag_name'] ) ? (string) $data['tag_name'] : '';
 	$assets = isset( $data['assets'] ) && is_array( $data['assets'] ) ? $data['assets'] : array();
-	$want  = strtolower( PW_GITHUB_PLUGIN_RELEASE_ZIP );
+	$want   = strtolower( PW_GITHUB_PLUGIN_RELEASE_ZIP );
 	$zip_url = '';
 	foreach ( $assets as $asset ) {
 		if ( ! is_array( $asset ) || empty( $asset['name'] ) || empty( $asset['browser_download_url'] ) ) {
@@ -139,18 +105,114 @@ function pw_github_get_latest_release_package( $releases_url ) {
 		}
 	}
 	if ( $zip_url === '' ) {
+		return null;
+	}
+	return array(
+		'zip_url'  => $zip_url,
+		'tag_name' => $tag,
+	);
+}
+
+/**
+ * @return array|WP_Error
+ */
+function pw_github_api_get( $url ) {
+	return wp_remote_get(
+		$url,
+		array(
+			'timeout' => 20,
+			'headers' => array(
+				'Accept'     => 'application/vnd.github+json',
+				'User-Agent' => 'PorticoWebworks-WordPress-Plugin/' . ( defined( 'PW_VERSION' ) ? PW_VERSION : '0' ),
+			),
+		)
+	);
+}
+
+/**
+ * @return array{zip_url:string,tag_name:string}|WP_Error
+ */
+function pw_github_get_latest_release_package( $releases_url ) {
+	$repo = pw_parse_github_repo_from_releases_url( $releases_url );
+	if ( ! is_array( $repo ) ) {
+		return new WP_Error( 'pw_github_bad_url', __( 'Set a valid GitHub repository URL (e.g. https://github.com/owner/repo/releases).', 'portico-webworks' ) );
+	}
+	$latest_api = sprintf(
+		'https://api.github.com/repos/%s/%s/releases/latest',
+		rawurlencode( $repo['owner'] ),
+		rawurlencode( $repo['repo'] )
+	);
+	$response = pw_github_api_get( $latest_api );
+	if ( is_wp_error( $response ) ) {
+		return $response;
+	}
+	$code = wp_remote_retrieve_response_code( $response );
+	$body = wp_remote_retrieve_body( $response );
+
+	if ( $code === 200 ) {
+		$data = json_decode( $body, true );
+		if ( ! is_array( $data ) ) {
+			return new WP_Error( 'pw_github_json', __( 'Invalid response from GitHub.', 'portico-webworks' ) );
+		}
+		$pkg = pw_github_zip_from_release_payload( $data );
+		if ( $pkg === null ) {
+			return new WP_Error(
+				'pw_github_no_zip',
+				sprintf(
+					/* translators: %s: zip filename */
+					__( 'Latest release has no %s asset. Add it via your release workflow.', 'portico-webworks' ),
+					PW_GITHUB_PLUGIN_RELEASE_ZIP
+				)
+			);
+		}
+		return $pkg;
+	}
+
+	if ( $code === 404 ) {
+		$list_api = sprintf(
+			'https://api.github.com/repos/%s/%s/releases?per_page=30',
+			rawurlencode( $repo['owner'] ),
+			rawurlencode( $repo['repo'] )
+		);
+		$list_response = pw_github_api_get( $list_api );
+		if ( is_wp_error( $list_response ) ) {
+			return $list_response;
+		}
+		$list_code = wp_remote_retrieve_response_code( $list_response );
+		$list_body = wp_remote_retrieve_body( $list_response );
+		if ( $list_code === 200 ) {
+			$list = json_decode( $list_body, true );
+			if ( is_array( $list ) ) {
+				foreach ( $list as $release ) {
+					$pkg = pw_github_zip_from_release_payload( $release );
+					if ( $pkg !== null ) {
+						return $pkg;
+					}
+				}
+			}
+		} elseif ( $list_code === 401 || $list_code === 403 ) {
+			return new WP_Error(
+				'pw_github_api',
+				__( 'GitHub API denied access (private repository or rate limit). Use a public repository with published releases.', 'portico-webworks' )
+			);
+		}
 		return new WP_Error(
-			'pw_github_no_zip',
+			'pw_github_no_latest',
 			sprintf(
 				/* translators: %s: zip filename */
-				__( 'Latest release has no %s asset. Add it via your release workflow.', 'portico-webworks' ),
+				__( 'GitHub has no usable release with a %s asset. Publish a release on GitHub (tags alone are not enough) and attach the zip, or verify the repository URL. Private repositories need authentication (not supported here).', 'portico-webworks' ),
 				PW_GITHUB_PLUGIN_RELEASE_ZIP
 			)
 		);
 	}
-	return array(
-		'zip_url'   => $zip_url,
-		'tag_name'  => $tag,
+
+	return new WP_Error(
+		'pw_github_api',
+		sprintf(
+			/* translators: %s: HTTP status code */
+			__( 'GitHub API error (HTTP %s).', 'portico-webworks' ),
+			(string) $code
+		)
 	);
 }
 

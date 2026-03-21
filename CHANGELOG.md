@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.8] - 2026-03-21
+
+### Fixed
+- **Settings**: preserve `pw_default_property_id` when saving single-property mode if the field was omitted from POST (e.g. after toggling mode without a reload), so the value no longer falls back to empty
+- **GitHub updater**: clearer error when `/releases/latest` returns 404; try listing releases and use the first release that includes `portico_webworks_plugin.zip`; dedicated message for missing releases vs 401/403
+
+### Changed
+- **Settings UI**: hide the default-property row when Multi-Property is selected (client-side toggle on the Property Mode radios) via `assets/admin-settings.js`
+
 ## [0.8.7] - 2026-03-21
 
 ### Fixed
