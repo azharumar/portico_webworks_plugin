@@ -9,7 +9,7 @@
 
 1. [Schema priority order](#1-schema-priority-order)
 2. [Core types used](#2-core-types-used)
-3. [Homepage & Fact Sheet — `LodgingBusiness`](#3-homepage--fact-sheet--lodgingbusiness)
+3. [Homepage — LodgingBusiness](#3-homepage--lodgingbusiness)
 4. [Rooms overview — `ItemList`](#4-rooms-overview--itemlist)
 5. [Individual room page — `HotelRoom` + `Product` (MTE)](#5-individual-room-page--hotelroom--product-mte)
 6. [Dining overview — `ItemList`](#6-dining-overview--itemlist)
@@ -47,7 +47,7 @@ Implement in this sequence. The first six have the highest impact on Google rich
 | 3 | `/offers/{slug}` | `Offer` | Deal/price rich result |
 | 4 | `/events/{slug}` | `Event` | Event rich result |
 | 5 | `/reviews` | `AggregateRating` | Star rating in SERPs |
-| 6 | Home + `/fact-sheet` | `LodgingBusiness` | Hotel knowledge panel |
+| 6 | `/` (home) | `LodgingBusiness` | Hotel knowledge panel |
 | 7 | `/dining/{slug}` | `FoodEstablishment` | Restaurant panel |
 | 8 | `/blog/{slug}` | `BlogPosting` | Article rich result |
 | 9 | All inner pages | `BreadcrumbList` | Breadcrumb in SERPs |
@@ -58,7 +58,7 @@ Implement in this sequence. The first six have the highest impact on Google rich
 
 | Schema type | Used on | Inherits from |
 |---|---|---|
-| `Hotel` | Homepage, Fact sheet | `LodgingBusiness` → `LocalBusiness` → `Place` |
+| `Hotel` | Homepage | `LodgingBusiness` → `LocalBusiness` → `Place` |
 | `HotelRoom` | Room single pages | `Accommodation` → `Place` |
 | `Product` | Room + meeting room (MTE only) | — |
 | `Suite` | Suite room type | `Accommodation` → `Place` |
@@ -82,9 +82,9 @@ Implement in this sequence. The first six have the highest impact on Google rich
 
 ---
 
-## 3. Homepage & Fact Sheet — `LodgingBusiness`
+## 3. Homepage — LodgingBusiness
 
-Apply to both `/` and `/fact-sheet`. The homepage version can be trimmed to essential fields; the fact sheet version should be exhaustive.
+Apply on the site homepage (`/`). Use the full property graph there; trim only if the theme duplicates fields elsewhere.
 
 ```json
 {

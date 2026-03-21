@@ -35,6 +35,24 @@ add_action('admin_enqueue_scripts', function () {
 	wp_add_inline_style( 'pw-admin-menu-dividers', $divider_css );
 }, 5);
 
+add_action(
+	'admin_enqueue_scripts',
+	static function () {
+		$screen = get_current_screen();
+		if ( ! $screen || ( $screen->post_type ?? '' ) !== 'pw_property' || ! defined( 'PW_PLUGIN_FILE' ) ) {
+			return;
+		}
+		wp_enqueue_script(
+			'pw-admin-property-facets',
+			plugins_url( 'assets/admin-property-facets.js', PW_PLUGIN_FILE ),
+			[ 'jquery', 'cmb2-scripts' ],
+			defined( 'PW_VERSION' ) ? PW_VERSION : '1',
+			true
+		);
+	},
+	20
+);
+
 add_action('admin_enqueue_scripts', function ($hook_suffix) {
 	$screen = get_current_screen();
 	$pw_cpts = [ 'pw_feature', 'pw_room_type', 'pw_restaurant', 'pw_spa', 'pw_meeting_room', 'pw_amenity', 'pw_policy', 'pw_faq', 'pw_offer', 'pw_nearby', 'pw_experience', 'pw_event', 'pw_property' ];

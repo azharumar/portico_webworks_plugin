@@ -985,13 +985,12 @@ function pw_register_property_sustainability_metabox() {
 		'name'        => 'Sustainability practices',
 		'id'          => PW_SUSTAINABILITY_ITEMS_META_KEY,
 		'type'        => 'group',
-		'description' => 'One row per practice. Rows are fixed; use status and note only.',
+		'description' => 'One row per practice. Set status and optional content; saving normalizes rows to the canonical list.',
 		'repeatable'  => true,
-		'classes'     => 'pw-facet-fixed-rows',
 		'default'     => $default_rows,
 		'options'     => [
-			'group_title'   => '{#}. {key}',
-			'add_button'    => 'Add',
+			'group_title'   => 'Practice {#}',
+			'add_button'    => 'Add practice',
 			'remove_button' => 'Remove',
 		],
 		'fields'      => [
@@ -1010,9 +1009,13 @@ function pw_register_property_sustainability_metabox() {
 				'sanitization_cb' => 'pw_sanitize_status_enum',
 			],
 			[
-				'name' => 'Note',
-				'id'   => 'note',
-				'type' => 'text_small',
+				'name'       => 'Content',
+				'id'         => 'note',
+				'type'       => 'textarea',
+				'attributes' => [
+					'rows'  => 5,
+					'class' => 'large-text',
+				],
 			],
 		],
 	] );
@@ -1090,13 +1093,12 @@ function pw_register_property_accessibility_metabox() {
 		'name'        => 'Accessibility features',
 		'id'          => PW_ACCESSIBILITY_ITEMS_META_KEY,
 		'type'        => 'group',
-		'description' => 'One row per feature. Rows are fixed; use status and note only.',
+		'description' => 'One row per feature. Set status and optional content; saving normalizes rows to the canonical list.',
 		'repeatable'  => true,
-		'classes'     => 'pw-facet-fixed-rows',
 		'default'     => $default_rows,
 		'options'     => [
-			'group_title'   => '{#}. {key}',
-			'add_button'    => 'Add',
+			'group_title'   => 'Feature {#}',
+			'add_button'    => 'Add feature',
 			'remove_button' => 'Remove',
 		],
 		'fields'      => [
@@ -1115,9 +1117,13 @@ function pw_register_property_accessibility_metabox() {
 				'sanitization_cb' => 'pw_sanitize_status_enum',
 			],
 			[
-				'name' => 'Note',
-				'id'   => 'note',
-				'type' => 'text_small',
+				'name'       => 'Content',
+				'id'         => 'note',
+				'type'       => 'textarea',
+				'attributes' => [
+					'rows'  => 5,
+					'class' => 'large-text',
+				],
 			],
 		],
 	] );

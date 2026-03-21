@@ -75,7 +75,7 @@ function pw_normalize_facet_items( $raw, array $definitions ) {
 			$by_key[ $key ] = [
 				'key'    => $key,
 				'status' => pw_sanitize_facet_status( $row['status'] ?? 'unknown' ),
-				'note'   => isset( $row['note'] ) ? sanitize_text_field( (string) $row['note'] ) : '',
+				'note'   => isset( $row['note'] ) ? sanitize_textarea_field( (string) $row['note'] ) : '',
 			];
 		}
 	}

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Portico Webworks Hotel Website Manager
  * Description: Portico Webworks plugin.
- * Version: 0.8.12
+ * Version: 0.8.13
  * Requires at least: 6.9.4
  * Requires PHP: 8.3
  * Author: Portico Webworks
@@ -20,10 +20,7 @@ if ( is_readable( $pw_fatal_log ) ) {
 }
 
 define('PW_PLUGIN_FILE', __FILE__);
-define('PW_VERSION', '0.8.12');
-define('PW_FACT_SHEET_CONTENT_VERSION', 3);
-
-require_once __DIR__ . '/includes/fact-sheet-page-content.php';
+define('PW_VERSION', '0.8.13');
 
 function pw_apply_install_defaults() {
 	if (get_option('pw_install_defaults_applied', 0)) {
@@ -37,83 +34,8 @@ function pw_apply_install_defaults() {
 	update_option( 'pw_seed_taxonomies', 1 );
 }
 
-function pw_ensure_fact_sheet_page() {
-	$markup = pw_fact_sheet_page_block_markup();
-	$existing = get_posts(
-		array(
-			'post_type'      => 'page',
-			'name'           => 'fact-sheet',
-			'post_status'    => 'any',
-			'posts_per_page' => 1,
-			'fields'         => 'ids',
-		)
-	);
-
-	if ( ! empty( $existing ) ) {
-		$page_id = (int) $existing[0];
-		$refresh = false;
-		$post    = get_post( $page_id );
-		if ( $post && is_string( $post->post_content ) ) {
-			if ( strpos( $post->post_content, '[pw_fact_sheet]' ) !== false ) {
-				$refresh = true;
-			} elseif (
-				strpos( $post->post_content, '<!-- wp:group' ) !== false
-				&& strpos( $post->post_content, '"className":"pw-fact-sheet"' ) !== false
-			) {
-				$refresh = true;
-			}
-		}
-		if ( (int) get_option( 'pw_fact_sheet_content_version', 0 ) < PW_FACT_SHEET_CONTENT_VERSION ) {
-			$refresh = true;
-		}
-		if ( $refresh ) {
-			wp_update_post(
-				array(
-					'ID'           => $page_id,
-					'post_content' => $markup,
-				)
-			);
-		}
-		update_option( 'pw_fact_sheet_page_id', $page_id );
-		update_option( 'pw_fact_sheet_content_version', PW_FACT_SHEET_CONTENT_VERSION );
-		return;
-	}
-
-	$page_id = wp_insert_post(
-		array(
-			'post_type'    => 'page',
-			'post_status'  => 'publish',
-			'post_title'   => 'Property Fact Sheet',
-			'post_name'    => 'fact-sheet',
-			'post_content' => $markup,
-		),
-		true
-	);
-	if ( ! is_wp_error( $page_id ) && $page_id ) {
-		update_option( 'pw_fact_sheet_page_id', (int) $page_id );
-		update_option( 'pw_fact_sheet_content_version', PW_FACT_SHEET_CONTENT_VERSION );
-	}
-}
-
-function pw_maybe_sync_fact_sheet_page() {
-	if ( (int) get_option( 'pw_fact_sheet_content_version', 0 ) >= PW_FACT_SHEET_CONTENT_VERSION ) {
-		$pid = (int) get_option( 'pw_fact_sheet_page_id', 0 );
-		if ( $pid > 0 ) {
-			$p = get_post( $pid );
-			if ( $p && is_string( $p->post_content ) && strpos( $p->post_content, '[pw_fact_sheet]' ) !== false ) {
-				pw_ensure_fact_sheet_page();
-			}
-		}
-		return;
-	}
-	pw_ensure_fact_sheet_page();
-}
-
-add_action( 'plugins_loaded', 'pw_maybe_sync_fact_sheet_page', 30 );
-
 function pw_plugin_activation() {
 	pw_apply_install_defaults();
-	pw_ensure_fact_sheet_page();
 	set_transient('pw_activation_settings_notice', 1, 300);
 }
 
@@ -155,7 +77,6 @@ require_once __DIR__ . '/includes/import-export.php';
 require_once __DIR__ . '/includes/sample-data-meta.php';
 require_once __DIR__ . '/includes/sample-data.php';
 require_once __DIR__ . '/includes/property-helpers.php';
-require_once __DIR__ . '/includes/fact-sheet.php';
 require_once __DIR__ . '/includes/backward-compat.php';
 require_once __DIR__ . '/includes/property-profile.php';
 require_once __DIR__ . '/includes/admin-assets.php';

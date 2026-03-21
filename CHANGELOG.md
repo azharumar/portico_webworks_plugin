@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.13] - 2026-03-22
+
+### Changed
+- **Sustainability & accessibility (property)**: CMB2 repeatable groups no longer use `pw-facet-fixed-rows` (Add/Remove visible again); row titles show selected practice/feature label via `assets/admin-property-facets.js`; **Note** field relabeled **Content** as a larger textarea; facet `note` values normalized with `sanitize_textarea_field()`
+- **DATA-STRUCTURE.md** and **schema-org-hotel-reference.md**: documentation updates
+
+### Removed
+- **Fact sheet** implementation (`includes/fact-sheet*.php`, `includes/fact-sheet-fragments/`, `assets/fact-sheet.css`) and bootstrap `require`s
+
 ## [0.8.12] - 2026-03-22
 
 ### Changed

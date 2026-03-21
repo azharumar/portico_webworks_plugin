@@ -4,14 +4,20 @@
 
 The plugin registers **1 primary post type** (`pw_property`) and **12 child post types**. Child CPTs are linked to a property via a `_pw_property_id` meta field (or `_pw_connected_to` / `_pw_parents` where applicable). All CPTs expose data via the REST API (`show_in_rest: true`).
 
-Admin UI is built with **CMB2** (meta boxes) and custom metaboxes (property profile). CMB2 is bundled in `vendor/cmb2/` and its admin menu is suppressed via `cmb2_menus` filter.
+Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** for the property profile (`includes/property-profile.php`). CMB2 is bundled in `vendor/cmb2/` and its top-level admin menu is suppressed via the `cmb2_menus` filter.
+
+**Plugin settings UI:** **Portico Webworks → General** is **not** a CMB2 options page. A custom `<form>` posts to `admin-post.php` with `action=pw_save_settings`, nonce `pw_save_settings` / `pw_settings_nonce`, and `pw_handle_settings_save()` in `includes/admin-page.php` writes `update_option( 'pw_settings', $settings )`.
+
+**`pw_property` viewability:** In single-property mode the post type is not publicly queryable, but an `is_post_type_viewable` filter (`includes/property-post-type.php`) still returns true so the block editor and builders (e.g. GenerateBlocks) can resolve the type.
+
+**Front-end SEO overrides:** `includes/seo-compatibility.php` hooks Rank Math so singular templates use `_pw_meta_title` and `_pw_meta_description` when set.
 
 ### Sample data marker (internal)
 
 | Key                    | Scope        | Notes                                                                 |
 | ---------------------- | ------------ | --------------------------------------------------------------------- |
-| `_pw_is_sample_data`   | Post meta    | Set to `1` on content created by the Sample Data installer; not in REST; not editable via REST (`auth_callback` false). Registered for all plugin CPTs, `post`, and `page`. |
-| `_pw_is_sample_data`   | Term meta    | Set when the installer **creates** a term (existing terms are not tagged). Registered for plugin taxonomies, `category`, and `post_tag`. |
+| `_pw_is_sample_data`   | Post meta    | Constant `PW_IS_SAMPLE_DATA_META_KEY`. Set to `1` on content created by the Sample Data installer. Registered for all plugin CPTs, `post`, and `page`. **REST:** `show_in_rest: true`; `auth_callback` requires `edit_post` on that post. |
+| `_pw_is_sample_data`   | Term meta    | Same key constant. Set when the installer **creates** a term (existing terms are not tagged). Registered for plugin taxonomies, `category`, and `post_tag`. **REST:** `show_in_rest: true`; `auth_callback` requires `edit_term`. |
 
 ---
 
@@ -19,7 +25,7 @@ Admin UI is built with **CMB2** (meta boxes) and custom metaboxes (property prof
 
 **REST base:** `pw-properties`  
 **Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `revisions`, `custom-fields`  
-**Public:** mode-dependent (`pw_settings['pw_property_mode']`, read via `pw_get_setting()`: `single` | `multi`)
+**Public:** mode-dependent (`pw_settings['pw_property_mode']`, read via `pw_get_setting()`: `single` | `multi`). See overview: still **viewable** for block/editor discovery in single mode.
 
 ### Meta Fields
 
@@ -128,14 +134,16 @@ Admin UI is built with **CMB2** (meta boxes) and custom metaboxes (property prof
 
 #### Sustainability (`_pw_sustainability_items`) — repeatable group
 
-Ordered array of rows (one entry per canonical practice). CMB2: `pw_property_sustainability`. Canonical keys and labels are defined in `includes/property-facet-definitions.php` (`pw_get_sustainability_facet_definitions()`). On save, the list is normalized to that order; unknown keys are dropped.
+Meta key constant: `PW_SUSTAINABILITY_ITEMS_META_KEY` → `_pw_sustainability_items` (`includes/property-facet-definitions.php`).
+
+Ordered array of rows (one entry per canonical practice). CMB2: `pw_property_sustainability`. Canonical keys and labels are defined in `includes/property-facet-definitions.php` (`pw_get_sustainability_facet_definitions()`). On add/update of this meta key, `pw_normalize_property_facet_meta_if_dirty()` rewrites storage to one row per definition in definition order (`unknown` status where missing); unknown keys are dropped.
 
 
 | Field    | Type   | Notes                                                                 |
 | -------- | ------ | --------------------------------------------------------------------- |
 | `key`    | string | Stable slug (e.g. `solar_power`, `recycling_program`)                 |
 | `status` | string | `unknown` \| `available` \| `not_available`                          |
-| `note`   | string | Optional detail                                                       |
+| `note`   | string | Optional detail (admin label **Content**; textarea)                   |
 
 
 #### Certifications & Awards (`_pw_certifications`) — repeatable group
@@ -151,14 +159,16 @@ Ordered array of rows (one entry per canonical practice). CMB2: `pw_property_sus
 
 #### Accessibility (`_pw_accessibility_items`) — repeatable group
 
-Same shape as sustainability. CMB2: `pw_property_accessibility`. Definitions: `pw_get_accessibility_facet_definitions()` in `includes/property-facet-definitions.php`.
+Meta key constant: `PW_ACCESSIBILITY_ITEMS_META_KEY` → `_pw_accessibility_items`.
+
+Same shape and normalization behavior as sustainability. CMB2: `pw_property_accessibility`. Definitions: `pw_get_accessibility_facet_definitions()` in `includes/property-facet-definitions.php`.
 
 
 | Field    | Type   | Notes                                                                 |
 | -------- | ------ | --------------------------------------------------------------------- |
 | `key`    | string | Stable slug (e.g. `wheelchair_accessible`, `elevator`)                |
 | `status` | string | `unknown` \| `available` \| `not_available`                          |
-| `note`   | string | Optional detail                                                       |
+| `note`   | string | Optional detail (admin label **Content**; textarea)                   |
 
 
 ---
@@ -222,7 +232,7 @@ Same shape as sustainability. CMB2: `pw_property_accessibility`. Definitions: `p
 
 #### Operating Hours — per-day meta keys `_pw_hours_{day}` (e.g. `_pw_hours_monday`)
 
-Each day stores an object: `{ is_closed: boolean, sessions: [{ label, open_time, close_time }] }`. CMB2: `pw_restaurant_operating_hours` (group per day, sessions repeatable).
+Each day is stored as an **associative array** (map) with keys `is_closed` (boolean) and `sessions` (array of `{ label, open_time, close_time }`). CMB2: `pw_restaurant_operating_hours` (group per day, sessions repeatable). `register_post_meta` uses WordPress type `array` with a REST schema shaped as an object.
 
 
 | Field       | Type    | Notes                                          |
@@ -251,7 +261,7 @@ Each day stores an object: `{ is_closed: boolean, sessions: [{ label, open_time,
 
 #### Operating Hours — per-day `_pw_hours_{day}`
 
-Same structure as restaurant: `{ is_closed, sessions }`. CMB2: `pw_spa_operating_hours`.
+Same storage and REST registration pattern as restaurant. CMB2: `pw_spa_operating_hours`.
 
 ---
 
@@ -440,6 +450,20 @@ For property-level experience archives, query `_pw_property_id`. `pw_get_experie
 
 ---
 
+## Virtual meta (backward compatibility reads)
+
+`includes/backward-compat.php` filters `get_post_metadata` so **reads** of legacy keys resolve without storing extra rows:
+
+| Post type    | Meta key              | Resolved from |
+| ------------ | --------------------- | ------------- |
+| `pw_property` | `_pw_property_name` | Post title |
+| `pw_property` | `_pw_slug`          | Post `post_name` |
+| `pw_event`   | `_pw_is_recurring`   | `'1'` if `_pw_recurrence_rule` is non-empty, else empty |
+
+In **admin**, for `pw_event` only, `_pw_start_datetime` / `_pw_end_datetime` may be surfaced to CMB2 as JSON when the stored value is `Y-m-d H:i:s` (timezone from linked property `_pw_timezone`).
+
+---
+
 ## Taxonomies
 
 
@@ -461,37 +485,19 @@ For property-level experience archives, query `_pw_property_id`. `pw_get_experie
 
 All taxonomies: non-hierarchical, `show_in_rest: true`, `show_admin_column: true`, `rewrite: false`.
 
-### Taxonomy seed values (optional pre-load)
+### Default taxonomy terms (seeding)
 
-Default terms can be created at install; they are optional and editable afterward. Implementation status and rationale: `[TAXONOMY-SEED-VALUES.md](TAXONOMY-SEED-VALUES.md)`.
+Canonical lists live in `includes/taxonomy-seeds.php` (`pw_get_taxonomy_seed_terms()`). `pw_seed_taxonomy_terms()` inserts each name only if `term_exists()` is false (nothing removed or renamed).
 
-#### Implemented: `pw_policy_type`
+**Fresh activation:** `pw_apply_install_defaults()` (`portico_webworks_plugin.php`) sets option `pw_seed_taxonomies` to `1`. On `init` at priority `999`, the plugin runs `pw_seed_taxonomy_terms()`, deletes `pw_seed_taxonomies`, and sets `pw_taxonomy_seed_prompt_status` to `auto_completed`.
 
-Check-in, Check-out, Cancellation, Pet, Child, Payment, Smoking, Custom
+**Existing sites (upgrade):** If `pw_install_defaults_applied` is set and `pw_taxonomy_seed_prompt_status` is empty, `admin_init` sets it to `pending` and an admin notice offers **Add default terms** / **Dismiss** (`admin_post_pw_accept_taxonomy_seed` / `pw_dismiss_taxonomy_seed`). Accept runs the same seeder and sets status to `completed`. The Sample Data admin UI can re-run `pw_seed_taxonomy_terms()` via `admin_post_pw_reseed_taxonomies` (`includes/sample-data.php`).
 
-#### Proposed pre-load terms
+**Taxonomies seeded (all optional names in code):** `pw_policy_type`, `pw_bed_type`, `pw_view_type`, `pw_meal_period`, `pw_treatment_type`, `pw_av_equipment`, `pw_feature_group`, `pw_nearby_type`, `pw_transport_mode`, `pw_experience_category`, `pw_event_type`.
 
-`**pw_bed_type`** (`pw_room_type`): Twin, Double, Queen, King, Single, Sofa Bed, Bunk Bed, Murphy Bed, Rollaway, Crib
+Rationale and historical notes: `[TAXONOMY-SEED-VALUES.md](TAXONOMY-SEED-VALUES.md)`.
 
-`**pw_view_type**` (`pw_room_type`): Ocean, Sea, Beach, Pool, Garden, City, Mountain, Lake, Courtyard, Partial Ocean, Partial Sea, No View
-
-`**pw_meal_period**` (`pw_restaurant`): Breakfast, Brunch, Lunch, Dinner, All-day Dining, Afternoon Tea, Late Night, 24-Hour
-
-`**pw_treatment_type**` (`pw_spa`): Massage, Facial, Body Wrap, Body Scrub, Manicure, Pedicure, Hair, Waxing, Aromatherapy, Hot Stone, Reflexology, Couples Treatment, Pre/Post Natal
-
-`**pw_av_equipment**` (`pw_meeting_room`): Projector, Screen, Video Conferencing, Microphone, PA System, Whiteboard, Flip Chart, HDMI Connection, Wireless Presentation, Recording
-
-`**pw_feature_group**` (`pw_feature`): Bedding, Bathroom, In-room, Entertainment, Climate, Connectivity, Outdoor
-
-`**pw_nearby_type**` (`pw_nearby`): Beach, Airport, Train Station, Attraction, Shopping, Dining, Park, Museum, Golf, Hospital, Bank/ATM, Supermarket
-
-`**pw_transport_mode**` (`pw_nearby`): Walk, Drive, Taxi, Public Transport, Shuttle, Boat, Bicycle
-
-`**pw_experience_category**` (`pw_experience`): Adventure, Cultural, Culinary, Wellness, Water Sports, Land Activities, Kids, Nightlife, Shopping, Nature
-
-`**pw_event_type**` (`pw_event`): Wedding, Conference, Meeting, Seminar, Gala, Private Dining, Team Building, Product Launch, Social Event, Exhibition
-
-#### Not recommended for pre-load
+#### Not seeded automatically
 
 
 | Taxonomy             | Reason                                                    |
@@ -505,39 +511,27 @@ Check-in, Check-out, Cancellation, Pet, Child, Payment, Smoking, Custom
 
 **WordPress option (single row):** `pw_settings` — associative array of the keys below.
 
-**CMB2 box:** `pw_settings` (`object_types: options-page`, `option_key: pw_settings`). Fields are **not** on a separate CMB2 submenu: the box is output inside **Portico Webworks → General** (first tab), wrapped in a custom `<form>` that posts to `admin-post.php` with `action=pw_settings`. The redundant CMB2 “Settings” submenu entry is removed.
-
-**Same screen (not in `pw_settings`):** “Search Engine Indexing” is static markup only; it links to **Settings → Reading** in core WordPress.
+**UI:** **Portico Webworks → General** (`includes/admin-page.php`). Above the form, “Search Engine Indexing” is static copy with a link to **Settings → Reading** (`options-reading.php`). The settings `<form>` uses `action` = `admin_url( 'admin-post.php' )`, hidden field `action` = `pw_save_settings`, and `wp_nonce_field( 'pw_save_settings', 'pw_settings_nonce' )`. Submit button triggers `admin_post_pw_save_settings` → `pw_handle_settings_save()`.
 
 ### Keys stored in `pw_settings`
 
 | Option key                 | Type    | Default        | Notes |
 | -------------------------- | ------- | -------------- | ----- |
-| `pw_property_mode`         | string  | `'single'`     | `'single'` \| `'multi'` |
-| `pw_property_base`         | string  | `'properties'` | URL prefix for `pw_property` rewrite (multi mode only); `sanitize_title`-style slug |
-| `pw_default_property_id`   | int     | `0`            | **Single mode:** required site-wide context; must be a **published** `pw_property` post ID. **Multi mode:** forced to `0` on save. CMB2 field hidden when saved mode is multi; client script toggles row when switching radios before save (`assets/admin-settings.js`, class `pw-default-property-row`). |
+| `pw_property_mode`         | string  | `'single'`     | `'single'` \| `'multi'` (from POST radio) |
+| `pw_property_base`         | string  | `'properties'` | URL prefix for `pw_property` rewrite (multi mode only); sanitized with `pw_sanitize_property_base()` |
+| `pw_default_property_id`   | int     | `0`            | **Single mode:** must be a **published** `pw_property` ID (invalid selection cleared to `0` + transient notice). **Multi mode:** always saved as `0`. Client script `assets/admin-settings.js` toggles `.pw-default-property-row` when switching mode before submit. |
 | `pw_default_template`      | string  | `''`           | Template slug for front-end rendering (all properties) |
-| `pw_github_releases_url`   | string  | `''`           | Normalized `https://github.com/{owner}/{repo}/releases`; used by “Update from GitHub” (`includes/github-plugin-update.php`). Release asset name: `portico_webworks_plugin.zip`. |
+| `pw_github_releases_url`   | string  | `''`           | Sanitized with `pw_sanitize_github_releases_url()`; used by “Update from GitHub” (`includes/github-plugin-update.php`). Release asset name: `portico_webworks_plugin.zip`. |
 
-### Read path (`pw_get_setting` / CMB2)
+### Read path
 
-- **`pw_get_merged_pw_settings()`** loads `get_option( 'pw_settings' )` and merges with **legacy** top-level options (same five keys, previously or still used as `get_option( 'pw_property_mode' )`, etc.) via `wp_parse_args( $stored, $legacy )`. Missing keys in the DB blob are filled from legacy so partial arrays do not “lose” GitHub URL or default property in the UI.
-- **`pw_get_setting( $key, $default )`** reads from that merged array, then falls back to `get_option( $key, $default )` for unknown keys.
-- **`cmb2_override_option_get_pw_settings`** returns `pw_get_merged_pw_settings()` so CMB2 always sees a complete field set.
+- **`pw_get_merged_pw_settings()`** returns `wp_parse_args( $stored_array, $defaults )` where `$stored_array` is `get_option( 'pw_settings' )` coerced to array, and `$defaults` are the five keys above (`includes/admin-page.php`).
+- **`pw_get_setting( $key, $default )`** returns `$opts[ $key ]` if the key exists in the merged array, otherwise `get_option( $key, $default )` (for keys not in `pw_settings`).
 
-### Write path (`pre_update_option_pw_settings`)
+### Write path
 
-- **Multi mode:** sets `pw_default_property_id` to `0`; if `pw_github_releases_url` is absent from POST, preserved from previous value when possible.
-- **Single mode:** if `pw_default_property_id` or `pw_github_releases_url` is missing from POST, copy from old option array when possible (avoids CMB2 dropping keys when a field was not rendered/submitted).
-- Invalid default property (not `pw_property` or not `publish`) → cleared to `0` and a short admin notice.
-
-### Save handler (reliability)
-
-- **`admin_post_pw_settings` (priority 0):** `pw_save_portico_cmb2_settings()` — verifies capability, `submit-cmb`, action, and CMB2 nonce, then **`$cmb->save_fields( 'pw_settings', 'options-page', $_POST )`**, redirects with `settings-updated`, **`exit`**. Ensures the option is written even if `CMB2_Options_Hookup::can_save()` would skip on `admin-post.php`.
-
-### Related hooks
-
-- **`update_option_pw_settings`:** `flush_rewrite_rules()` when `pw_property_mode` or `pw_property_base` changes.
+- **`pw_handle_settings_save()`** (capability `manage_options`, nonce check): builds a new `$settings` array from `$_POST`, sets `pw_default_property_id` to `0` in multi mode, validates default property in single mode, then `update_option( 'pw_settings', $settings )`.
+- If `pw_property_mode` or `pw_property_base` changed vs. previous merged settings, **`flush_rewrite_rules()`** runs immediately after save (same function).
 
 ---
 
@@ -546,6 +540,7 @@ Check-in, Check-out, Cancellation, Pet, Child, Payment, Smoking, Custom
 **CMB2 box:** `pw_seo_metabox`  
 **Applies to:** `pw_room_type`, `pw_restaurant`, `pw_spa`, `pw_meeting_room`, `pw_experience`, `pw_event`, `pw_offer`, `pw_nearby`
 
+`pw_property` uses a separate CMB2 box `pw_property_seo` (same meta keys; see property section above). On the front end, Rank Math title/description are overridden from post meta where set (`includes/seo-compatibility.php`).
 
 | Meta Key               | Type   | CMB2                           |
 | ---------------------- | ------ | ------------------------------ |
