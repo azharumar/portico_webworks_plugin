@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Portico Webworks Hotel Website Manager
  * Description: Portico Webworks plugin.
- * Version: 0.8.6
+ * Version: 0.8.7
  * Requires at least: 6.9.4
  * Requires PHP: 8.3
  * Author: Portico Webworks
@@ -14,10 +14,13 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-require_once __DIR__ . '/includes/pw-fatal-log.php';
+$pw_fatal_log = __DIR__ . '/includes/pw-fatal-log.php';
+if ( is_readable( $pw_fatal_log ) ) {
+	require_once $pw_fatal_log;
+}
 
 define('PW_PLUGIN_FILE', __FILE__);
-define('PW_VERSION', '0.8.6');
+define('PW_VERSION', '0.8.7');
 define('PW_FACT_SHEET_CONTENT_VERSION', 2);
 
 require_once __DIR__ . '/includes/fact-sheet-page-content.php';
@@ -111,20 +114,27 @@ function pw_plugin_activation() {
 
 register_activation_hook(PW_PLUGIN_FILE, 'pw_plugin_activation');
 
-add_action( 'init', function() {
-	if ( ! get_option( 'pw_seed_taxonomies', 0 ) ) {
-		return;
-	}
-	delete_option( 'pw_seed_taxonomies' );
-	pw_seed_taxonomy_terms();
-	update_option( 'pw_taxonomy_seed_prompt_status', 'auto_completed' );
-}, 999 );
-
 if ( file_exists( plugin_dir_path( __FILE__ ) . 'vendor/autoload.php' ) ) {
 	require_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
 }
 
-require_once plugin_dir_path( __FILE__ ) . 'vendor/cmb2/cmb2/init.php';
+$pw_cmb2_init = plugin_dir_path( __FILE__ ) . 'vendor/cmb2/cmb2/init.php';
+if ( ! is_readable( $pw_cmb2_init ) ) {
+	add_action(
+		'admin_notices',
+		static function () {
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				return;
+			}
+			echo '<div class="notice notice-error"><p>';
+			echo esc_html( 'Portico Webworks: bundled CMB2 is missing (vendor/cmb2). Reinstall the plugin from the release ZIP or run composer install in the plugin folder.' );
+			echo '</p></div>';
+		}
+	);
+	return;
+}
+
+require_once $pw_cmb2_init;
 add_filter( 'cmb2_menus', '__return_empty_array' );
 require_once __DIR__ . '/includes/cmb2-rrule-field.php';
 
@@ -147,3 +157,16 @@ require_once __DIR__ . '/includes/admin-assets.php';
 require_once __DIR__ . '/includes/admin-branding.php';
 require_once __DIR__ . '/includes/seo-compatibility.php';
 require_once __DIR__ . '/includes/dependencies.php';
+
+add_action(
+	'init',
+	static function () {
+		if ( ! get_option( 'pw_seed_taxonomies', 0 ) ) {
+			return;
+		}
+		delete_option( 'pw_seed_taxonomies' );
+		pw_seed_taxonomy_terms();
+		update_option( 'pw_taxonomy_seed_prompt_status', 'auto_completed' );
+	},
+	999
+);

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.7] - 2026-03-21
+
+### Fixed
+- **Install / bootstrap fatals**: load `includes/pw-fatal-log.php` only when the file is readable (incomplete ZIP no longer whitescreens on `require_once`); if `vendor/cmb2/cmb2/init.php` is missing, show an admin notice and stop loading the rest of the plugin instead of a hard fatal; register the taxonomy-seed `init` callback only after `taxonomy-seeds.php` is loaded so a partial bootstrap does not call `pw_seed_taxonomy_terms()` before it exists
+
+### Changed
+- **Fatal logger** (`includes/pw-fatal-log.php`): logs **any** PHP fatal / uncaught `Throwable` after the plugin loads (not only files under `portico_webworks_plugin`), tries **uploads**, **sys temp**, and **ABSPATH** if `wp-content` is not writable, and duplicates a line to PHP’s `error_log`. Optional `PW_FATAL_LOG_PLUGIN_ONLY` and `PW_FATAL_LOG_BOOT_PROBE` (see file docblock).
+
 ## [0.8.6] - 2026-03-21
 
 ### Fixed
