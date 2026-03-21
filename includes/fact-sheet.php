@@ -1,19 +1,29 @@
 <?php
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-add_shortcode(
-	'pw_fact_sheet',
+require_once __DIR__ . '/fact-sheet-render.php';
+require_once __DIR__ . '/fact-sheet-dynamic-tags.php';
+
+add_action(
+	'wp_enqueue_scripts',
 	static function () {
-		$pid = pw_get_current_property_id();
-		if ( is_wp_error( $pid ) || ! $pid ) {
-			return '<p class="pw-fact-sheet-empty">' . esc_html( 'No property found.' ) . '</p>';
+		if ( ! is_singular( 'page' ) ) {
+			return;
 		}
-		ob_start();
-		$property_id = (int) $pid;
-		require __DIR__ . '/fact-sheet-template.php';
-		return ob_get_clean();
-	}
+		$fid = (int) get_option( 'pw_fact_sheet_page_id', 0 );
+		if ( $fid <= 0 || (int) get_queried_object_id() !== $fid ) {
+			return;
+		}
+		wp_enqueue_style(
+			'pw-fact-sheet',
+			plugins_url( 'assets/fact-sheet.css', PW_PLUGIN_FILE ),
+			array(),
+			defined( 'PW_VERSION' ) ? PW_VERSION : '1'
+		);
+	},
+	20
 );
+
+add_filter( 'the_content', 'pw_fact_sheet_replace_content_tokens', 12 );

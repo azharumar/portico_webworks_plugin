@@ -166,11 +166,56 @@ add_filter('cmb2_override_option_get_pw_settings', function ($value, $default) {
 		return $opts;
 	}
 	return [
-		'pw_property_mode'    => get_option('pw_property_mode', 'single'),
-		'pw_property_base'    => get_option('pw_property_base', 'properties'),
-		'pw_default_template' => get_option('pw_default_template', ''),
+		'pw_property_mode'         => get_option('pw_property_mode', 'single'),
+		'pw_property_base'         => get_option('pw_property_base', 'properties'),
+		'pw_default_property_id'   => (int) get_option('pw_default_property_id', 0),
+		'pw_default_template'      => get_option('pw_default_template', ''),
+		'pw_github_releases_url'   => '',
 	];
 }, 10, 2);
+
+add_filter('pre_update_option_pw_settings', function ($value, $old_value) {
+	if (!is_array($value)) {
+		return $value;
+	}
+	$mode = isset($value['pw_property_mode']) && $value['pw_property_mode'] === 'multi' ? 'multi' : 'single';
+	if ($mode === 'multi') {
+		$value['pw_default_property_id'] = 0;
+		return $value;
+	}
+	$pid = isset($value['pw_default_property_id']) ? (int) $value['pw_default_property_id'] : 0;
+	if ($pid > 0 && (get_post_type($pid) !== 'pw_property' || get_post_status($pid) !== 'publish')) {
+		$value['pw_default_property_id'] = 0;
+		set_transient('pw_settings_notice_default_property', 1, 60);
+	}
+	return $value;
+}, 10, 2);
+
+add_action('admin_notices', function () {
+	if (!current_user_can('manage_options')) {
+		return;
+	}
+	if (get_transient('pw_settings_notice_default_property')) {
+		delete_transient('pw_settings_notice_default_property');
+		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html('Default property was cleared because the selected post is not a published property.') . '</p></div>';
+	}
+	$mode = pw_get_setting('pw_property_mode', 'single');
+	if ($mode !== 'single') {
+		return;
+	}
+	$pid = (int) pw_get_setting('pw_default_property_id', 0);
+	if ($pid > 0) {
+		return;
+	}
+	$screen = function_exists('get_current_screen') ? get_current_screen() : null;
+	if ($screen && $screen->id === 'toplevel_page_' . pw_admin_page_slug()) {
+		$url = pw_admin_settings_url();
+		echo '<div class="notice notice-warning is-dismissible"><p>';
+		echo esc_html('Single-property mode requires a default property. Select one under General settings.');
+		echo ' <a href="' . esc_url($url) . '">' . esc_html('Open settings') . '</a>';
+		echo '</p></div>';
+	}
+});
 
 add_action('update_option_pw_settings', function ($old_value, $value, $option) {
 	if (!function_exists('flush_rewrite_rules')) {
@@ -184,6 +229,18 @@ add_action('update_option_pw_settings', function ($old_value, $value, $option) {
 		flush_rewrite_rules();
 	}
 }, 10, 3);
+
+function pw_cmb2_published_property_options() {
+	$opts = array();
+	foreach ( pw_get_all_properties() as $row ) {
+		$id = isset( $row['id'] ) ? (int) $row['id'] : 0;
+		if ( $id <= 0 || get_post_status( $id ) !== 'publish' ) {
+			continue;
+		}
+		$opts[ (string) $id ] = isset( $row['name'] ) ? (string) $row['name'] : '#' . $id;
+	}
+	return $opts;
+}
 
 add_action('cmb2_admin_init', 'pw_register_settings_cmb2');
 
@@ -211,6 +268,22 @@ function pw_register_settings_cmb2() {
 	]);
 
 	$cmb->add_field([
+		'name'             => 'Default property',
+		'desc'             => 'Used as the site-wide property context in Single Property mode (required).',
+		'id'               => 'pw_default_property_id',
+		'type'             => 'select',
+		'show_option_none' => '— Select property —',
+		'options_cb'       => 'pw_cmb2_published_property_options',
+		'sanitization_cb'  => function ($v) {
+			$v = (int) $v;
+			return $v > 0 ? $v : 0;
+		},
+		'show_on_cb'       => function () {
+			return pw_get_setting('pw_property_mode', 'single') === 'single';
+		},
+	]);
+
+	$cmb->add_field([
 		'name'            => 'Properties Base Path',
 		'id'              => 'pw_property_base',
 		'type'            => 'text',
@@ -227,6 +300,16 @@ function pw_register_settings_cmb2() {
 		'desc'            => 'Template slug used for front-end rendering. Applied across all properties.',
 		'attributes'      => ['placeholder' => 'e.g. default'],
 		'sanitization_cb' => 'sanitize_text_field',
+	]);
+
+	$cmb->add_field([
+		'name'            => 'GitHub releases URL',
+		'id'              => 'pw_github_releases_url',
+		'type'            => 'text',
+		'desc'            => 'Repository releases page, e.g. https://github.com/owner/repo/releases — latest release must include portico_webworks_plugin.zip.',
+		'default'         => '',
+		'attributes'      => ['placeholder' => 'https://github.com/owner/repo/releases'],
+		'sanitization_cb' => 'pw_sanitize_github_releases_url',
 	]);
 }
 
@@ -347,6 +430,27 @@ function pw_render_root_page() {
 			echo '<input type="hidden" name="action" value="pw_settings" />';
 			$cmb->show_form();
 			submit_button(esc_attr__('Save Settings', 'cmb2'), 'primary', 'submit-cmb');
+			echo '</form>';
+		}
+
+		if ( current_user_can( 'update_plugins' ) ) {
+			$gh_url = pw_get_setting( 'pw_github_releases_url', '' );
+			echo '<hr class="pw-settings-divider" />';
+			echo '<h2 class="title" style="margin-top:1em;">' . esc_html__( 'Update from GitHub', 'portico-webworks' ) . '</h2>';
+			if ( is_string( $gh_url ) && $gh_url !== '' ) {
+				echo '<p class="description">' . esc_html__( 'Configured repository:', 'portico-webworks' ) . ' <code>' . esc_html( $gh_url ) . '</code></p>';
+			} else {
+				echo '<p class="description">' . esc_html__( 'Save a GitHub releases URL above to enable one-click updates.', 'portico-webworks' ) . '</p>';
+			}
+			$upd_url = admin_url( 'admin-post.php' );
+			echo '<form method="post" action="' . esc_url( $upd_url ) . '" style="margin-top:0.75em;">';
+			echo '<input type="hidden" name="action" value="pw_github_plugin_update" />';
+			wp_nonce_field( 'pw_github_plugin_update' );
+			$btn_attrs = array();
+			if ( ! is_string( $gh_url ) || $gh_url === '' ) {
+				$btn_attrs['disabled'] = 'disabled';
+			}
+			submit_button( esc_attr__( 'Update from GitHub', 'portico-webworks' ), 'secondary', 'pw-github-update', false, $btn_attrs );
 			echo '</form>';
 		}
 

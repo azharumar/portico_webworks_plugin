@@ -6,7 +6,9 @@ if (!defined('ABSPATH')) {
 
 function pw_get_property_profile( $property_id = null ) {
 	$id = $property_id ?? pw_get_current_property_id();
-	if ( ! $id ) return [];
+	if ( is_wp_error( $id ) || ! $id ) {
+		return [];
+	}
 
 	$keys = [
 		'legal_name'         => '_pw_legal_name',
@@ -144,6 +146,16 @@ function pw_get_current_property_id() {
 		}
 	}
 
+	if ($mode === 'single') {
+		$default_id = (int) pw_get_setting( 'pw_default_property_id', 0 );
+		if ( $default_id <= 0 || get_post_type( $default_id ) !== 'pw_property' || get_post_status( $default_id ) !== 'publish' ) {
+			$resolved = new WP_Error( 'pw_property_default_missing', 'No default property selected.' );
+			return $resolved;
+		}
+		$resolved = $default_id;
+		return $resolved;
+	}
+
 	$all = get_posts(array(
 		'post_type' => 'pw_property',
 		'post_status' => 'publish',
@@ -275,6 +287,9 @@ function pw_get_operating_hours( $post_id ) {
 
 function pw_get_property_currency( $property_id = null ) {
 	$id = $property_id ?? pw_get_current_property_id();
+	if ( is_wp_error( $id ) || ! $id ) {
+		return 'USD';
+	}
 	return get_post_meta( (int) $id, '_pw_currency', true ) ?: 'USD';
 }
 

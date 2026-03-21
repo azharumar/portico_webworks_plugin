@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.4] - 2026-03-21
+
+### Added
+- **Single Property** setting **Default property** (`pw_default_property_id` in `pw_settings`); required site-wide context in single mode (no fallback to “first published” property)
+- GenerateBlocks **Fact Sheet** page: block markup with table of contents, `{{portico:…}}` tokens, and outer `generateblocks/element`; **GenerateBlocks Pro** dynamic tags (`pw_fact_*`) mirroring the same output; `PW_FACT_SHEET_CONTENT_VERSION` and `plugins_loaded` sync for upgrades from `[pw_fact_sheet]`
+
+### Changed
+- `pw_get_current_property_id()` in single mode uses only the configured default property
+- Fact sheet data rendering moved to `includes/fact-sheet-render.php` and `includes/fact-sheet-fragments/*`; removed `[pw_fact_sheet]` shortcode and `includes/fact-sheet-template.php`
+
+## [0.8.3] - 2026-03-21
+
+### Added
+- Settings: **GitHub releases URL** (`pw_github_releases_url`) and **Update from GitHub** (uses GitHub API `releases/latest`, requires `portico_webworks_plugin.zip` on the release); `includes/github-plugin-update.php`, `admin_post_pw_github_plugin_update`
+
 ## [0.8.2] - 2026-03-21
 
 ### Added

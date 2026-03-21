@@ -1,0 +1,148 @@
+.pw-fact-sheet {
+	max-width: 72rem;
+	margin: 0 auto 3rem;
+	line-height: 1.55;
+	font-size: 0.95rem;
+	color: #1a1a1a;
+}
+
+.pw-fact-sheet-header {
+	margin-bottom: 2rem;
+	padding-bottom: 1rem;
+	border-bottom: 2px solid #e5e5e5;
+}
+
+.pw-fact-sheet-title {
+	margin: 0 0 0.35em;
+	font-size: clamp(1.5rem, 4vw, 2rem);
+	line-height: 1.2;
+}
+
+.pw-fact-sheet-lead {
+	margin: 0;
+	color: #444;
+}
+
+.pw-fact-sheet-excerpt {
+	margin: 1rem 0 0;
+}
+
+.pw-fact-sheet-description {
+	margin: 1.5rem 0 2rem;
+}
+
+.pw-fact-sheet-description h2,
+.pw-fact-sheet-property > h2,
+.pw-fact-sheet section > h2 {
+	margin: 2rem 0 0.75rem;
+	font-size: 1.25rem;
+	padding-bottom: 0.35rem;
+	border-bottom: 1px solid #ddd;
+}
+
+.pw-fact-sheet-property > h2 {
+	margin-top: 0;
+}
+
+.pw-fact-sheet h3 {
+	margin: 1.25rem 0 0.5rem;
+	font-size: 1.05rem;
+}
+
+.pw-fact-sheet h4 {
+	margin: 1rem 0 0.35rem;
+	font-size: 0.95rem;
+	font-weight: 600;
+}
+
+.pw-fact-sheet table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0 0 1.25rem;
+	background: #fff;
+	box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+}
+
+.pw-fact-sheet caption {
+	text-align: left;
+	font-weight: 600;
+	padding: 0.5rem 0.65rem;
+	background: #f4f4f4;
+	border: 1px solid #ccc;
+	border-bottom: 0;
+}
+
+.pw-fact-sheet thead th {
+	text-align: left;
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: #333;
+	background: #fafafa;
+}
+
+.pw-fact-sheet th,
+.pw-fact-sheet td {
+	padding: 0.45rem 0.65rem;
+	border: 1px solid #ccc;
+	vertical-align: top;
+}
+
+.pw-fact-sheet tbody tr:nth-child(even) {
+	background: #fafafa;
+}
+
+.pw-fact-sheet tbody th[scope="row"] {
+	font-weight: 500;
+	width: 28%;
+	min-width: 8rem;
+	background: #f8f8f8;
+}
+
+.pw-fact-item {
+	margin: 0 0 2rem;
+	padding: 1rem 1rem 0.25rem;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	background: #fdfdfd;
+}
+
+.pw-fact-item header {
+	margin-bottom: 0.75rem;
+	padding-bottom: 0.5rem;
+	border-bottom: 1px solid #e8e8e8;
+}
+
+.pw-fact-item-meta {
+	margin: 0.25rem 0 0;
+	font-size: 0.85rem;
+	color: #555;
+}
+
+.pw-fact-post-type {
+	font-family: ui-monospace, monospace;
+	font-size: 0.8em;
+}
+
+.pw-fact-sheet code {
+	font-size: 0.9em;
+	padding: 0.1em 0.35em;
+	background: #eee;
+	border-radius: 3px;
+}
+
+.pw-fact-inline-list {
+	margin: 0.35rem 0 1rem;
+	padding-left: 1.25rem;
+}
+
+.pw-fact-excerpt {
+	margin: 0 0 0.75rem;
+	font-size: 0.9rem;
+}
+
+.pw-fact-sheet-empty {
+	padding: 1rem;
+	background: #fff3cd;
+	border: 1px solid #ffc107;
+}

@@ -84,15 +84,15 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 
 .pw-admin .pw-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;max-width:980px}
 .pw-admin .pw-card + .pw-card{margin-top:22px}
-.pw-admin .pw-card-head{background:#252320;border-bottom:1px solid rgba(255,255,255,0.1);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.pw-admin .pw-card-head{background:var(--card2);border-bottom:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;justify-content:space-between}
 .pw-admin button.pw-accordion-trigger{width:100%;margin:0;box-sizing:border-box;font:inherit;text-align:left;cursor:pointer;color:inherit;border:none;border-radius:0;appearance:none;-webkit-appearance:none}
-.pw-admin button.pw-accordion-trigger:focus{outline:2px solid rgba(255,255,255,0.35);outline-offset:-2px}
-.pw-admin .pw-accordion-item.is-expanded .pw-card-head{border-bottom:1px solid rgba(255,255,255,0.1)}
+.pw-admin button.pw-accordion-trigger:focus{outline:2px solid var(--border2);outline-offset:2px}
+.pw-admin .pw-accordion-item.is-expanded .pw-card-head{border-bottom:1px solid var(--border)}
 .pw-admin .pw-accordion-item:not(.is-expanded) .pw-card-head{border-bottom:none}
-.pw-admin .pw-accordion-chevron{flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:28px;height:28px;opacity:0.85}
+.pw-admin .pw-accordion-chevron{flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:28px;height:28px;color:var(--sub);opacity:0.9}
 .pw-admin .pw-accordion-chevron::before{content:'';display:block;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .18s ease;margin-top:-4px}
 .pw-admin .pw-accordion-item.is-expanded .pw-accordion-chevron::before{transform:rotate(-135deg);margin-top:4px}
-.pw-admin .pw-card-title{font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f5f2eb}
+.pw-admin .pw-card-title{font-size:12px;font-weight:600;letter-spacing:0.02em;color:var(--sub)}
 .pw-admin .pw-card-body{padding:16px}
 .pw-admin .pw-subsection-title{margin:0 0 10px;font-size:14px;font-weight:700;color:var(--text);letter-spacing:0.02em}
 .pw-admin .pw-section-divider{border:0;border-top:1px solid var(--border);margin:20px 0}
