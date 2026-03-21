@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.5] - 2026-03-21
+
+### Fixed
+- **Default property** field `show_on_cb`: accept CMB2’s `$field` argument so PHP 8 does not throw `ArgumentCountError` on the settings screen
+
+### Changed
+- Declared **Requires at least: 6.9.4** and **Requires PHP: 8.3** in the plugin header; `composer.json` PHP `>=8.3`; README and SETUP requirements updated
+
 ## [0.8.4] - 2026-03-21
 
 ### Added

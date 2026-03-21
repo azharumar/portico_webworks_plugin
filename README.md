@@ -1,5 +1,6 @@
 # Portico Webworks Plugin
 
 **Requirements**
-- WordPress 5.0+
+- WordPress 6.9.4 or higher
+- PHP 8.3 or higher
 

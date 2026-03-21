@@ -278,7 +278,7 @@ function pw_register_settings_cmb2() {
 			$v = (int) $v;
 			return $v > 0 ? $v : 0;
 		},
-		'show_on_cb'       => function () {
+		'show_on_cb'       => function ( $field ) {
 			return pw_get_setting('pw_property_mode', 'single') === 'single';
 		},
 	]);

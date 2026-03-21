@@ -3,7 +3,7 @@
     "description": "Portico Webworks Hotel Website Manager",
     "type": "wordpress-plugin",
     "require": {
-        "php": ">=8.2",
+        "php": ">=8.3",
         "cmb2/cmb2": "^2.11",
         "phpoffice/phpspreadsheet": "^1.29"
     },

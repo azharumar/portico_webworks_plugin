@@ -2,7 +2,9 @@
 /**
  * Plugin Name: Portico Webworks Hotel Website Manager
  * Description: Portico Webworks plugin.
- * Version: 0.8.4
+ * Version: 0.8.5
+ * Requires at least: 6.9.4
+ * Requires PHP: 8.3
  * Author: Portico Webworks
  * Author URI: https://porticowebworks.com
  * License: Proprietary (All Rights Reserved) - Unauthorized use by other companies or for any purposes is prohibited without written permission.
@@ -13,7 +15,7 @@ if (!defined('ABSPATH')) {
 }
 
 define('PW_PLUGIN_FILE', __FILE__);
-define('PW_VERSION', '0.8.4');
+define('PW_VERSION', '0.8.5');
 define('PW_FACT_SHEET_CONTENT_VERSION', 2);
 
 require_once __DIR__ . '/includes/fact-sheet-page-content.php';

@@ -9,7 +9,7 @@ composer install
 ```
 
 This installs CMB2 and PhpSpreadsheet into the `vendor/` directory.
-PHP 8.2 or higher and Composer must be available on your system.
+PHP 8.3 or higher, WordPress 6.9.4 or higher, and Composer must be available on your system.
 
 ## Why vendor is tracked in git
 
