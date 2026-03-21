@@ -87,6 +87,13 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 .pw-admin .pw-card-title{font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--sub)}
 .pw-admin .pw-card-body{padding:14px}
 .pw-admin .pw-card-body .form-table th{width:240px}
+.pw-admin .pw-card-body .cmb-form{margin-top:14px}
+.pw-admin .pw-card-body .cmb2-wrap .cmb-row{display:flex;flex-wrap:wrap;align-items:flex-start;margin-bottom:14px;clear:both}
+.pw-admin .pw-card-body .cmb2-wrap .cmb-row:after{display:none}
+.pw-admin .pw-card-body .cmb2-wrap .cmb-th{float:none;width:240px;flex:0 0 240px;padding:10px 14px 10px 0;vertical-align:top}
+.pw-admin .pw-card-body .cmb2-wrap .cmb-td{float:none;flex:1 1 0;min-width:200px;padding:10px 0}
+.pw-admin .pw-card-body .cmb2-wrap .cmb2-radio-list{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.pw-admin .pw-card-body .cmb2-wrap .cmb2-radio-list li{margin:0}
 .pw-admin .pw-card-body input.regular-text{border-radius:6px;border-color:rgba(0,0,0,0.15)}
 .pw-admin .pw-card-body input.regular-text:focus{border-color:var(--border2);box-shadow:0 0 0 1px var(--border2)}
 .pw-admin .pw-field{display:inline-flex;align-items:center;gap:8px}
@@ -129,6 +136,9 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
   .pw-admin .pw-split{grid-template-columns:1fr}
   .pw-admin .pw-vnav{border-right:none;border-bottom:1px solid var(--border)}
   .pw-admin .pw-card{max-width:none}
+  .pw-admin .pw-card-body .cmb2-wrap .cmb-row{flex-direction:column}
+  .pw-admin .pw-card-body .cmb2-wrap .cmb-th{flex:1 1 auto;width:100%}
+  .pw-admin .pw-card-body .cmb2-wrap .cmb-td{min-width:0}
 }
 ";
 

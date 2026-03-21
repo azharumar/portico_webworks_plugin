@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.7.5] - 2026-03-21
+
+### Added
+- Sample Data admin tab: install a full single-property demo dataset (no images)
+- Taxonomy seed terms on activation via `includes/taxonomy-seeds.php` (replaces policy-only seed)
+- `TAXONOMY-SEED-VALUES.md` reference for seed lists
+
+### Changed
+- General settings: Property Mode control uses radio buttons
+- `DATA-STRUCTURE.md` updates
+
 ## [0.7.4] - 2026-03-21
 
 ### Added

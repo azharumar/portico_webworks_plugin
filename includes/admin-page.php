@@ -146,7 +146,7 @@ function pw_register_settings_cmb2() {
 	$cmb->add_field([
 		'name'            => 'Property Mode',
 		'id'              => 'pw_property_mode',
-		'type'            => 'select',
+		'type'            => 'radio_inline',
 		'options'         => [
 			'single' => 'Single Property',
 			'multi'  => 'Multi-Property',

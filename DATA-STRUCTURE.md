@@ -125,7 +125,7 @@ Each parameter has a paired `_note` key (string, `''`). CMB2: `pw_property_susta
 |---|---|---|---|
 | `name` | string | e.g. Green Key, Forbes Travel Guide | CMB2: `pw_property_certifications` |
 | `issuer` | string | Organisation that issued | |
-| `year` | string | Year awarded or renewed | |
+| `year` | integer | Year awarded or renewed (REST schema) | text_small |
 | `url` | string | Link to certificate | |
 
 #### Accessibility — string enum (`unknown` | `available` | `not_available`) + optional note
@@ -206,7 +206,7 @@ CMB2: `pw_property_accessibility`
 | `_pw_gallery` | array\<integer\> | — | | file_list |
 
 #### Operating Hours — per-day meta keys `_pw_hours_{day}` (e.g. `_pw_hours_monday`)
-Each day stores an object with `is_closed` and `sessions` (repeatable). | CMB2: `pw_restaurant_operating_hours` |
+Each day stores an object: `{ is_closed: boolean, sessions: [{ label, open_time, close_time }] }`. CMB2: `pw_restaurant_operating_hours` (group per day, sessions repeatable).
 
 | Field | Type | Notes |
 |---|---|---|
@@ -230,7 +230,7 @@ Each day stores an object with `is_closed` and `sessions` (repeatable). | CMB2: 
 | `_pw_gallery` | array\<integer\> | — | file_list |
 
 #### Operating Hours — per-day `_pw_hours_{day}`
-Same structure as restaurant. | CMB2: `pw_spa_operating_hours` |
+Same structure as restaurant: `{ is_closed, sessions }`. CMB2: `pw_spa_operating_hours`.
 
 ---
 
@@ -283,10 +283,10 @@ Same structure as restaurant. | CMB2: `pw_spa_operating_hours` |
 
 | Meta Key | Type | Default | Notes | CMB2 |
 |---|---|---|---|---|
-| `_pw_property_id` | integer | `0` | | CMB2: `pw_policy_metabox` (select) |
-| `_pw_content` | string | `''` | | textarea |
-| `_pw_is_highlighted` | boolean | `false` | | checkbox |
+| `_pw_property_id` | integer | `0` | FK → pw_property | CMB2: `pw_policy_metabox` (select) |
+| `_pw_content` | string | `''` | Policy body text | textarea |
 | `_pw_display_order` | integer | `0` | | text_small |
+| `_pw_is_highlighted` | boolean | `false` | | checkbox |
 | `_pw_active` | boolean | `true` | | checkbox |
 
 Policy type is set via taxonomy `pw_policy_type`. Post title is the policy title.
@@ -342,7 +342,7 @@ Description/terms: use post `editor` and `excerpt` as needed.
 | `_pw_property_id` | integer | `0` | CMB2: `pw_nearby_metabox` (select) |
 | `_pw_distance_km` | number | `0` | text_small |
 | `_pw_travel_time_min` | integer | `0` | text_small |
-| `_pw_place_url` | string | `''` | text_url |
+| `_pw_place_url` | string | `''` | Google Maps or website URL | text_url |
 | `_pw_display_order` | integer | `0` | text_small |
 
 ---
@@ -375,8 +375,8 @@ Description/terms: use post `editor` and `excerpt` as needed.
 | `_pw_property_id` | integer | `0` | | CMB2: `pw_event_metabox` (select) |
 | `_pw_venue_id` | integer | `0` | FK → `pw_meeting_room` | select (pw_meeting_room_options) |
 | `_pw_description` | string | `''` | | textarea |
-| `_pw_start_datetime` | string | `''` | | text_datetime_timestamp_timezone |
-| `_pw_end_datetime` | string | `''` | | text_datetime_timestamp_timezone |
+| `_pw_start_datetime` | string | `''` | Stored as `Y-m-d H:i:s` | text_datetime_timestamp_timezone |
+| `_pw_end_datetime` | string | `''` | Stored as `Y-m-d H:i:s` | text_datetime_timestamp_timezone |
 | `_pw_capacity` | integer | `0` | | text_small |
 | `_pw_price_from` | number | `0` | | text_money |
 | `_pw_booking_url` | string | `''` | | text_url |
@@ -408,11 +408,46 @@ Description/terms: use post `editor` and `excerpt` as needed.
 
 All taxonomies: non-hierarchical, `show_in_rest: true`, `show_admin_column: true`, `rewrite: false`.
 
+### Taxonomy seed values (optional pre-load)
+
+Default terms can be created at install; they are optional and editable afterward. Implementation status and rationale: [`TAXONOMY-SEED-VALUES.md`](TAXONOMY-SEED-VALUES.md).
+
+#### Implemented: `pw_policy_type`
+Check-in, Check-out, Cancellation, Pet, Child, Payment, Smoking, Custom
+
+#### Proposed pre-load terms
+
+**`pw_bed_type`** (`pw_room_type`): Twin, Double, Queen, King, Single, Sofa Bed, Bunk Bed, Murphy Bed, Rollaway, Crib
+
+**`pw_view_type`** (`pw_room_type`): Ocean, Sea, Beach, Pool, Garden, City, Mountain, Lake, Courtyard, Partial Ocean, Partial Sea, No View
+
+**`pw_meal_period`** (`pw_restaurant`): Breakfast, Brunch, Lunch, Dinner, All-day Dining, Afternoon Tea, Late Night, 24-Hour
+
+**`pw_treatment_type`** (`pw_spa`): Massage, Facial, Body Wrap, Body Scrub, Manicure, Pedicure, Hair, Waxing, Aromatherapy, Hot Stone, Reflexology, Couples Treatment, Pre/Post Natal
+
+**`pw_av_equipment`** (`pw_meeting_room`): Projector, Screen, Video Conferencing, Microphone, PA System, Whiteboard, Flip Chart, HDMI Connection, Wireless Presentation, Recording
+
+**`pw_feature_group`** (`pw_feature`): Bedding, Bathroom, In-room, Entertainment, Climate, Connectivity, Outdoor
+
+**`pw_nearby_type`** (`pw_nearby`): Beach, Airport, Train Station, Attraction, Shopping, Dining, Park, Museum, Golf, Hospital, Bank/ATM, Supermarket
+
+**`pw_transport_mode`** (`pw_nearby`): Walk, Drive, Taxi, Public Transport, Shuttle, Boat, Bicycle
+
+**`pw_experience_category`** (`pw_experience`): Adventure, Cultural, Culinary, Wellness, Water Sports, Land Activities, Kids, Nightlife, Shopping, Nature
+
+**`pw_event_type`** (`pw_event`): Wedding, Conference, Meeting, Seminar, Gala, Private Dining, Team Building, Product Launch, Social Event, Exhibition
+
+#### Not recommended for pre-load
+
+| Taxonomy | Reason |
+|---|---|
+| `pw_event_organiser` | Property-specific; organisers vary per property and event |
+
 ---
 
 ## Options Page: Portico Webworks Settings
 
-**CMB2 box:** `pw_settings` (options-page, `option_key: pw_settings`)
+**CMB2 box:** `pw_settings` (options-page, `option_key: pw_settings`). Rendered on Portico Webworks → Settings tab.
 
 | Option Key | Type | Default | Notes |
 |---|---|---|---|
