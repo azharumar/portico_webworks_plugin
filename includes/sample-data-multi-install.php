@@ -5,21 +5,72 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Create demo pw_contact rows for a property (uses sample insert + meta).
+ *
+ * @param int   $property_id Property post ID.
+ * @param array $rows        Rows: label, phone, mobile, whatsapp, email; optional post_title, scope_cpt, scope_id.
+ */
+function pw_sample_install_pw_contact_rows( $property_id, array $rows ) {
+	$property_id = (int) $property_id;
+	if ( $property_id <= 0 ) {
+		return;
+	}
+	foreach ( $rows as $row ) {
+		if ( ! is_array( $row ) ) {
+			continue;
+		}
+		$title = isset( $row['post_title'] ) ? (string) $row['post_title'] : ( isset( $row['label'] ) ? (string) $row['label'] : 'Contact' );
+		$ins   = pw_sample_wp_insert_post(
+			[
+				'post_type'   => 'pw_contact',
+				'post_status' => 'publish',
+				'post_title'  => $title,
+			],
+			true
+		);
+		if ( is_wp_error( $ins ) || ! $ins ) {
+			continue;
+		}
+		$cid = (int) $ins;
+		update_post_meta( $cid, '_pw_property_id', $property_id );
+		update_post_meta( $cid, '_pw_label', isset( $row['label'] ) ? (string) $row['label'] : '' );
+		update_post_meta( $cid, '_pw_phone', isset( $row['phone'] ) ? (string) $row['phone'] : '' );
+		update_post_meta( $cid, '_pw_mobile', isset( $row['mobile'] ) ? (string) $row['mobile'] : '' );
+		update_post_meta( $cid, '_pw_whatsapp', isset( $row['whatsapp'] ) ? (string) $row['whatsapp'] : '' );
+		update_post_meta( $cid, '_pw_email', isset( $row['email'] ) ? (string) $row['email'] : '' );
+		$scope_cpt = isset( $row['scope_cpt'] ) ? sanitize_key( (string) $row['scope_cpt'] ) : 'property';
+		if ( ! pw_contact_is_valid_scope_cpt( $scope_cpt ) ) {
+			$scope_cpt = 'property';
+		}
+		update_post_meta( $cid, '_pw_scope_cpt', $scope_cpt );
+		$scope_id = isset( $row['scope_id'] ) ? absint( $row['scope_id'] ) : 0;
+		update_post_meta( $cid, '_pw_scope_id', $scope_id );
+	}
+}
+
+/**
  * Installs two demo properties (Bengaluru + Goa) and related CPT rows.
  */
 function pw_install_sample_dataset_multi() {
-	$tax_batches = [
-		'pw_bed_type'            => [ 'King', 'Queen', 'Twin', 'Double' ],
-		'pw_view_type'           => [ 'City View', 'Pool View', 'Garden View', 'Sea View', 'City', 'Garden', 'Pool', 'Sea', 'Partial Ocean', 'Ocean' ],
-		'pw_meal_period'         => [ 'Breakfast', 'Brunch', 'Lunch', 'Dinner', 'Sunday Brunch', 'All-day Dining', 'Late Night' ],
-		'pw_treatment_type'      => [ 'Ayurveda', 'Aromatherapy', 'Deep Tissue', 'Hot Stone', 'Couples Treatment', 'Facial', 'Swedish Massage', 'Ayurvedic Abhyanga', 'Foot Reflexology', 'Massage', 'Body Wrap' ],
-		'pw_av_equipment'        => [ 'LED Screen', 'Microphone', 'Podium', 'In-built Sound System', 'Stage Lighting', '75" Display Screen', 'Wireless Presentation', 'Video Conferencing System', 'Whiteboard', 'Projector', 'Screen', 'PA System' ],
-		'pw_feature_group'       => [ 'Room Features', 'Entertainment', 'Bathroom', 'Business', 'Housekeeping', 'Bedding', 'Connectivity', 'In-room', 'Climate', 'Outdoor' ],
-		'pw_nearby_type'         => [ 'Airport', 'Metro', 'Shopping', 'Park', 'Landmark', 'Attraction', 'Beach', 'Heritage', 'Market' ],
-		'pw_transport_mode'      => [ 'Walk', 'Drive', 'Taxi', 'Shuttle' ],
-		'pw_experience_category' => [ 'Cultural', 'Wellness', 'Culinary', 'Adventure', 'Nature' ],
-		'pw_event_type'          => [ 'Gala', 'Conference', 'Beach Event', 'Brunch' ],
-	];
+	$seed_terms = pw_get_taxonomy_seed_terms();
+	$tax_batches = array_merge(
+		[
+			'pw_property_type' => $seed_terms['pw_property_type'],
+			'pw_policy_type'   => $seed_terms['pw_policy_type'],
+		],
+		[
+			'pw_bed_type'            => [ 'King', 'Queen', 'Twin', 'Double' ],
+			'pw_view_type'           => [ 'City View', 'Pool View', 'Garden View', 'Sea View', 'City', 'Garden', 'Pool', 'Sea', 'Partial Ocean', 'Ocean' ],
+			'pw_meal_period'         => [ 'Breakfast', 'Brunch', 'Lunch', 'Dinner', 'Sunday Brunch', 'All-day Dining', 'Late Night' ],
+			'pw_treatment_type'      => [ 'Ayurveda', 'Aromatherapy', 'Deep Tissue', 'Hot Stone', 'Couples Treatment', 'Facial', 'Swedish Massage', 'Ayurvedic Abhyanga', 'Foot Reflexology', 'Massage', 'Body Wrap' ],
+			'pw_av_equipment'        => [ 'LED Screen', 'Microphone', 'Podium', 'In-built Sound System', 'Stage Lighting', '75" Display Screen', 'Wireless Presentation', 'Video Conferencing System', 'Whiteboard', 'Projector', 'Screen', 'PA System' ],
+			'pw_feature_group'       => [ 'Room Features', 'Entertainment', 'Bathroom', 'Business', 'Housekeeping', 'Bedding', 'Connectivity', 'In-room', 'Climate', 'Outdoor' ],
+			'pw_nearby_type'         => [ 'Airport', 'Metro', 'Shopping', 'Park', 'Landmark', 'Attraction', 'Beach', 'Heritage', 'Market' ],
+			'pw_transport_mode'      => [ 'Walk', 'Drive', 'Taxi', 'Shuttle' ],
+			'pw_experience_category' => [ 'Cultural', 'Wellness', 'Culinary', 'Adventure', 'Nature' ],
+			'pw_event_type'          => [ 'Gala', 'Conference', 'Beach Event', 'Brunch' ],
+		]
+	);
 	foreach ( $tax_batches as $tax => $names ) {
 		foreach ( array_unique( $names ) as $name ) {
 			pw_sample_ensure_term( $name, $tax );
@@ -91,13 +142,39 @@ function pw_install_sample_dataset_multi() {
 	update_post_meta( $p1, '_pw_lat', 12.97194 );
 	update_post_meta( $p1, '_pw_lng', 77.59553 );
 	update_post_meta( $p1, '_pw_og_image', 0 );
-	update_post_meta(
+	pw_sample_install_pw_contact_rows(
 		$p1,
-		'_pw_contacts',
 		[
-			[ 'label' => 'Hotel', 'phone' => '+91-80-4123-4500', 'mobile' => '', 'whatsapp' => '', 'email' => 'reservations@leela-residency.com' ],
-			[ 'label' => 'Reservations', 'phone' => '', 'mobile' => '+91-98860-12345', 'whatsapp' => '+91-98860-12345', 'email' => 'bookings@leela-residency.com' ],
-			[ 'label' => 'Sales', 'phone' => '+91-80-4123-4520', 'mobile' => '+91-98860-67890', 'whatsapp' => '', 'email' => 'sales@leela-residency.com' ],
+			[
+				'post_title' => 'Hotel — The Leela Residency Bengaluru',
+				'label'      => 'Hotel',
+				'phone'      => '+91-80-4123-4500',
+				'mobile'     => '',
+				'whatsapp'   => '',
+				'email'      => 'reservations@leela-residency.com',
+				'scope_cpt'  => 'property',
+				'scope_id'   => 0,
+			],
+			[
+				'post_title' => 'Reservations — The Leela Residency Bengaluru',
+				'label'      => 'Reservations',
+				'phone'      => '',
+				'mobile'     => '+91-98860-12345',
+				'whatsapp'   => '+91-98860-12345',
+				'email'      => 'bookings@leela-residency.com',
+				'scope_cpt'  => 'property',
+				'scope_id'   => 0,
+			],
+			[
+				'post_title' => 'Sales — The Leela Residency Bengaluru',
+				'label'      => 'Sales',
+				'phone'      => '+91-80-4123-4520',
+				'mobile'     => '+91-98860-67890',
+				'whatsapp'   => '',
+				'email'      => 'sales@leela-residency.com',
+				'scope_cpt'  => 'property',
+				'scope_id'   => 0,
+			],
 		]
 	);
 	update_post_meta(
@@ -189,12 +266,39 @@ function pw_install_sample_dataset_multi() {
 	update_post_meta( $p2, '_pw_lat', 15.54382 );
 	update_post_meta( $p2, '_pw_lng', 73.75219 );
 	update_post_meta( $p2, '_pw_og_image', 0 );
-	update_post_meta(
+
+	$p1_prop_type = pw_sample_ensure_term( 'Hotel', 'pw_property_type' );
+	$p2_prop_type = pw_sample_ensure_term( 'Resort', 'pw_property_type' );
+	if ( $p1_prop_type ) {
+		wp_set_object_terms( $p1, array_filter( [ (int) $p1_prop_type ] ), 'pw_property_type' );
+	}
+	if ( $p2_prop_type ) {
+		wp_set_object_terms( $p2, array_filter( [ (int) $p2_prop_type ] ), 'pw_property_type' );
+	}
+
+	pw_sample_install_pw_contact_rows(
 		$p2,
-		'_pw_contacts',
 		[
-			[ 'label' => 'Hotel', 'phone' => '+91-832-2276-400', 'mobile' => '', 'whatsapp' => '', 'email' => 'hello@seawindgoa.com' ],
-			[ 'label' => 'Reservations', 'phone' => '', 'mobile' => '+91-97650-44321', 'whatsapp' => '+91-97650-44321', 'email' => 'stay@seawindgoa.com' ],
+			[
+				'post_title' => 'Hotel — Seawind Resort Goa',
+				'label'      => 'Hotel',
+				'phone'      => '+91-832-2276-400',
+				'mobile'     => '',
+				'whatsapp'   => '',
+				'email'      => 'hello@seawindgoa.com',
+				'scope_cpt'  => 'property',
+				'scope_id'   => 0,
+			],
+			[
+				'post_title' => 'Reservations — Seawind Resort Goa',
+				'label'      => 'Reservations',
+				'phone'      => '',
+				'mobile'     => '+91-97650-44321',
+				'whatsapp'   => '+91-97650-44321',
+				'email'      => 'stay@seawindgoa.com',
+				'scope_cpt'  => 'property',
+				'scope_id'   => 0,
+			],
 		]
 	);
 	update_post_meta(

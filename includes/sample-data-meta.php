@@ -27,6 +27,7 @@ function pw_get_sample_data_post_types_for_meta() {
 		'pw_nearby',
 		'pw_experience',
 		'pw_event',
+		'pw_contact',
 	];
 }
 
@@ -168,6 +169,7 @@ function pw_get_plugin_post_types() {
 		'pw_nearby',
 		'pw_experience',
 		'pw_event',
+		'pw_contact',
 	];
 }
 

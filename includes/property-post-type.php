@@ -147,33 +147,6 @@ function pw_register_property_post_meta() {
 		'show_in_rest' => true,
 		'default'      => 0,
 	] );
-
-	register_post_meta( 'pw_property', '_pw_url_slug', [
-		'type'         => 'string',
-		'single'       => true,
-		'show_in_rest' => true,
-		'default'      => '',
-	] );
-
-	register_post_meta( 'pw_property', '_pw_contacts', [
-		'type'         => 'array',
-		'single'       => true,
-		'show_in_rest' => [
-			'schema' => [
-				'type'  => 'array',
-				'items' => [
-					'type'       => 'object',
-					'properties' => [
-						'label'    => [ 'type' => 'string' ],
-						'phone'    => [ 'type' => 'string' ],
-						'mobile'   => [ 'type' => 'string' ],
-						'whatsapp' => [ 'type' => 'string' ],
-						'email'    => [ 'type' => 'string' ],
-					],
-				],
-			],
-		],
-	] );
 }
 
 // Override viewable so builders (GenerateBlocks) discover pw_property even when publicly_queryable is false.

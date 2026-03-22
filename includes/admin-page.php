@@ -135,6 +135,7 @@ add_action('admin_menu', function () {
 	add_submenu_page( pw_admin_page_slug(), 'Restaurants',   'Restaurants',   'manage_options', 'edit.php?post_type=pw_restaurant' );
 	add_submenu_page( pw_admin_page_slug(), 'Spas',          'Spas',          'manage_options', 'edit.php?post_type=pw_spa' );
 	add_submenu_page( pw_admin_page_slug(), 'Meeting Rooms', 'Meeting Rooms', 'manage_options', 'edit.php?post_type=pw_meeting_room' );
+	add_submenu_page( pw_admin_page_slug(), 'Contacts',      'Contacts',      'manage_options', 'edit.php?post_type=pw_contact' );
 	add_submenu_page( pw_admin_page_slug(), 'Amenities',     'Amenities',     'manage_options', 'edit.php?post_type=pw_amenity' );
 	add_submenu_page( pw_admin_page_slug(), 'Policies',      'Policies',      'manage_options', 'edit.php?post_type=pw_policy' );
 
@@ -174,14 +175,13 @@ function pw_get_merged_pw_settings() {
 		'pw_property_mode'            => 'single',
 		'pw_property_base'            => 'properties',
 		'pw_default_property_id'      => 0,
-		'pw_default_template'         => '',
 		'pw_github_releases_url'      => '',
 		'pw_permalink_base_source'    => 'fixed',
 		'pw_permalink_base_fixed'     => '',
-		'pw_permalink_slug_source'    => 'post_name',
 		'pw_permalink_subpaths'       => [],
 	];
 	$out = wp_parse_args( $raw, $defaults );
+	unset( $out['pw_permalink_slug_source'] );
 	if ( empty( $raw['pw_permalink_base_fixed'] ) && ! empty( $out['pw_property_base'] ) ) {
 		$out['pw_permalink_base_fixed'] = $out['pw_property_base'];
 	}
@@ -257,7 +257,7 @@ function pw_handle_settings_save() {
 
 	$settings                          = $existing;
 	$settings['pw_property_mode']      = $mode;
-	$settings['pw_default_template']   = sanitize_text_field( wp_unslash( $_POST['pw_default_template'] ?? '' ) );
+	unset( $settings['pw_default_template'] );
 	$settings['pw_github_releases_url'] = pw_sanitize_github_releases_url( wp_unslash( $_POST['pw_github_releases_url'] ?? '' ) );
 	$settings['pw_default_property_id'] = $mode === 'single' ? (int) ( $_POST['pw_default_property_id'] ?? 0 ) : 0;
 
@@ -415,11 +415,6 @@ function pw_render_root_page() {
 		echo '<tr><th scope="row">' . esc_html('Property URLs') . '</th><td>';
 		echo '<p class="description">' . esc_html('Multi-property URL base, slug source, and sub-paths (e.g. fact sheet) are configured under the Permalinks tab.') . ' ';
 		echo '<a href="' . esc_url( pw_admin_permalinks_url() ) . '">' . esc_html('Open Permalinks') . '</a></p>';
-		echo '</td></tr>';
-
-		echo '<tr><th scope="row"><label for="pw_default_template">' . esc_html('Default Template') . '</label></th><td>';
-		echo '<input type="text" class="regular-text" name="pw_default_template" id="pw_default_template" value="' . esc_attr((string) pw_get_setting('pw_default_template')) . '" placeholder="' . esc_attr('e.g. default') . '" />';
-		echo '<p class="description">' . esc_html('Template slug used for front-end rendering. Applied across all properties.') . '</p>';
 		echo '</td></tr>';
 
 		echo '<tr><th scope="row"><label for="pw_github_releases_url">' . esc_html('GitHub releases URL') . '</label></th><td>';

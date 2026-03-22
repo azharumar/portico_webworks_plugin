@@ -25,7 +25,6 @@ function pw_get_property_profile( $property_id = null ) {
 		'postal_code'        => '_pw_postal_code',
 		'country'            => '_pw_country',
 		'country_code'       => '_pw_country_code',
-		'contacts'           => '_pw_contacts',
 		'lat'                => '_pw_lat',
 		'lng'                => '_pw_lng',
 		'google_place_id'    => '_pw_google_place_id',
@@ -42,6 +41,9 @@ function pw_get_property_profile( $property_id = null ) {
 	foreach ( $keys as $label => $meta_key ) {
 		$profile[ $label ] = get_post_meta( (int) $id, $meta_key, true );
 	}
+
+	// TODO: verify scope_cpt and scope_id are correct for this context
+	$profile['contacts'] = pw_resolve_contact( 'property', 0, (int) $id );
 
 	return $profile;
 }
@@ -123,7 +125,7 @@ function pw_get_base_segment_for_property( $property_id ) {
 }
 
 /**
- * Property slug used in URLs (post_name or _pw_url_slug).
+ * Property slug used in URLs (post_name).
  *
  * @param int $property_id Property post ID.
  * @return string
@@ -132,12 +134,6 @@ function pw_get_property_slug( $property_id ) {
 	$property_id = (int) $property_id;
 	if ( $property_id <= 0 ) {
 		return '';
-	}
-	if ( pw_get_permalink_slug_source() === '_pw_url_slug' ) {
-		$custom = get_post_meta( $property_id, '_pw_url_slug', true );
-		if ( is_string( $custom ) && $custom !== '' ) {
-			return sanitize_title( $custom );
-		}
 	}
 	$name = get_post_field( 'post_name', $property_id );
 
@@ -152,25 +148,6 @@ function pw_resolve_property_id_by_slug_segment( $slug ) {
 	$slug = sanitize_title( (string) $slug );
 	if ( $slug === '' ) {
 		return null;
-	}
-	if ( pw_get_permalink_slug_source() === '_pw_url_slug' ) {
-		$by_meta = get_posts(
-			[
-				'post_type'      => 'pw_property',
-				'post_status'    => 'publish',
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-				'meta_query'     => [
-					[
-						'key'   => '_pw_url_slug',
-						'value' => $slug,
-					],
-				],
-			]
-		);
-		if ( ! empty( $by_meta ) ) {
-			return (int) $by_meta[0];
-		}
 	}
 	$by_name = get_posts(
 		[
@@ -631,6 +608,54 @@ function pw_filter_generateblocks_query_display_order_and_policy_active( $query_
 }
 
 add_filter( 'generateblocks_query_loop_args', 'pw_filter_generateblocks_query_display_order_and_policy_active', 11, 2 );
+
+/**
+ * Fact-sheet style queries: limit pw_contact to property-scoped rows when block requests it.
+ */
+function pw_filter_generateblocks_query_pw_contact_property_scope( $query_args, $attributes ) {
+	if ( ! is_array( $query_args ) || ! is_array( $attributes ) ) {
+		return $query_args;
+	}
+	if ( ! pw_gb_query_should_scope_to_property( $attributes ) ) {
+		return $query_args;
+	}
+	$cn = isset( $attributes['className'] ) ? (string) $attributes['className'] : '';
+	if ( strpos( $cn, 'pw-gb-contact-filter-property' ) === false ) {
+		return $query_args;
+	}
+	$pt = $query_args['post_type'] ?? '';
+	if ( is_array( $pt ) ) {
+		$pt = count( $pt ) === 1 ? (string) reset( $pt ) : '';
+	} else {
+		$pt = (string) $pt;
+	}
+	if ( $pt !== 'pw_contact' ) {
+		return $query_args;
+	}
+	$scope_clause = [
+		'key'     => '_pw_scope_cpt',
+		'value'   => 'property',
+		'compare' => '=',
+	];
+	$existing = isset( $query_args['meta_query'] ) && is_array( $query_args['meta_query'] ) ? $query_args['meta_query'] : [];
+	$merged   = [ 'relation' => 'AND' ];
+	if ( ! empty( $existing ) ) {
+		if ( isset( $existing['relation'] ) ) {
+			$merged[] = $existing;
+		} else {
+			foreach ( $existing as $piece ) {
+				if ( is_array( $piece ) && isset( $piece['key'] ) ) {
+					$merged[] = $piece;
+				}
+			}
+		}
+	}
+	$merged[]                 = $scope_clause;
+	$query_args['meta_query'] = $merged;
+	return $query_args;
+}
+
+add_filter( 'generateblocks_query_loop_args', 'pw_filter_generateblocks_query_pw_contact_property_scope', 12, 2 );
 
 /**
  * IANA timezone for interpreting pw_event local datetimes (linked property, else WP timezone).

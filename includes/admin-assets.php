@@ -55,7 +55,7 @@ add_action(
 
 add_action('admin_enqueue_scripts', function ($hook_suffix) {
 	$screen = get_current_screen();
-	$pw_cpts = [ 'pw_feature', 'pw_room_type', 'pw_restaurant', 'pw_spa', 'pw_meeting_room', 'pw_amenity', 'pw_policy', 'pw_faq', 'pw_offer', 'pw_nearby', 'pw_experience', 'pw_event', 'pw_property' ];
+	$pw_cpts = [ 'pw_feature', 'pw_room_type', 'pw_restaurant', 'pw_spa', 'pw_meeting_room', 'pw_amenity', 'pw_policy', 'pw_faq', 'pw_offer', 'pw_nearby', 'pw_experience', 'pw_event', 'pw_property', 'pw_contact' ];
 	$is_pw_cpt = $screen && in_array( $screen->post_type ?? '', $pw_cpts, true );
 	$is_pw_tax = $screen && ( $screen->taxonomy ?? '' ) !== '' && strpos( $screen->taxonomy, 'pw_' ) === 0;
 

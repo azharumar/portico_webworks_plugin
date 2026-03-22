@@ -2,7 +2,7 @@
 
 ## Overview
 
-The plugin registers **1 primary post type** (`pw_property`) and **12 child post types**. Child CPTs are linked to a property via a `_pw_property_id` meta field (or `_pw_connected_to` / `_pw_parents` where applicable). All CPTs expose data via the REST API (`show_in_rest: true`).
+The plugin registers **1 primary post type** (`pw_property`) and **13 child post types**. Child CPTs are linked to a property via a `_pw_property_id` meta field (or `_pw_connected_to` / `_pw_parents` where applicable). All CPTs expose data via the REST API (`show_in_rest: true`).
 
 Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** for the property profile (`includes/property-profile.php`). CMB2 is bundled in `vendor/cmb2/` and its top-level admin menu is suppressed via the `cmb2_menus` filter.
 
@@ -60,17 +60,9 @@ Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** fo
 | `_pw_country_code`   | string | `''`    | ISO 3166-1 alpha-2 (schema.org) | Custom metabox                              |
 
 
-#### Contacts (`_pw_contacts`) — repeatable group
+#### Contacts
 
-
-| Field      | Type   | Notes                           | CMB2                         |
-| ---------- | ------ | ------------------------------- | ---------------------------- |
-| `label`    | string | e.g. Hotel, Reservations, Sales | CMB2: `pw_property_contacts` |
-| `phone`    | string |                                 |                              |
-| `mobile`   | string |                                 |                              |
-| `whatsapp` | string |                                 |                              |
-| `email`    | string |                                 |                              |
-
+Contact rows are **not** stored on the property. Use the `pw_contact` CPT and `pw_resolve_contact()` (see `includes/contact-resolver.php` and the **`pw_contact`** section below). `pw_get_property_profile()['contacts']` returns resolved property-scoped contacts for the given property ID.
 
 #### Geo
 
@@ -308,6 +300,29 @@ Same storage and REST registration pattern as restaurant. CMB2: `pw_spa_operatin
 
 ---
 
+## Post Type: `pw_contact`
+
+**REST base:** `pw-contacts`  
+**Supports:** `title`, `custom-fields`  
+**Public:** `false` (UI under Portico Webworks → Contacts)
+
+Scoped contact cards for a property: outlet-specific, group-level per CPT, or property-wide fallback. **Read paths** must use `pw_resolve_contact()` / `pw_resolve_primary_contact()` — see `includes/contact-resolver.php`.
+
+| Meta Key           | Type    | Default    | Notes                                                                 | CMB2                          |
+| ------------------ | ------- | ---------- | --------------------------------------------------------------------- | ----------------------------- |
+| `_pw_property_id`  | integer | `0`        | Required FK → `pw_property`                                           | `pw_contact_metabox` (select) |
+| `_pw_label`        | string  | `''`       | Display label (e.g. Reservations)                                     | text                          |
+| `_pw_phone`        | string  | `''`       |                                                                       | text_small                    |
+| `_pw_mobile`       | string  | `''`       |                                                                       | text_small                    |
+| `_pw_whatsapp`     | string  | `''`       |                                                                       | text_small                    |
+| `_pw_email`        | string  | `''`       |                                                                       | text_email                    |
+| `_pw_scope_cpt`    | string  | `property` | One of `PW_CONTACT_SCOPE_CPTS`: property, restaurant, spa, meeting_room, experience, all | select                        |
+| `_pw_scope_id`     | integer | `0`        | Outlet post ID or `0` for group-level; cleared when scope is property/all | select (JS-filled)        |
+
+**REST (custom):** `GET /wp-json/pw/v1/contacts?property_id=&scope_cpt=&scope_id=` — resolved contacts (`edit_posts`). `GET /wp-json/pw/v1/contact-scope-posts?property_id=&post_type=` — outlet picker for admin JS.
+
+---
+
 ## Post Type: `pw_policy`
 
 **Supports:** `title`, `editor`, `custom-fields`  
@@ -493,7 +508,7 @@ Canonical lists live in `includes/taxonomy-seeds.php` (`pw_get_taxonomy_seed_ter
 
 **Taxonomies seeded (all optional names in code):** `pw_property_type`, `pw_policy_type`, `pw_bed_type`, `pw_view_type`, `pw_meal_period`, `pw_treatment_type`, `pw_av_equipment`, `pw_feature_group`, `pw_nearby_type`, `pw_transport_mode`, `pw_experience_category`, `pw_event_type`.
 
-Rationale and historical notes: `[TAXONOMY-SEED-VALUES.md](TAXONOMY-SEED-VALUES.md)`.
+The **Sample Data** installer (`includes/sample-data-multi-install.php`) merges in the full `pw_get_taxonomy_seed_terms()` arrays for `pw_property_type` and `pw_policy_type`, then ensures additional demo-only names; it assigns **Hotel** / **Resort** on the two demo properties. Canonical term tables and demo-term notes: `[TAXONOMY-SEED-VALUES.md](TAXONOMY-SEED-VALUES.md)`.
 
 #### Not seeded automatically
 
@@ -557,6 +572,7 @@ pw_property (1)
   ├── pw_restaurant      (_pw_property_id)
   ├── pw_spa             (_pw_property_id)
   ├── pw_meeting_room    (_pw_property_id)
+  ├── pw_contact         (_pw_property_id; optional _pw_scope_id → outlet CPT)
   ├── pw_amenity         (_pw_property_id)
   ├── pw_policy          (_pw_property_id)
   ├── pw_nearby          (_pw_property_id)

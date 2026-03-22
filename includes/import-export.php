@@ -35,6 +35,7 @@ function pw_render_import_export_section() {
 		'pw_nearby',
 		'pw_experience',
 		'pw_event',
+		'pw_contact',
 	];
 
 	$type_labels = [
@@ -51,6 +52,7 @@ function pw_render_import_export_section() {
 		'pw_nearby'       => 'Nearby Locations',
 		'pw_experience'   => 'Experiences',
 		'pw_event'        => 'Events',
+		'pw_contact'      => 'Contacts',
 	];
 
 	pw_data_accordion_item_begin( 'Import / Export' );
@@ -109,7 +111,7 @@ function pw_handle_export() {
 	$allowed   = [
 		'pw_property', 'pw_room_type', 'pw_restaurant', 'pw_spa',
 		'pw_meeting_room', 'pw_amenity', 'pw_policy', 'pw_faq', 'pw_feature',
-		'pw_offer', 'pw_nearby', 'pw_experience', 'pw_event',
+		'pw_offer', 'pw_nearby', 'pw_experience', 'pw_event', 'pw_contact',
 	];
 
 	if ( ! in_array( $post_type, $allowed, true ) ) {
@@ -185,7 +187,7 @@ function pw_handle_import() {
 	$allowed = [
 		'pw_property', 'pw_room_type', 'pw_restaurant', 'pw_spa',
 		'pw_meeting_room', 'pw_amenity', 'pw_policy', 'pw_faq', 'pw_feature',
-		'pw_offer', 'pw_nearby', 'pw_experience', 'pw_event',
+		'pw_offer', 'pw_nearby', 'pw_experience', 'pw_event', 'pw_contact',
 	];
 
 	if ( ! in_array( $post_type, $allowed, true ) ) {

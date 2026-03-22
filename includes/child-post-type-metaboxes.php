@@ -904,46 +904,6 @@ function pw_register_spa_operating_hours_metabox() {
 }
 
 // ---------------------------------------------------------------------------
-// pw_property: Contacts meta box
-// ---------------------------------------------------------------------------
-
-add_action( 'cmb2_admin_init', 'pw_register_property_contacts_metabox' );
-
-function pw_register_property_contacts_metabox() {
-	$cmb = new_cmb2_box( [
-		'id'           => 'pw_property_contacts',
-		'title'        => 'Contacts',
-		'object_types' => [ 'pw_property' ],
-		'context'      => 'normal',
-		'priority'     => 'high',
-	] );
-
-	$cmb->add_field( [
-		'name'       => 'Contacts',
-		'id'         => '_pw_contacts',
-		'type'       => 'group',
-		'repeatable' => true,
-		'options'    => [
-			'group_title'   => 'Contact {#}',
-			'add_button'    => 'Add Contact',
-			'remove_button' => 'Remove Contact',
-		],
-		'fields' => [
-			[
-				'name' => 'Label',
-				'id'   => 'label',
-				'type' => 'text_small',
-				'desc' => 'e.g. Hotel, Reservations, Sales, Spa, Restaurant',
-			],
-			[ 'name' => 'Phone',    'id' => 'phone',    'type' => 'text_small' ],
-			[ 'name' => 'Mobile',   'id' => 'mobile',   'type' => 'text_small' ],
-			[ 'name' => 'WhatsApp', 'id' => 'whatsapp', 'type' => 'text_small' ],
-			[ 'name' => 'Email',    'id' => 'email',    'type' => 'text' ],
-		],
-	] );
-}
-
-// ---------------------------------------------------------------------------
 // pw_property: Sustainability meta box
 // ---------------------------------------------------------------------------
 

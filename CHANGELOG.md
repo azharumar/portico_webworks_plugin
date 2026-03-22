@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.8.15] - 2026-03-22
+
+### Added
+- **`pw_contact` CPT** (`rest_base` `pw-contacts`): scoped contact cards per property (outlet-specific, group-level by CPT, or property fallback); CMB2 metabox `pw_contact_metabox`; admin submenu under Portico Webworks; `assets/admin-contact-scope.js` + `GET /wp-json/pw/v1/contact-scope-posts` for outlet select
+- **`includes/contact-resolver.php`**: `PW_CONTACT_SCOPE_CPTS`, `pw_resolve_contact()`, `pw_resolve_primary_contact()`, file-level contract PHPDoc; **`GET /wp-json/pw/v1/contacts`** (`edit_posts`) returns resolved contacts
+- **`before_delete_post`**: when `pw_restaurant`, `pw_spa`, `pw_meeting_room`, or `pw_experience` is deleted, matching `pw_contact` rows demote `_pw_scope_id` to `0` and prefix `[Unlinked]` on `_pw_label`
+- **GenerateBlocks**: query filter `pw-gb-contact-filter-property` limits `pw_contact` queries to `_pw_scope_cpt = property` when combined with `pw-gb-scope-property` (fact-sheet style)
+
+### Changed
+- **Contacts**: removed property repeatable `_pw_contacts` / `pw_property_contacts`; `pw_get_property_profile()['contacts']` uses `pw_resolve_contact( 'property', 0, $id )` (TODO comments for audit)
+- **Sample data**: `pw_contact` rows for demo properties; installer merges full **`pw_property_type`** and **`pw_policy_type`** seed lists from `pw_get_taxonomy_seed_terms()`, assigns **Hotel** / **Resort** on the two demo properties; Data tab copy updated
+- **`pw_contact`** in import/export, sample-data meta registration, purge post-type list, admin CMB2 styling scope, `DATA-STRUCTURE.md`, **`TAXONOMY-SEED-VALUES.md`** (canonical mirror of seeds + demo-term notes)
+- **Fact sheet markup** (`tools/generate-gb-fact-sheet-markup.py`, `gb-pro-markup-samples.html`): Contacts section queries `pw_contact` with scoped classes and `_pw_label` / channel meta
+
+### Removed
+- **Meeting rooms**: `_pw_sales_phone`, `_pw_sales_mobile`, `_pw_sales_whatsapp`, `_pw_sales_email` (CMB2, REST registration, sample data, GB samples / generator)
+
 ## [0.8.14] - 2026-03-22
 
 ### Added

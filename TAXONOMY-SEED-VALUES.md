@@ -1,20 +1,52 @@
-# Taxonomy Seed Values (Pre-load at Install)
+# Taxonomy seed values (canonical)
 
-Taxonomies that can have default terms created when the plugin is installed. Values are industry-standard and optional; admins can add, edit, or remove terms after install.
+**Source of truth:** `includes/taxonomy-seeds.php` — function `pw_get_taxonomy_seed_terms()`.
 
----
+On install / “Add default terms” / “Reinstall default taxonomy terms”, `pw_seed_taxonomy_terms()` inserts each name only if `term_exists()` is false (nothing removed or renamed).
 
-## Already Implemented
-
-### `pw_policy_type` (Policy Types)
-- Check-in, Check-out, Cancellation, Pet, Child, Payment, Smoking  
-- *Consider adding:* Custom
+`DATA-STRUCTURE.md` describes how seeding interacts with options and admin notices.
 
 ---
 
-## Proposed for Pre-load
+## `pw_property_type` — `pw_property`
 
-### `pw_bed_type` (Bed Types) — `pw_room_type`
+| Term |
+|------|
+| Hotel |
+| Resort |
+| Boutique Hotel |
+| Motel |
+| Lodge |
+| Inn |
+| Bed & Breakfast |
+| Villa |
+| Apartments |
+| Hostel |
+| Serviced Apartment |
+| Guest House |
+| Ranch |
+| Cabin |
+| Camp |
+
+---
+
+## `pw_policy_type` — `pw_policy`
+
+| Term |
+|------|
+| Check-in |
+| Check-out |
+| Cancellation |
+| Pet |
+| Child |
+| Payment |
+| Smoking |
+| Custom |
+
+---
+
+## `pw_bed_type` — `pw_room_type`
+
 | Term |
 |------|
 | Twin |
@@ -30,7 +62,8 @@ Taxonomies that can have default terms created when the plugin is installed. Val
 
 ---
 
-### `pw_view_type` (View Types) — `pw_room_type`
+## `pw_view_type` — `pw_room_type`
+
 | Term |
 |------|
 | Ocean |
@@ -48,7 +81,8 @@ Taxonomies that can have default terms created when the plugin is installed. Val
 
 ---
 
-### `pw_meal_period` (Meal Periods) — `pw_restaurant`
+## `pw_meal_period` — `pw_restaurant`
+
 | Term |
 |------|
 | Breakfast |
@@ -62,7 +96,8 @@ Taxonomies that can have default terms created when the plugin is installed. Val
 
 ---
 
-### `pw_treatment_type` (Treatment Types) — `pw_spa`
+## `pw_treatment_type` — `pw_spa`
+
 | Term |
 |------|
 | Massage |
@@ -81,7 +116,8 @@ Taxonomies that can have default terms created when the plugin is installed. Val
 
 ---
 
-### `pw_av_equipment` (AV Equipment) — `pw_meeting_room`
+## `pw_av_equipment` — `pw_meeting_room`
+
 | Term |
 |------|
 | Projector |
@@ -97,7 +133,8 @@ Taxonomies that can have default terms created when the plugin is installed. Val
 
 ---
 
-### `pw_feature_group` (Feature Groups) — `pw_feature`
+## `pw_feature_group` — `pw_feature`
+
 | Term |
 |------|
 | Bedding |
@@ -110,7 +147,8 @@ Taxonomies that can have default terms created when the plugin is installed. Val
 
 ---
 
-### `pw_nearby_type` (Location Types) — `pw_nearby`
+## `pw_nearby_type` — `pw_nearby`
+
 | Term |
 |------|
 | Beach |
@@ -128,7 +166,8 @@ Taxonomies that can have default terms created when the plugin is installed. Val
 
 ---
 
-### `pw_transport_mode` (Transport Modes) — `pw_nearby`
+## `pw_transport_mode` — `pw_nearby`
+
 | Term |
 |------|
 | Walk |
@@ -141,7 +180,8 @@ Taxonomies that can have default terms created when the plugin is installed. Val
 
 ---
 
-### `pw_experience_category` (Experience Categories) — `pw_experience`
+## `pw_experience_category` — `pw_experience`
+
 | Term |
 |------|
 | Adventure |
@@ -157,7 +197,8 @@ Taxonomies that can have default terms created when the plugin is installed. Val
 
 ---
 
-### `pw_event_type` (Event Types) — `pw_event`
+## `pw_event_type` — `pw_event`
+
 | Term |
 |------|
 | Wedding |
@@ -173,8 +214,18 @@ Taxonomies that can have default terms created when the plugin is installed. Val
 
 ---
 
-## Not Recommended for Pre-load
+## Not in seed lists (by design)
 
-| Taxonomy | Reason |
-|----------|--------|
-| `pw_event_organiser` | Property-specific; organisers vary per property and event |
+| Item | Reason |
+|------|--------|
+| `pw_event_organiser` | Property- and brand-specific; sample data creates e.g. “Portico Demo Events” ad hoc |
+
+---
+
+## Sample data installer — extra terms
+
+`includes/sample-data-multi-install.php` calls `pw_get_taxonomy_seed_terms()` so **all** rows above exist, then ensures **additional** names used only in the demo (e.g. “City View”, “LED Screen”, “Metro”, “Sunday Brunch”, “Beach Event”). Those extra names are **not** removed when you reinstall seeds; they are created as needed and may be tagged as sample data when not matching a seed name (see `pw_sample_ensure_term()` in `includes/sample-data.php`).
+
+Demo properties are assigned **`pw_property_type`**: Bengaluru → **Hotel**, Goa → **Resort** (both are seed values).
+
+Contacts are **`pw_contact` posts**, not property meta — see `DATA-STRUCTURE.md` and `includes/contact-resolver.php`.

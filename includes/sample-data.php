@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -65,7 +65,7 @@ function pw_render_data_tab() {
 	$flagged       = pw_count_sample_flagged_items();
 
 	pw_data_accordion_item_begin( 'Sample content' );
-	echo '<p>Install two sample hotel properties (Bengaluru business hotel and Goa beach resort) with room types, dining, spa, amenities, policies, FAQs, offers, and more. Use this on a fresh site for testing or demonstration.</p>';
+	echo '<p>Install two sample hotel properties (Bengaluru business hotel and Goa beach resort) with room types, dining, spas, meeting rooms, property contacts (<code>pw_contact</code>), amenities, policies, FAQs, offers, and related content. Creates every name from the plugin&rsquo;s default taxonomy seed lists (<code>includes/taxonomy-seeds.php</code>) and adds extra demo-only terms where the story needs them. Use on a fresh site for testing or demonstration.</p>';
 
 	if ( ! empty( $has_properties ) ) {
 		echo '<p><strong>Sample data can only be installed when no properties exist.</strong> Delete existing properties first if you want to reinstall.</p>';
