@@ -23,10 +23,11 @@ function pw_register_property_post_type() {
 		],
 
 		// mode-dependent: `public` true so REST exposes permalink_template / slug UI; front queries only when multi.
+		// `rewrite` false: permastruct `pw_register_property_permastruct` supplies URL shape; avoids Core duplicate rules.
 		'public'             => true,
 		'publicly_queryable' => $is_multi,
 		'show_in_nav_menus'  => $is_multi,
-		'rewrite'            => $is_multi ? [ 'slug' => '', 'with_front' => false ] : false,
+		'rewrite'            => false,
 		'query_var'          => $is_multi ? 'pw_property' : false,
 
 		// always on
@@ -176,7 +177,63 @@ function pw_register_page_property_scope_meta() {
 	);
 }
 
+function pw_register_property_permastruct(): void {
+	add_permastruct(
+		'pw_property',
+		'/%postname%',
+		[
+			'with_front' => false,
+			'ep_mask'    => EP_NONE,
+			'paged'      => false,
+			'feed'       => false,
+			'forpage'    => false,
+			'walk_dirs'  => false,
+		]
+	);
+}
+
 add_action( 'init', 'pw_register_property_post_type', 10 );
+add_action( 'init', 'pw_register_property_permastruct', 12 );
 add_action( 'init', 'pw_register_property_post_meta' );
 add_action( 'init', 'pw_register_page_property_scope_meta', 11 );
+
+add_filter( 'post_type_link', 'pw_property_post_type_link', 15, 2 );
+
+/**
+ * @param string  $post_link Permalink for the post.
+ * @param WP_Post $post      Post object.
+ * @return string
+ */
+function pw_property_post_type_link( $post_link, $post ) {
+	if ( ! $post instanceof WP_Post || $post->post_type !== 'pw_property' ) {
+		return $post_link;
+	}
+	$name = $post->post_name;
+	if ( ! is_string( $name ) || $name === '' ) {
+		return untrailingslashit( $post_link );
+	}
+
+	return untrailingslashit( home_url( '/' . sanitize_title( $name ) ) );
+}
+
+add_filter( 'get_sample_permalink', 'pw_property_get_sample_permalink', 15, 5 );
+
+/**
+ * @param array   $permalink [ template, post_name ].
+ * @param int     $post_id   Post ID.
+ * @param ?string $title     Title override.
+ * @param ?string $name      Name override.
+ * @param WP_Post $post      Post object.
+ * @return array
+ */
+function pw_property_get_sample_permalink( $permalink, $post_id, $title, $name, $post ) {
+	if ( ! $post instanceof WP_Post || $post->post_type !== 'pw_property' ) {
+		return $permalink;
+	}
+	if ( ! is_array( $permalink ) || ! isset( $permalink[0] ) ) {
+		return $permalink;
+	}
+	$permalink[0] = untrailingslashit( home_url( '/%postname%' ) );
+	return $permalink;
+}
 

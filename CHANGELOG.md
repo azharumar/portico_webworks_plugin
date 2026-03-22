@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.28] - 2026-03-23
+
+### Added
+- **`pw_property` permastruct** (`pw_register_property_permastruct` on `init` priority 12): `/%postname%` with `rewrite` false on the CPT; `post_type_link` and `get_sample_permalink` filters (priority 15) for root `/{property-slug}` URLs and block editor slug panel
+- **Outlet permalink live preview**: `assets/admin-outlet-permalink.js` + `pw_get_cpt_rest_base()`; REST `rest_prepare_{$cpt}` with `pw_property_id_preview` updates `link` and `permalink_template` when the Property select changes on section CPT edit screens
+
+### Changed
+- After upgrading, **flush rewrite rules once** (e.g. **Settings → Permalinks** → **Save Changes**) so the `pw_property` permastruct rules are written.
+
 ## [0.8.27] - 2026-03-23
 
 ### Added

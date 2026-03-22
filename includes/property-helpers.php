@@ -249,6 +249,86 @@ function pw_get_outlet_url( $outlet_post_id ) {
 }
 
 /**
+ * REST collection route segment for a post type (e.g. wp/v2/{base}/id).
+ */
+function pw_get_cpt_rest_base( string $cpt ): string {
+	$pto = get_post_type_object( $cpt );
+	if ( ! $pto ) {
+		return '';
+	}
+	return ! empty( $pto->rest_base ) ? (string) $pto->rest_base : $cpt;
+}
+
+/**
+ * When ?pw_property_id_preview= is set, adjust REST link (and template) for outlet permalink preview in the editor.
+ *
+ * @param WP_REST_Response $response Response.
+ * @param WP_Post          $post     Post.
+ * @param WP_REST_Request  $request  Request.
+ * @return WP_REST_Response
+ */
+function pw_rest_outlet_permalink_preview( $response, $post, $request ) {
+	if ( ! $response instanceof WP_REST_Response || ! $post instanceof WP_Post || ! $request instanceof WP_REST_Request ) {
+		return $response;
+	}
+	$preview_pid = (int) $request->get_param( 'pw_property_id_preview' );
+	if ( $preview_pid <= 0 ) {
+		return $response;
+	}
+
+	$property = get_post( $preview_pid );
+	if (
+		! $property instanceof WP_Post ||
+		$property->post_type !== 'pw_property' ||
+		$property->post_status !== 'publish'
+	) {
+		return $response;
+	}
+
+	$singular = pw_get_section_base( $post->post_type, 'singular' );
+	if ( $singular === '' ) {
+		return $response;
+	}
+
+	$mode = pw_get_setting( 'pw_property_mode', 'single' );
+	$slug = sanitize_title( (string) $post->post_name );
+	if ( $slug === '' ) {
+		return $response;
+	}
+
+	if ( $mode === 'single' ) {
+		$url      = untrailingslashit( home_url( '/' . $singular . '/' . $slug ) );
+		$template = untrailingslashit( home_url( '/' . $singular . '/%postname%' ) );
+	} else {
+		$prop_seg = sanitize_title( (string) $property->post_name );
+		if ( $prop_seg === '' ) {
+			return $response;
+		}
+		$url      = untrailingslashit( home_url( '/' . $prop_seg . '/' . $singular . '/' . $slug ) );
+		$template = untrailingslashit( home_url( '/' . $prop_seg . '/' . $singular . '/%postname%' ) );
+	}
+
+	$data = $response->get_data();
+	if ( ! is_array( $data ) ) {
+		return $response;
+	}
+	$data['link']               = $url;
+	$data['permalink_template'] = $template;
+	$response->set_data( $data );
+	return $response;
+}
+
+add_action(
+	'init',
+	static function () {
+		foreach ( pw_url_section_cpts() as $cpt ) {
+			add_filter( "rest_prepare_{$cpt}", 'pw_rest_outlet_permalink_preview', 10, 3 );
+		}
+	},
+	20
+);
+
+/**
  * @deprecated Routing uses query vars; kept for code that still calls this.
  */
 function pw_resolve_property_id_from_url() {

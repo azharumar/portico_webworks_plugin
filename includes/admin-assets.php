@@ -53,6 +53,40 @@ add_action(
 	20
 );
 
+add_action(
+	'admin_enqueue_scripts',
+	static function () {
+		if ( ! defined( 'PW_PLUGIN_FILE' ) ) {
+			return;
+		}
+		$screen = get_current_screen();
+		if (
+			! $screen ||
+			$screen->base !== 'post' ||
+			! in_array( $screen->post_type, pw_url_section_cpts(), true )
+		) {
+			return;
+		}
+		wp_enqueue_script(
+			'pw-admin-outlet-permalink',
+			plugins_url( 'assets/admin-outlet-permalink.js', PW_PLUGIN_FILE ),
+			[ 'wp-dom-ready', 'wp-api-fetch', 'wp-data' ],
+			defined( 'PW_VERSION' ) ? PW_VERSION : '1',
+			true
+		);
+		$rest_base = pw_get_cpt_rest_base( $screen->post_type );
+		wp_localize_script(
+			'pw-admin-outlet-permalink',
+			'pwOutletPermalink',
+			[
+				'postId'   => (int) get_the_ID(),
+				'restBase' => $rest_base,
+			]
+		);
+	},
+	25
+);
+
 add_action('admin_enqueue_scripts', function ($hook_suffix) {
 	$screen = get_current_screen();
 	$pw_cpts = [ 'pw_feature', 'pw_room_type', 'pw_restaurant', 'pw_spa', 'pw_meeting_room', 'pw_amenity', 'pw_policy', 'pw_faq', 'pw_offer', 'pw_nearby', 'pw_experience', 'pw_event', 'pw_property', 'pw_contact' ];
