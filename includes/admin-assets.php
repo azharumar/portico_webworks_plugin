@@ -73,6 +73,17 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 		return;
 	}
 
+	$tab = isset( $_GET['tab'] ) ? sanitize_key( (string) $_GET['tab'] ) : '';
+	if ( ( $tab === '' || $tab === 'settings' ) && defined( 'PW_PLUGIN_FILE' ) ) {
+		wp_enqueue_script(
+			'pw-admin-settings',
+			plugins_url( 'assets/admin-settings.js', PW_PLUGIN_FILE ),
+			[],
+			defined( 'PW_VERSION' ) ? PW_VERSION : '1',
+			true
+		);
+	}
+
 	wp_enqueue_style(
 		'pw-admin-fonts',
 		'https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap',
@@ -117,7 +128,22 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 .pw-admin .pw-card-body{padding:16px}
 .pw-admin .pw-subsection-title{margin:0 0 10px;font-size:14px;font-weight:700;color:var(--text);letter-spacing:0.02em}
 .pw-admin .pw-section-divider{border:0;border-top:1px solid var(--border);margin:20px 0}
-.pw-admin .pw-github-release-notes{max-height:20em;overflow:auto;margin-top:0.25em;padding:0.75em 1em;font-size:13px;line-height:1.45;white-space:pre-wrap;word-break:break-word;background:var(--card2);border:1px solid var(--border);border-radius:8px}
+.pw-admin .pw-github-release-notes{max-height:20em;overflow:auto;margin-top:0.25em;padding:0.75em 1em;font-size:13px;line-height:1.45;word-break:break-word;background:var(--card2);border:1px solid var(--border);border-radius:8px}
+.pw-admin .pw-github-release-notes > *:first-child{margin-top:0}
+.pw-admin .pw-github-release-notes > *:last-child{margin-bottom:0}
+.pw-admin .pw-github-release-notes p{margin:.5em 0}
+.pw-admin .pw-github-release-notes ol,.pw-admin .pw-github-release-notes ul{margin:.5em 0;padding-left:1.35em}
+.pw-admin .pw-github-release-notes h1,.pw-admin .pw-github-release-notes h2,.pw-admin .pw-github-release-notes h3,.pw-admin .pw-github-release-notes h4,.pw-admin .pw-github-release-notes h5,.pw-admin .pw-github-release-notes h6{font-weight:700;margin:.75em 0 .35em;line-height:1.25}
+.pw-admin .pw-github-release-notes h1{font-size:1.08em}
+.pw-admin .pw-github-release-notes h2{font-size:1.05em}
+.pw-admin .pw-github-release-notes h3{font-size:1.02em}
+.pw-admin .pw-github-release-notes code{font-family:Consolas,Monaco,monospace;font-size:12px;padding:.1em .35em;background:rgba(0,0,0,.06);border-radius:4px}
+.pw-admin .pw-github-release-notes pre{font-family:Consolas,Monaco,monospace;font-size:12px;padding:.6em .75em;overflow:auto;background:rgba(0,0,0,.06);border-radius:6px;border:1px solid var(--border);line-height:1.4}
+.pw-admin .pw-github-release-notes pre code{padding:0;background:0 0;border-radius:0;font-size:inherit}
+.pw-admin .pw-github-release-notes a{color:var(--primary)}
+.pw-admin .pw-github-release-notes table{border-collapse:collapse;width:100%;margin:.5em 0;font-size:12px}
+.pw-admin .pw-github-release-notes td,.pw-admin .pw-github-release-notes th{border:1px solid var(--border);padding:.35em .5em;text-align:left;vertical-align:top}
+.pw-admin .pw-github-release-notes blockquote{margin:.5em 0;padding-left:.75em;border-left:3px solid var(--border);color:var(--muted)}
 .pw-admin .pw-subsection + .pw-section-divider{margin-top:0}
 .pw-admin .button.pw-button-purge-all{background:#b32d2d!important;border-color:#8f2424!important;color:#fff!important;box-shadow:none!important;text-shadow:none!important}
 .pw-admin .button.pw-button-purge-all:hover,.pw-admin .button.pw-button-purge-all:focus{background:#961f1f!important;border-color:#6e1818!important;color:#fff!important}

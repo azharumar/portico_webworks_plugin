@@ -5,9 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 function pw_register_property_post_type() {
-	$is_multi          = pw_get_setting( 'pw_property_mode', 'single' ) === 'multi';
-	$property_base     = pw_get_fixed_permalink_base();
-	$use_cpt_rewrite   = $is_multi && pw_get_permalink_base_source() === 'fixed';
+	$is_multi = pw_get_setting( 'pw_property_mode', 'single' ) === 'multi';
 
 	register_post_type( 'pw_property', [
 		'labels' => [
@@ -28,10 +26,8 @@ function pw_register_property_post_type() {
 		'public'             => $is_multi,
 		'publicly_queryable' => $is_multi,
 		'show_in_nav_menus'  => $is_multi,
-		'rewrite'            => $use_cpt_rewrite
-			? [ 'slug' => $property_base, 'with_front' => false ]
-			: false,
-		'query_var'          => $is_multi,
+		'rewrite'            => false,
+		'query_var'          => false,
 
 		// always on
 		'show_ui'            => true,
@@ -147,6 +143,13 @@ function pw_register_property_post_meta() {
 		'show_in_rest' => true,
 		'default'      => 0,
 	] );
+
+	register_post_meta( 'pw_property', '_pw_enabled_sections', [
+		'type'         => 'array',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => [],
+	] );
 }
 
 // Override viewable so builders (GenerateBlocks) discover pw_property even when publicly_queryable is false.
@@ -157,6 +160,23 @@ add_filter('is_post_type_viewable', function ($is_viewable, $post_type) {
 	return $is_viewable;
 }, 10, 2);
 
+function pw_register_page_property_scope_meta() {
+	register_post_meta(
+		'page',
+		'_pw_property_id',
+		[
+			'type'              => 'integer',
+			'single'            => true,
+			'show_in_rest'      => true,
+			'default'           => 0,
+			'sanitize_callback' => static function ( $value ) {
+				return (int) $value;
+			},
+		]
+	);
+}
+
 add_action( 'init', 'pw_register_property_post_type', 10 );
-add_action('init', 'pw_register_property_post_meta');
+add_action( 'init', 'pw_register_property_post_meta' );
+add_action( 'init', 'pw_register_page_property_scope_meta', 11 );
 

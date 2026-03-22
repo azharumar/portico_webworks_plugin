@@ -61,6 +61,8 @@ function pw_register_child_post_types() {
 		'menu_icon'  => 'dashicons-bed',
 		'taxonomies' => [ 'pw_bed_type', 'pw_view_type' ],
 		'supports'   => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'public'     => true,
+		'query_var'  => true,
 	] ) );
 
 	register_post_type( 'pw_restaurant', array_merge( $defaults, [
@@ -75,6 +77,8 @@ function pw_register_child_post_types() {
 		'menu_icon'  => 'dashicons-heart',
 		'taxonomies' => [ 'pw_treatment_type' ],
 		'supports'   => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'public'     => true,
+		'query_var'  => true,
 	] ) );
 
 	register_post_type( 'pw_meeting_room', array_merge( $defaults, [
@@ -82,6 +86,8 @@ function pw_register_child_post_types() {
 		'menu_icon'  => 'dashicons-groups',
 		'taxonomies' => [ 'pw_av_equipment' ],
 		'supports'   => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'public'     => true,
+		'query_var'  => true,
 	] ) );
 
 	register_post_type( 'pw_amenity', array_merge( $defaults, [
@@ -118,6 +124,8 @@ function pw_register_child_post_types() {
 		'labels'    => pw_cpt_labels( 'Offer', 'Offers' ),
 		'menu_icon' => 'dashicons-tag',
 		'supports'  => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'public'    => true,
+		'query_var' => true,
 	] ) );
 
 	register_post_type( 'pw_nearby', array_merge( $defaults, [
@@ -125,6 +133,8 @@ function pw_register_child_post_types() {
 		'menu_icon'  => 'dashicons-location',
 		'taxonomies' => [ 'pw_nearby_type', 'pw_transport_mode' ],
 		'supports'   => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'public'     => true,
+		'query_var'  => true,
 	] ) );
 
 	register_post_type( 'pw_experience', array_merge( $defaults, [
@@ -132,6 +142,8 @@ function pw_register_child_post_types() {
 		'menu_icon'  => 'dashicons-star-half',
 		'supports'   => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
 		'taxonomies' => [ 'pw_experience_category' ],
+		'public'     => true,
+		'query_var'  => true,
 	] ) );
 
 	register_post_type( 'pw_event', array_merge( $defaults, [
@@ -139,6 +151,8 @@ function pw_register_child_post_types() {
 		'menu_icon'  => 'dashicons-calendar-alt',
 		'supports'   => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
 		'taxonomies' => [ 'pw_event_type', 'pw_event_organiser' ],
+		'public'     => true,
+		'query_var'  => true,
 	] ) );
 }
 
@@ -448,6 +462,19 @@ function pw_register_child_post_meta() {
 		'single'       => true,
 		'show_in_rest' => true,
 		'default'      => false,
+	] );
+
+	register_post_meta( 'pw_meeting_room', '_pw_sales_email', [
+		'type'         => 'string',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => '',
+	] );
+	register_post_meta( 'pw_meeting_room', '_pw_sales_phone', [
+		'type'         => 'string',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => '',
 	] );
 
 	register_post_meta( 'pw_meeting_room', '_pw_floor_plan', [

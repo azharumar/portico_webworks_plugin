@@ -130,6 +130,59 @@ function pw_github_api_get( $url ) {
 }
 
 /**
+ * Render GitHub Flavored Markdown to HTML (matches GitHub release notes).
+ *
+ * @param string $markdown    Raw markdown.
+ * @param string $releases_url Optional releases URL used to derive `owner/repo` API context.
+ * @return string Sanitized HTML (empty string when markdown is empty).
+ */
+function pw_github_release_body_to_html( $markdown, $releases_url = '' ) {
+	$markdown = is_string( $markdown ) ? $markdown : '';
+	if ( $markdown === '' ) {
+		return '';
+	}
+
+	$context = '';
+	$ru      = is_string( $releases_url ) ? trim( $releases_url ) : '';
+	if ( $ru !== '' ) {
+		$repo = pw_parse_github_repo_from_releases_url( $ru );
+		if ( is_array( $repo ) ) {
+			$context = $repo['owner'] . '/' . $repo['repo'];
+		}
+	}
+
+	$payload = array(
+		'text' => $markdown,
+		'mode' => 'gfm',
+	);
+	if ( $context !== '' ) {
+		$payload['context'] = $context;
+	}
+
+	$response = wp_remote_post(
+		'https://api.github.com/markdown',
+		array(
+			'timeout' => 25,
+			'headers' => array(
+				'Accept'       => 'application/vnd.github+json',
+				'Content-Type' => 'application/json; charset=utf-8',
+				'User-Agent'   => 'PorticoWebworks-WordPress-Plugin/' . ( defined( 'PW_VERSION' ) ? PW_VERSION : '0' ),
+			),
+			'body'    => wp_json_encode( $payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
+		)
+	);
+
+	if ( ! is_wp_error( $response ) && (int) wp_remote_retrieve_response_code( $response ) === 200 ) {
+		$html = wp_remote_retrieve_body( $response );
+		if ( is_string( $html ) && $html !== '' ) {
+			return wp_kses_post( $html );
+		}
+	}
+
+	return wp_kses_post( wpautop( esc_html( $markdown ) ) );
+}
+
+/**
  * Latest release GitHub JSON plus optional zip package (same resolution rules as one-click update).
  *
  * @return array{release:array<string,mixed>,package:array{zip_url:string,tag_name:string}|null}|WP_Error
@@ -237,7 +290,7 @@ function pw_github_get_latest_release_package( $releases_url ) {
 /**
  * Cached GitHub release summary for the settings screen (version compare + release notes).
  *
- * @return array{ok:true,tag_name:string,name:string,body:string,html_url:string,has_package:bool,is_current:bool,installed:string}|array{ok:false,message:string}
+ * @return array{ok:true,tag_name:string,name:string,body:string,body_html:string,html_url:string,has_package:bool,is_current:bool,installed:string}|array{ok:false,message:string}
  */
 function pw_github_get_settings_release_info( $releases_url ) {
 	$releases_url = is_string( $releases_url ) ? trim( $releases_url ) : '';
@@ -250,6 +303,13 @@ function pw_github_get_settings_release_info( $releases_url ) {
 	$cache_key = 'pw_gh_rel_info_' . md5( $releases_url );
 	$cached    = get_transient( $cache_key );
 	if ( is_array( $cached ) && isset( $cached['ok'] ) ) {
+		if ( ! empty( $cached['ok'] ) && isset( $cached['body'] ) && is_string( $cached['body'] ) && $cached['body'] !== '' ) {
+			$has_html = isset( $cached['body_html'] ) && is_string( $cached['body_html'] ) && $cached['body_html'] !== '';
+			if ( ! $has_html ) {
+				$cached['body_html'] = pw_github_release_body_to_html( $cached['body'], $releases_url );
+				set_transient( $cache_key, $cached, 15 * MINUTE_IN_SECONDS );
+			}
+		}
 		return $cached;
 	}
 
@@ -270,11 +330,14 @@ function pw_github_get_settings_release_info( $releases_url ) {
 	$html_url = isset( $rel['html_url'] ) ? (string) $rel['html_url'] : '';
 	$current  = defined( 'PW_VERSION' ) ? (string) PW_VERSION : '';
 
+	$body_html = $body !== '' ? pw_github_release_body_to_html( $body, $releases_url ) : '';
+
 	$out = array(
 		'ok'           => true,
 		'tag_name'     => $tag,
 		'name'         => $name,
 		'body'         => $body,
+		'body_html'    => $body_html,
 		'html_url'     => $html_url,
 		'has_package'  => $r['package'] !== null,
 		'is_current'   => $tag !== '' && pw_github_versions_equal( $tag, $current ),

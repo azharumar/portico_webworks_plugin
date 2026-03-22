@@ -1,8 +1,40 @@
 # Changelog
 
-## [0.8.16] - 2026-03-22
+## [0.8.18] - Unreleased
+
+## [0.8.17] - 2026-03-22
+
+### Added
+- **Tiered URL routing**: prioritized rewrite stack (outlet singulars, section listings, bare singular redirects, property singular, optional property archive, static page wildcard); `includes/property-rewrites.php` front controller, `pw_redirect_with_qs()` (query string preserved on 301s), `redirect_canonical` guard
+- **Section URL bases** (General settings): per-section plural/singular slugs, property plural base, archive toggle; `pw_get_section_bases()` / `pw_get_section_base()` in `includes/permalink-config.php`
+- **`includes/reserved-slugs.php`**: reserved slug union, settings save conflict check, `wp_unique_post_slug` suffixing for `pw_property` and `page`
+- **Per-property section toggles**: `_pw_enabled_sections` (property metabox + REST); `pw_is_section_enabled()`
+- **Page scope**: `register_post_meta()` on `page` for `_pw_property_id`, `_pw_generated`, `_pw_section_cpt` (property-scoped static URLs and installer)
+- **`includes/page-installer.php`**: idempotent required listing pages (`_pw_generated`); runs on property publish, after settings that change section bases or property mode, and via **Install Missing Pages** on General; GenerateBlocks starter `post_content` for section CPT listing pages (where applicable)
+- **`URL-ARCHITECTURE.md`**: tiered URL spec, rule order, static wildcard resolver, redirect behaviour, reserved slugs, test matrix, and `pw_get_current_property_id()` resolution notes
+- **Deferred rewrite flush** when mode, bases, or section slugs change (`admin_init` + transient); **Settings → Permalinks** reduced to optional URL prefix; `assets/admin-settings.js` mode-switch warnings
+- **Contact system** (see also 0.8.15): `pw_contact` CPT with `_pw_scope_cpt` / `_pw_scope_id`, `pw_resolve_contact()` / `includes/contact-resolver.php`, orphan protection on related CPT delete
 
 ### Changed
+- **`pw_property`**: `rewrite` / `query_var` false so routing is plugin-owned; section CPTs `public` + `query_var` (rewrite still false); nearby CPT key `pw_nearby` with URL bases `places` / `place` (no DB migration)
+- **`pw_get_current_property_id()`**: GenerateBlocks loop block property scope (when query passes `pw_property_id`) before `pw_property_slug` QV → singular → default → `0`; `pw_resolve_property_slug()` with static cache; `pw_get_property_url( $id )` without trailing slash; `pw_get_section_listing_url()`, `pw_get_outlet_url()`
+- **Empty `pw_property_base` allowed** (no prefix). Legacy `pw_permalink_subpaths` / dynamic base UI removed from merged settings
+- **General → Page structure**: status column uses **Exists** for installer-managed pages; manual installer button **Install Missing Pages**
+
+### Fixed
+- **Front-end 301s**: all issued through `pw_redirect_with_qs()`; admin POST redirects remain direct `wp_safe_redirect` with inline exempt note
+- **Wildcard static pages**: property-scoped `get_posts` first; global `get_page_by_path()` only as documented fallback; installer/admin conflict checks call `get_page_by_path()` only with explicit non-routing comments
+
+### Removed
+- Sub-path map UI and `_pw_url_slug` property field; old `template_redirect` 404 for mismatched property base in `property-helpers.php`
+
+## [0.8.16] - 2026-03-22
+
+### Added
+- **Settings → Update from GitHub**: release notes use GitHub’s Markdown API (GFM); sanitized HTML output with admin styles for headings, lists, code, tables, and blockquotes; if the API fails, notes fall back to escaped text with paragraphs
+
+### Changed
+- **Settings**: GitHub releases URL field moved under the **Update from GitHub** heading (still saved with **Save Settings**); saving general settings without that field no longer clears a stored URL
 - **Admin (CMB2)**: on Portico CPT edit screens, `pw-cmb2-overrides` widens URL/email inputs, most `text_small` fields (excluding date, time, and color pickers), and `text_money` so long values fit the column
 - **`pw_contact`**: Phone, Mobile, WhatsApp, and Email use wider inputs (`large-text` / full-width email)
 - **`pw_event_organiser`**: Organiser URL term field uses `regular-text`

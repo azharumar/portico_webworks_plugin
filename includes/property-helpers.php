@@ -96,32 +96,10 @@ function pw_parse_front_request_segments() {
 }
 
 /**
- * Base URL segment for a property (fixed prefix or dynamic field).
- *
- * @param int $property_id Property post ID.
- * @return string Sanitized segment or empty if unavailable.
+ * @deprecated Optional URL prefix only; use pw_get_fixed_permalink_base().
  */
 function pw_get_base_segment_for_property( $property_id ) {
-	$property_id = (int) $property_id;
-	if ( $property_id <= 0 ) {
-		return '';
-	}
-	$src = pw_get_permalink_base_source();
-	if ( $src === 'fixed' ) {
-		return pw_get_fixed_permalink_base();
-	}
-	if ( $src === 'pw_property_type' ) {
-		$terms = wp_get_post_terms( $property_id, 'pw_property_type', [ 'fields' => 'slugs' ] );
-		if ( is_wp_error( $terms ) || $terms === [] ) {
-			return '';
-		}
-		return sanitize_title( (string) $terms[0] );
-	}
-	$val = get_post_meta( $property_id, $src, true );
-	if ( $val === '' || $val === null ) {
-		return '';
-	}
-	return sanitize_title( (string) $val );
+	return pw_get_fixed_permalink_base();
 }
 
 /**
@@ -141,15 +119,21 @@ function pw_get_property_slug( $property_id ) {
 }
 
 /**
- * @param string $slug Sanitized slug segment from URL.
- * @return int|null Property ID or null.
+ * Resolve property post ID from URL slug (cached per request).
+ *
+ * @param string $slug Sanitized slug (post_name).
+ * @return int Post ID or 0.
  */
-function pw_resolve_property_id_by_slug_segment( $slug ) {
+function pw_resolve_property_slug( $slug ) {
+	static $cache = [];
 	$slug = sanitize_title( (string) $slug );
 	if ( $slug === '' ) {
-		return null;
+		return 0;
 	}
-	$by_name = get_posts(
+	if ( isset( $cache[ $slug ] ) ) {
+		return $cache[ $slug ];
+	}
+	$found = get_posts(
 		[
 			'post_type'      => 'pw_property',
 			'post_status'    => 'publish',
@@ -158,162 +142,223 @@ function pw_resolve_property_id_by_slug_segment( $slug ) {
 			'fields'         => 'ids',
 		]
 	);
-
-	return ! empty( $by_name ) ? (int) $by_name[0] : null;
+	$cache[ $slug ] = ! empty( $found ) ? (int) $found[0] : 0;
+	return $cache[ $slug ];
 }
 
 /**
- * Whether a published property uses this slug in URLs.
+ * @deprecated Use pw_resolve_property_slug().
+ *
+ * @param string $slug Sanitized slug segment from URL.
+ * @return int|null Property ID or null.
+ */
+function pw_resolve_property_id_by_slug_segment( $slug ) {
+	$id = pw_resolve_property_slug( $slug );
+	return $id > 0 ? $id : null;
+}
+
+/**
+ * @deprecated
  */
 function pw_property_exists_with_slug_in_uri( $slug_seg ) {
-	return pw_resolve_property_id_by_slug_segment( $slug_seg ) !== null;
+	return pw_resolve_property_slug( $slug_seg ) > 0;
 }
 
 /**
- * @param int    $property_id Resolved property ID.
- * @param string $base_seg    First path segment (may be empty; read from request).
+ * @deprecated
  */
 function pw_validate_property_base_segment( $property_id, $base_seg ) {
-	$property_id = (int) $property_id;
-	$base_seg    = $base_seg !== '' ? sanitize_title( (string) $base_seg ) : '';
-	if ( $base_seg === '' ) {
-		$segs = pw_parse_front_request_segments();
-		if ( count( $segs ) >= 2 ) {
-			$base_seg = sanitize_title( (string) $segs[0] );
-		}
+	$expected = pw_get_fixed_permalink_base();
+	if ( $expected === '' ) {
+		return true;
 	}
-	$expected = pw_get_base_segment_for_property( $property_id );
-
-	return $base_seg !== '' && $expected !== '' && $base_seg === $expected;
+	$base_seg = $base_seg !== '' ? sanitize_title( (string) $base_seg ) : '';
+	if ( $base_seg === '' ) {
+		global $wp;
+		$qv = ( is_object( $wp ) && isset( $wp->query_vars ) && is_array( $wp->query_vars ) ) ? $wp->query_vars : [];
+		$base_seg = isset( $qv['pw_property_base_segment'] ) ? sanitize_title( (string) $qv['pw_property_base_segment'] ) : '';
+	}
+	return $base_seg !== '' && $base_seg === $expected;
 }
 
 /**
- * Public URL for a property (multi mode). Optional third path segment (e.g. fact-sheet).
+ * Public URL for a property root (multi mode). No trailing slash.
  *
- * @param int    $property_id Property post ID.
- * @param string $subpath     Extra segment (sanitized).
- * @return string URL or empty if invalid / missing base data.
+ * @param int $property_id Property post ID.
+ * @return string URL or empty if invalid.
  */
-function pw_get_property_url( $property_id, $subpath = '' ) {
+function pw_get_property_url( $property_id ) {
 	$property_id = (int) $property_id;
 	if ( $property_id <= 0 || get_post_type( $property_id ) !== 'pw_property' ) {
 		return '';
 	}
-	$base_seg = pw_get_base_segment_for_property( $property_id );
-	if ( $base_seg === '' ) {
+	if ( pw_get_setting( 'pw_property_mode', 'single' ) !== 'multi' ) {
 		return '';
 	}
 	$slug = pw_get_property_slug( $property_id );
 	if ( $slug === '' ) {
 		return '';
 	}
-	$path = $base_seg . '/' . $slug;
-	if ( $subpath !== '' ) {
-		$path .= '/' . sanitize_title( $subpath );
-	}
-
-	return home_url( user_trailingslashit( $path ) );
+	$prefix = pw_get_fixed_permalink_base();
+	$path   = $prefix !== '' ? $prefix . '/' . $slug : $slug;
+	return untrailingslashit( home_url( '/' . $path ) );
 }
 
+/**
+ * Section listing URL for a property. No trailing slash.
+ *
+ * @param int    $property_id Property post ID.
+ * @param string $cpt         Section CPT.
+ * @return string
+ */
+function pw_get_section_listing_url( $property_id, $cpt ) {
+	$pl = pw_get_section_base( $cpt, 'plural' );
+	if ( $pl === '' ) {
+		return '';
+	}
+	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'single' ) {
+		return untrailingslashit( home_url( '/' . $pl ) );
+	}
+	$root = pw_get_property_url( (int) $property_id );
+	if ( $root === '' ) {
+		return '';
+	}
+	return untrailingslashit( $root . '/' . $pl );
+}
+
+/**
+ * Outlet singular public URL. No trailing slash.
+ *
+ * @param int $outlet_post_id Outlet post ID.
+ * @return string
+ */
+function pw_get_outlet_url( $outlet_post_id ) {
+	$outlet_post_id = (int) $outlet_post_id;
+	$pt             = get_post_type( $outlet_post_id );
+	if ( ! $pt || ! in_array( $pt, pw_url_section_cpts(), true ) ) {
+		return '';
+	}
+	$prop = (int) get_post_meta( $outlet_post_id, '_pw_property_id', true );
+	if ( $prop <= 0 ) {
+		return '';
+	}
+	$sing = pw_get_section_base( $pt, 'singular' );
+	$name = get_post_field( 'post_name', $outlet_post_id );
+	if ( $sing === '' || ! is_string( $name ) || $name === '' ) {
+		return '';
+	}
+	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'single' ) {
+		return untrailingslashit( home_url( '/' . $sing . '/' . sanitize_title( $name ) ) );
+	}
+	$root = pw_get_property_url( $prop );
+	if ( $root === '' ) {
+		return '';
+	}
+	return untrailingslashit( $root . '/' . $sing . '/' . sanitize_title( $name ) );
+}
+
+/**
+ * @deprecated Routing uses query vars; kept for code that still calls this.
+ */
 function pw_resolve_property_id_from_url() {
 	global $wp;
-
 	if ( pw_get_setting( 'pw_property_mode', 'single' ) !== 'multi' ) {
 		return null;
 	}
-
 	$qv = ( is_object( $wp ) && isset( $wp->query_vars ) && is_array( $wp->query_vars ) ) ? $wp->query_vars : [];
-
-	if ( ! empty( $qv['pw_property_slug'] ) ) {
-		$slug     = sanitize_title( (string) $qv['pw_property_slug'] );
-		$base_seg = isset( $qv['pw_property_base_segment'] ) ? sanitize_title( (string) $qv['pw_property_base_segment'] ) : '';
-		$pid      = pw_resolve_property_id_by_slug_segment( $slug );
-		if ( ! $pid || ! pw_validate_property_base_segment( $pid, $base_seg ) ) {
-			return null;
-		}
-		return $pid;
-	}
-
-	if ( ! empty( $qv['post_type'] ) && $qv['post_type'] === 'pw_property' && ! empty( $qv['name'] ) ) {
-		$slug = sanitize_title( (string) $qv['name'] );
-		$pid  = pw_resolve_property_id_by_slug_segment( $slug );
-		if ( ! $pid ) {
-			return null;
-		}
-		$base_seg = isset( $qv['pw_property_base_segment'] ) ? sanitize_title( (string) $qv['pw_property_base_segment'] ) : '';
-		if ( ! pw_validate_property_base_segment( $pid, $base_seg ) ) {
-			return null;
-		}
-		return $pid;
-	}
-
-	$segments = pw_parse_front_request_segments();
-	if ( count( $segments ) < 2 ) {
+	if ( empty( $qv['pw_property_slug'] ) ) {
 		return null;
 	}
-
-	$base_seg = sanitize_title( (string) $segments[0] );
-	$slug     = sanitize_title( (string) $segments[1] );
-	$pid      = pw_resolve_property_id_by_slug_segment( $slug );
-	if ( ! $pid || ! pw_validate_property_base_segment( $pid, $base_seg ) ) {
-		return null;
-	}
-
-	return $pid;
+	$slug = sanitize_title( (string) $qv['pw_property_slug'] );
+	$id   = pw_resolve_property_slug( $slug );
+	return $id > 0 ? $id : null;
 }
 
+/**
+ * @deprecated
+ */
 function pw_request_matches_property_url_path() {
-	if ( pw_get_setting( 'pw_property_mode', 'single' ) !== 'multi' ) {
-		return false;
-	}
-	$segments = pw_parse_front_request_segments();
-	if ( count( $segments ) < 2 ) {
-		return false;
-	}
-	if ( pw_get_permalink_base_source() === 'fixed' ) {
-		return $segments[0] === pw_get_fixed_permalink_base();
-	}
-	$slug = sanitize_title( (string) $segments[1] );
+	return false;
+}
 
-	return pw_property_exists_with_slug_in_uri( $slug );
+/**
+ * Shared mutable state for block-scoped property context.
+ */
+function pw_block_property_state() {
+	static $state = null;
+	if ( $state === null ) {
+		$state = (object) [ 'id' => null, 'active' => false ];
+	}
+	return $state;
+}
+
+/**
+ * @param int|null $id Property ID or null to clear.
+ */
+function pw_set_block_property_id( $id ) {
+	$s = pw_block_property_state();
+	if ( $id === null ) {
+		$s->active = false;
+		$s->id     = null;
+		return;
+	}
+	$s->active = true;
+	$s->id     = (int) $id;
+}
+
+function pw_clear_block_property_id(): void {
+	pw_set_block_property_id( null );
 }
 
 function pw_get_current_property_id() {
-	static $cached_uri = null;
-	static $value      = null;
-	$uri               = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
-	if ( $cached_uri === $uri && $value !== null ) {
-		return $value;
+	$s = pw_block_property_state();
+	if ( $s->active && $s->id !== null && (int) $s->id > 0 ) {
+		return (int) $s->id;
 	}
-	$cached_uri = $uri;
-	$value      = 0;
 
-	$mode = pw_get_setting( 'pw_property_mode', 'single' );
-
-	if ( $mode === 'single' ) {
-		$rid = (int) pw_get_setting( 'pw_default_property_id', 0 );
-		$value = $rid > 0 ? $rid : 0;
-		return $value;
+	$slug = get_query_var( 'pw_property_slug', '' );
+	if ( is_string( $slug ) && $slug !== '' ) {
+		$rid = pw_resolve_property_slug( $slug );
+		if ( $rid > 0 ) {
+			return $rid;
+		}
 	}
 
 	if ( is_singular( 'pw_property' ) ) {
 		$qid = (int) get_queried_object_id();
-		$segs = pw_parse_front_request_segments();
-		if ( count( $segs ) >= 2 && $qid > 0 ) {
-			$b = sanitize_title( (string) $segs[0] );
-			$s = sanitize_title( (string) $segs[1] );
-			if ( $s === pw_get_property_slug( $qid ) && pw_validate_property_base_segment( $qid, $b ) ) {
-				$value = $qid;
-				return $value;
-			}
-		}
-		$value = 0;
-		return $value;
+		return $qid > 0 ? $qid : 0;
 	}
 
-	$from_url = pw_resolve_property_id_from_url();
-	$value    = $from_url ? (int) $from_url : 0;
-	return $value;
+	$def = (int) pw_get_setting( 'pw_default_property_id', 0 );
+	if ( $def > 0 ) {
+		return $def;
+	}
+
+	return 0;
+}
+
+/**
+ * Whether a section listing URL is enabled for this property (empty meta = all enabled).
+ *
+ * @param int    $property_id Property post ID.
+ * @param string $cpt         Section CPT.
+ */
+function pw_is_section_enabled( $property_id, $cpt ) {
+	$property_id = (int) $property_id;
+	if ( $property_id <= 0 || ! in_array( $cpt, pw_url_section_cpts(), true ) ) {
+		return false;
+	}
+	$raw = get_post_meta( $property_id, '_pw_enabled_sections', true );
+	if ( $raw === false || $raw === '' || $raw === null ) {
+		return true;
+	}
+	if ( ! is_array( $raw ) ) {
+		return true;
+	}
+	if ( $raw === [] ) {
+		return false;
+	}
+	return in_array( $cpt, $raw, true );
 }
 
 function pw_get_current_property_profile() {
@@ -457,40 +502,6 @@ add_filter( 'render_block', 'pw_replace_property_currency_token', 999, 1 );
 add_filter( 'the_content', 'pw_replace_property_currency_token', 999, 1 );
 add_filter( 'widget_block_content', 'pw_replace_property_currency_token', 999, 1 );
 
-add_action(
-	'template_redirect',
-	function () {
-		if ( is_admin() || wp_doing_ajax() ) {
-			return;
-		}
-
-		if ( pw_get_setting( 'pw_property_mode', 'single' ) !== 'multi' ) {
-			return;
-		}
-
-		if ( ! pw_request_matches_property_url_path() ) {
-			return;
-		}
-
-		if ( pw_get_current_property_id() > 0 ) {
-			return;
-		}
-
-		global $wp_query;
-		if ( isset( $wp_query ) && is_object( $wp_query ) ) {
-			$wp_query->set_404();
-		}
-
-		wp_die(
-			'',
-			'',
-			array(
-				'response' => 404,
-			)
-		);
-	}
-);
-
 // Scoping: Query block Additional CSS class "pw-gb-scope-property", or legacy pw_scope_to_property attribute.
 function pw_gb_query_should_scope_to_property( array $attributes ) {
 	if ( ! empty( $attributes['pw_scope_to_property'] ) ) {
@@ -504,6 +515,10 @@ function pw_gb_query_should_scope_to_property( array $attributes ) {
 function pw_filter_generateblocks_query_loop_property_scope( $query_args, $attributes ) {
 	if ( ! is_array( $attributes ) || ! pw_gb_query_should_scope_to_property( $attributes ) ) {
 		return $query_args;
+	}
+
+	if ( ! empty( $query_args['pw_property_id'] ) ) {
+		pw_set_block_property_id( (int) $query_args['pw_property_id'] );
 	}
 
 	$pid = pw_get_current_property_id();
@@ -534,6 +549,14 @@ function pw_filter_generateblocks_query_loop_property_scope( $query_args, $attri
 }
 
 add_filter( 'generateblocks_query_loop_args', 'pw_filter_generateblocks_query_loop_property_scope', 10, 2 );
+
+add_action(
+	'loop_end',
+	static function () {
+		pw_clear_block_property_id();
+	},
+	10
+);
 
 /**
  * Property-scoped GB queries: sort by _pw_display_order; policies only when _pw_active is set (CMB2 checkbox).

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Portico Webworks Hotel Website Manager
  * Description: Portico Webworks plugin.
- * Version: 0.8.16
+ * Version: 0.8.17
  * Requires at least: 6.9.4
  * Requires PHP: 8.3
  * Author: Portico Webworks
@@ -20,7 +20,7 @@ if ( is_readable( $pw_fatal_log ) ) {
 }
 
 define('PW_PLUGIN_FILE', __FILE__);
-define('PW_VERSION', '0.8.16');
+define('PW_VERSION', '0.8.17');
 
 function pw_apply_install_defaults() {
 	if (get_option('pw_install_defaults_applied', 0)) {
@@ -66,8 +66,13 @@ add_filter( 'cmb2_menus', '__return_empty_array' );
 require_once __DIR__ . '/includes/cmb2-rrule-field.php';
 
 require_once __DIR__ . '/includes/github-plugin-update.php';
-require_once __DIR__ . '/includes/admin-page.php';
 require_once __DIR__ . '/includes/permalink-config.php';
+require_once __DIR__ . '/includes/reserved-slugs.php';
+require_once __DIR__ . '/includes/property-helpers.php';
+require_once __DIR__ . '/includes/page-installer.php';
+require_once __DIR__ . '/includes/admin-page.php';
+
+add_action( 'transition_post_status', 'pw_on_property_published', 10, 3 );
 require_once __DIR__ . '/includes/currency-data.php';
 require_once __DIR__ . '/includes/property-post-type.php';
 require_once __DIR__ . '/includes/property-rewrites.php';
@@ -81,7 +86,6 @@ require_once __DIR__ . '/includes/child-post-type-metaboxes.php';
 require_once __DIR__ . '/includes/import-export.php';
 require_once __DIR__ . '/includes/sample-data-meta.php';
 require_once __DIR__ . '/includes/sample-data.php';
-require_once __DIR__ . '/includes/property-helpers.php';
 require_once __DIR__ . '/includes/admin-permalinks.php';
 require_once __DIR__ . '/includes/backward-compat.php';
 require_once __DIR__ . '/includes/property-profile.php';

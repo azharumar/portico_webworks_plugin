@@ -23,17 +23,6 @@ function pw_timezone_options() {
 }
 
 function pw_property_fields() {
-	$general_tail = [];
-	if ( pw_get_permalink_slug_source() === '_pw_url_slug' ) {
-		$general_tail['_pw_url_slug'] = [
-			'section'     => 'general',
-			'label'       => 'URL slug',
-			'type'        => 'text',
-			'placeholder' => 'e.g. leela-residency',
-			'help'        => 'Used in property URLs when Permalinks uses “Custom URL slug”. Falls back to the post slug if empty. Must be unique among published properties.',
-		];
-	}
-
 	return array_merge(
 		[
 		'_pw_legal_name'         => ['section' => 'general',  'label' => 'Legal Name',        'type' => 'text',   'placeholder' => 'e.g. Grand Pavilion Hospitality Pvt Ltd',    'help' => 'For invoices, contracts, and compliance.'],
@@ -44,7 +33,6 @@ function pw_property_fields() {
 		'_pw_year_established'   => ['section' => 'general',  'label' => 'Year Established',    'type' => 'number', 'placeholder' => 'e.g. 2005'],
 		'_pw_total_rooms'        => ['section' => 'general',  'label' => 'Total Rooms',         'type' => 'number', 'placeholder' => 'e.g. 120'],
 		],
-		$general_tail,
 		[
 		'_pw_address_line_1'     => ['section' => 'address',  'label' => 'Address Line 1',   'type' => 'text',   'placeholder' => 'Street address, building, etc.'],
 		'_pw_address_line_2'     => ['section' => 'address',  'label' => 'Address Line 2',   'type' => 'text',   'placeholder' => 'Area, landmark (optional)'],
@@ -179,9 +167,68 @@ function pw_add_property_metabox() {
 			'high'
 		);
 	}
+	add_meta_box(
+		'pw_property_enabled_sections',
+		__( 'Section pages', 'portico-webworks' ),
+		'pw_render_property_enabled_sections_metabox',
+		'pw_property',
+		'side',
+		'default'
+	);
 }
 
-add_action('add_meta_boxes', 'pw_add_property_metabox');
+function pw_render_property_enabled_sections_metabox( $post ) {
+	wp_nonce_field( 'pw_save_enabled_sections', 'pw_enabled_sections_nonce' );
+	$stored = get_post_meta( $post->ID, '_pw_enabled_sections', true );
+	echo '<p class="description">' . esc_html__( 'Unchecked sections hide the listing page URL for this property; outlet URLs still work.', 'portico-webworks' ) . '</p>';
+	echo '<fieldset><legend class="screen-reader-text">' . esc_html__( 'Enabled sections', 'portico-webworks' ) . '</legend>';
+	foreach ( pw_url_section_cpts() as $cpt ) {
+		$pto = get_post_type_object( $cpt );
+		$label = $pto && isset( $pto->labels->name ) ? $pto->labels->name : $cpt;
+		if ( $stored === false || $stored === '' || $stored === null ) {
+			$checked = true;
+		} elseif ( is_array( $stored ) && $stored === [] ) {
+			$checked = false;
+		} else {
+			$checked = is_array( $stored ) && in_array( $cpt, $stored, true );
+		}
+		echo '<label style="display:block;margin:0.35em 0;"><input type="checkbox" name="pw_enabled_sections[]" value="' . esc_attr( $cpt ) . '"' . checked( $checked, true, false ) . ' /> ' . esc_html( $label ) . '</label>';
+	}
+	echo '</fieldset>';
+}
+
+function pw_save_property_enabled_sections( $post_id ) {
+	if ( ! isset( $_POST['pw_enabled_sections_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['pw_enabled_sections_nonce'] ) ), 'pw_save_enabled_sections' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	if ( get_post_type( $post_id ) !== 'pw_property' ) {
+		return;
+	}
+	$allowed = pw_url_section_cpts();
+	$picked  = [];
+	if ( isset( $_POST['pw_enabled_sections'] ) && is_array( $_POST['pw_enabled_sections'] ) ) {
+		foreach ( wp_unslash( $_POST['pw_enabled_sections'] ) as $cpt ) {
+			$cpt = sanitize_key( (string) $cpt );
+			if ( in_array( $cpt, $allowed, true ) ) {
+				$picked[] = $cpt;
+			}
+		}
+	}
+	if ( count( $picked ) === count( $allowed ) ) {
+		delete_post_meta( $post_id, '_pw_enabled_sections' );
+		return;
+	}
+	update_post_meta( $post_id, '_pw_enabled_sections', array_values( $picked ) );
+}
+
+add_action( 'add_meta_boxes', 'pw_add_property_metabox' );
+add_action( 'save_post_pw_property', 'pw_save_property_enabled_sections', 5 );
 
 function pw_save_property_metabox($post_id) {
 	if (!isset($_POST['pw_property_profile_nonce'])) {
@@ -210,40 +257,6 @@ function pw_save_property_metabox($post_id) {
 		}
 
 		$raw  = wp_unslash($_POST[$post_key]);
-		if ( $meta_key === '_pw_url_slug' ) {
-			$slug = sanitize_title( is_string( $raw ) ? $raw : '' );
-			if ( $slug !== '' ) {
-				$dup = get_posts(
-					[
-						'post_type'              => 'pw_property',
-						'post_status'            => 'publish',
-						'post__not_in'           => [ (int) $post_id ],
-						'posts_per_page'         => 1,
-						'fields'                 => 'ids',
-						'no_found_rows'          => true,
-						'update_post_meta_cache' => false,
-						'update_post_term_cache' => false,
-						'meta_query'             => [
-							[
-								'key'   => '_pw_url_slug',
-								'value' => $slug,
-							],
-						],
-					]
-				);
-				if ( ! empty( $dup ) ) {
-					add_filter(
-						'redirect_post_location',
-						static function ( $location ) {
-							return add_query_arg( 'pw_duplicate_url_slug', '1', $location );
-						}
-					);
-					continue;
-				}
-			}
-			update_post_meta( (int) $post_id, '_pw_url_slug', $slug );
-			continue;
-		}
 
 		$type = $field['type'] ?? 'text';
 
