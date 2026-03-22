@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.8.14] - 2026-03-22
+
+### Added
+- **Property permalinks** (multi mode): **Permalinks** settings tab with base segment (fixed prefix or dynamic: city, state, country, country code, property type), property slug source (post slug vs custom `_pw_url_slug`), and sub-path → page mappings; `includes/permalink-config.php`, `includes/admin-permalinks.php`, `includes/property-rewrites.php`; `pw_get_property_url()` and URL resolution updates in `includes/property-helpers.php`
+- **Custom URL slug** field on the property profile when custom slug mode is enabled, with uniqueness validation among published properties
+
+### Changed
+- **General settings**: property base path removed from General (link to Permalinks); settings save merges stored options so permalink keys are preserved
+- **`pw_property` CPT**: rewrite only when multi + fixed base; dynamic base uses custom rewrite rules; sub-path requests resolve to mapped pages with `pw_property_slug` / `pw_property_base_segment` query vars
+- **Sample data**: multi-install logic moved to `includes/sample-data-multi-install.php`
+
 ## [0.8.13] - 2026-03-22
 
 ### Changed

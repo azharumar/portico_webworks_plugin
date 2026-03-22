@@ -12,26 +12,36 @@ function pw_admin_settings_url() {
 	return admin_url('admin.php?page=' . rawurlencode(pw_admin_page_slug()) . '&tab=settings');
 }
 
+function pw_admin_permalinks_url() {
+	return admin_url( 'admin.php?page=' . rawurlencode( pw_admin_page_slug() ) . '&tab=permalinks' );
+}
+
 /**
- * Keep General (settings) first and About last; other tabs stay in filter order between them.
+ * Keep General (settings) first, Permalinks second, About last; other tabs stay in filter order between them.
  */
 function pw_order_admin_tabs( $tabs ) {
 	if ( ! is_array( $tabs ) || $tabs === [] ) {
 		return $tabs;
 	}
-	$settings_key = 'settings';
-	$about_key    = 'about';
-	$general      = [];
-	$about        = [];
+	$settings_key   = 'settings';
+	$permalinks_key = 'permalinks';
+	$about_key      = 'about';
+	$general        = [];
+	$permalinks     = [];
+	$about          = [];
 	if ( isset( $tabs[ $settings_key ] ) ) {
 		$general[ $settings_key ] = $tabs[ $settings_key ];
 		unset( $tabs[ $settings_key ] );
+	}
+	if ( isset( $tabs[ $permalinks_key ] ) ) {
+		$permalinks[ $permalinks_key ] = $tabs[ $permalinks_key ];
+		unset( $tabs[ $permalinks_key ] );
 	}
 	if ( isset( $tabs[ $about_key ] ) ) {
 		$about[ $about_key ] = $tabs[ $about_key ];
 		unset( $tabs[ $about_key ] );
 	}
-	return array_merge( $general, $tabs, $about );
+	return array_merge( $general, $permalinks, $tabs, $about );
 }
 
 add_filter('plugin_action_links_' . plugin_basename(PW_PLUGIN_FILE), function ($links) {
@@ -158,15 +168,33 @@ function pw_sanitize_property_base( $value, $field_args = null, $field = null ) 
  * @return array<string, mixed>
  */
 function pw_get_merged_pw_settings() {
-	$raw = get_option('pw_settings', []);
-	$raw = is_array($raw) ? $raw : [];
-	return wp_parse_args($raw, [
-		'pw_property_mode'       => 'single',
-		'pw_property_base'       => 'properties',
-		'pw_default_property_id' => 0,
-		'pw_default_template'    => '',
-		'pw_github_releases_url' => '',
-	]);
+	$raw = get_option( 'pw_settings', [] );
+	$raw = is_array( $raw ) ? $raw : [];
+	$defaults = [
+		'pw_property_mode'            => 'single',
+		'pw_property_base'            => 'properties',
+		'pw_default_property_id'      => 0,
+		'pw_default_template'         => '',
+		'pw_github_releases_url'      => '',
+		'pw_permalink_base_source'    => 'fixed',
+		'pw_permalink_base_fixed'     => '',
+		'pw_permalink_slug_source'    => 'post_name',
+		'pw_permalink_subpaths'       => [],
+	];
+	$out = wp_parse_args( $raw, $defaults );
+	if ( empty( $raw['pw_permalink_base_fixed'] ) && ! empty( $out['pw_property_base'] ) ) {
+		$out['pw_permalink_base_fixed'] = $out['pw_property_base'];
+	}
+	if ( empty( $out['pw_permalink_base_fixed'] ) ) {
+		$out['pw_permalink_base_fixed'] = 'properties';
+	}
+	if ( ! is_array( $out['pw_permalink_subpaths'] ) ) {
+		$out['pw_permalink_subpaths'] = [];
+	}
+	$fixed = pw_sanitize_property_base( (string) $out['pw_permalink_base_fixed'] );
+	$out['pw_permalink_base_fixed'] = $fixed;
+	$out['pw_property_base']       = $fixed;
+	return $out;
 }
 
 function pw_get_setting($key, $default = '') {
@@ -225,27 +253,26 @@ function pw_handle_settings_save() {
 	}
 
 	$existing = pw_get_merged_pw_settings();
-	$mode     = isset($_POST['pw_property_mode']) && $_POST['pw_property_mode'] === 'multi' ? 'multi' : 'single';
+	$mode     = isset( $_POST['pw_property_mode'] ) && $_POST['pw_property_mode'] === 'multi' ? 'multi' : 'single';
 
-	$settings = [
-		'pw_property_mode'       => $mode,
-		'pw_property_base'       => pw_sanitize_property_base(wp_unslash($_POST['pw_property_base'] ?? '')),
-		'pw_default_template'    => sanitize_text_field(wp_unslash($_POST['pw_default_template'] ?? '')),
-		'pw_github_releases_url' => pw_sanitize_github_releases_url(wp_unslash($_POST['pw_github_releases_url'] ?? '')),
-		'pw_default_property_id' => $mode === 'single' ? (int) ($_POST['pw_default_property_id'] ?? 0) : 0,
-	];
+	$settings                          = $existing;
+	$settings['pw_property_mode']      = $mode;
+	$settings['pw_default_template']   = sanitize_text_field( wp_unslash( $_POST['pw_default_template'] ?? '' ) );
+	$settings['pw_github_releases_url'] = pw_sanitize_github_releases_url( wp_unslash( $_POST['pw_github_releases_url'] ?? '' ) );
+	$settings['pw_default_property_id'] = $mode === 'single' ? (int) ( $_POST['pw_default_property_id'] ?? 0 ) : 0;
 
-	if ($mode === 'single' && $settings['pw_default_property_id'] > 0) {
+	if ( $mode === 'single' && $settings['pw_default_property_id'] > 0 ) {
 		$pid = $settings['pw_default_property_id'];
-		if (get_post_type($pid) !== 'pw_property' || get_post_status($pid) !== 'publish') {
+		if ( get_post_type( $pid ) !== 'pw_property' || get_post_status( $pid ) !== 'publish' ) {
 			$settings['pw_default_property_id'] = 0;
-			set_transient('pw_settings_notice_default_property', 1, 60);
+			set_transient( 'pw_settings_notice_default_property', 1, 60 );
 		}
 	}
 
-	update_option('pw_settings', $settings);
+	update_option( 'pw_settings', $settings );
 
-	if ($mode !== $existing['pw_property_mode'] || $settings['pw_property_base'] !== $existing['pw_property_base']) {
+	$flush = ( $mode !== $existing['pw_property_mode'] );
+	if ( $flush ) {
 		flush_rewrite_rules();
 	}
 
@@ -302,7 +329,7 @@ function pw_render_root_page() {
 	}
 	echo '</nav>';
 
-	if (!in_array($tab, array('settings', 'about'), true)) {
+	if ( ! in_array( $tab, array( 'settings', 'about' ), true ) ) {
 		do_action('pw_render_tab_' . $tab);
 		echo '<div class="pw-footer">';
 		echo '<a class="pw-footer-link" href="' . esc_url($footer_link) . '" target="_blank" rel="noopener noreferrer">© ' . esc_html(gmdate('Y')) . ' Portico Webworks</a>';
@@ -385,9 +412,9 @@ function pw_render_root_page() {
 		echo '<p class="description">' . esc_html('Used as the site-wide property context in Single Property mode (required).') . '</p>';
 		echo '</td></tr>';
 
-		echo '<tr><th scope="row"><label for="pw_property_base">' . esc_html('Properties Base Path') . '</label></th><td>';
-		echo '<input type="text" class="regular-text" name="pw_property_base" id="pw_property_base" value="' . esc_attr((string) pw_get_setting('pw_property_base')) . '" placeholder="properties" />';
-		echo '<p class="description">' . esc_html('URL prefix for properties, e.g. /{base}/{slug}/... Only applies in Multi-Property mode.') . '</p>';
+		echo '<tr><th scope="row">' . esc_html('Property URLs') . '</th><td>';
+		echo '<p class="description">' . esc_html('Multi-property URL base, slug source, and sub-paths (e.g. fact sheet) are configured under the Permalinks tab.') . ' ';
+		echo '<a href="' . esc_url( pw_admin_permalinks_url() ) . '">' . esc_html('Open Permalinks') . '</a></p>';
 		echo '</td></tr>';
 
 		echo '<tr><th scope="row"><label for="pw_default_template">' . esc_html('Default Template') . '</label></th><td>';

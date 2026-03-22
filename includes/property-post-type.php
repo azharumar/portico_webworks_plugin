@@ -5,8 +5,9 @@ if (!defined('ABSPATH')) {
 }
 
 function pw_register_property_post_type() {
-	$is_multi      = pw_get_setting( 'pw_property_mode', 'single' ) === 'multi';
-	$property_base = pw_get_setting( 'pw_property_base', 'properties' );
+	$is_multi          = pw_get_setting( 'pw_property_mode', 'single' ) === 'multi';
+	$property_base     = pw_get_fixed_permalink_base();
+	$use_cpt_rewrite   = $is_multi && pw_get_permalink_base_source() === 'fixed';
 
 	register_post_type( 'pw_property', [
 		'labels' => [
@@ -27,7 +28,7 @@ function pw_register_property_post_type() {
 		'public'             => $is_multi,
 		'publicly_queryable' => $is_multi,
 		'show_in_nav_menus'  => $is_multi,
-		'rewrite'            => $is_multi
+		'rewrite'            => $use_cpt_rewrite
 			? [ 'slug' => $property_base, 'with_front' => false ]
 			: false,
 		'query_var'          => $is_multi,
@@ -44,6 +45,7 @@ function pw_register_property_post_type() {
 		'menu_position'      => 25,
 
 		'supports'           => [ 'title', 'editor', 'excerpt', 'thumbnail', 'revisions', 'custom-fields' ],
+		'taxonomies'         => [ 'pw_property_type' ],
 
 		'can_export'         => true,
 		'delete_with_user'   => false,
@@ -146,6 +148,13 @@ function pw_register_property_post_meta() {
 		'default'      => 0,
 	] );
 
+	register_post_meta( 'pw_property', '_pw_url_slug', [
+		'type'         => 'string',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => '',
+	] );
+
 	register_post_meta( 'pw_property', '_pw_contacts', [
 		'type'         => 'array',
 		'single'       => true,
@@ -175,6 +184,6 @@ add_filter('is_post_type_viewable', function ($is_viewable, $post_type) {
 	return $is_viewable;
 }, 10, 2);
 
-add_action('init', 'pw_register_property_post_type');
+add_action( 'init', 'pw_register_property_post_type', 10 );
 add_action('init', 'pw_register_property_post_meta');
 

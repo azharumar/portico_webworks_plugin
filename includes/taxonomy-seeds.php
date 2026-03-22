@@ -14,6 +14,23 @@ function pw_term_name_is_taxonomy_seed_value( $name, $taxonomy ) {
 
 function pw_get_taxonomy_seed_terms() {
 	return [
+		'pw_property_type' => [
+			'Hotel',
+			'Resort',
+			'Boutique Hotel',
+			'Motel',
+			'Lodge',
+			'Inn',
+			'Bed & Breakfast',
+			'Villa',
+			'Apartments',
+			'Hostel',
+			'Serviced Apartment',
+			'Guest House',
+			'Ranch',
+			'Cabin',
+			'Camp',
+		],
 		'pw_policy_type' => [
 			'Check-in',
 			'Check-out',

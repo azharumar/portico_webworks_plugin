@@ -25,6 +25,7 @@ Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** fo
 
 **REST base:** `pw-properties`  
 **Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `revisions`, `custom-fields`  
+**Taxonomies:** `pw_property_type`  
 **Public:** mode-dependent (`pw_settings['pw_property_mode']`, read via `pw_get_setting()`: `single` | `multi`). See overview: still **viewable** for block/editor discovery in single mode.
 
 ### Meta Fields
@@ -284,10 +285,6 @@ Same storage and REST registration pattern as restaurant. CMB2: `pw_spa_operatin
 | `_pw_prefunction_area_sqm`  | integer      | `0`     |                      | text_small                               |
 | `_pw_natural_light`         | boolean      | `false` |                      | checkbox                                 |
 | `_pw_floor_plan`            | integer      | `0`     | Attachment ID        | file                                     |
-| `_pw_sales_phone`           | string       | `''`    | Direct venue contact | text_small                               |
-| `_pw_sales_mobile`          | string       | `''`    |                      | text_small                               |
-| `_pw_sales_whatsapp`        | string       | `''`    |                      | text_small                               |
-| `_pw_sales_email`           | string       | `''`    |                      | text_small                               |
 | `_pw_gallery`               | arrayinteger | —       |                      | file_list                                |
 
 
@@ -481,6 +478,7 @@ In **admin**, for `pw_event` only, `_pw_start_datetime` / `_pw_end_datetime` may
 | `pw_event_type`          | `pw_event`        | Event Types           | —                        |
 | `pw_policy_type`         | `pw_policy`       | Policy Types          | —                        |
 | `pw_event_organiser`     | `pw_event`        | Organisers            | `organiser_url` (string) |
+| `pw_property_type`       | `pw_property`     | Property Types        | —                        |
 
 
 All taxonomies: non-hierarchical, `show_in_rest: true`, `show_admin_column: true`, `rewrite: false`.
@@ -493,7 +491,7 @@ Canonical lists live in `includes/taxonomy-seeds.php` (`pw_get_taxonomy_seed_ter
 
 **Existing sites (upgrade):** If `pw_install_defaults_applied` is set and `pw_taxonomy_seed_prompt_status` is empty, `admin_init` sets it to `pending` and an admin notice offers **Add default terms** / **Dismiss** (`admin_post_pw_accept_taxonomy_seed` / `pw_dismiss_taxonomy_seed`). Accept runs the same seeder and sets status to `completed`. The Sample Data admin UI can re-run `pw_seed_taxonomy_terms()` via `admin_post_pw_reseed_taxonomies` (`includes/sample-data.php`).
 
-**Taxonomies seeded (all optional names in code):** `pw_policy_type`, `pw_bed_type`, `pw_view_type`, `pw_meal_period`, `pw_treatment_type`, `pw_av_equipment`, `pw_feature_group`, `pw_nearby_type`, `pw_transport_mode`, `pw_experience_category`, `pw_event_type`.
+**Taxonomies seeded (all optional names in code):** `pw_property_type`, `pw_policy_type`, `pw_bed_type`, `pw_view_type`, `pw_meal_period`, `pw_treatment_type`, `pw_av_equipment`, `pw_feature_group`, `pw_nearby_type`, `pw_transport_mode`, `pw_experience_category`, `pw_event_type`.
 
 Rationale and historical notes: `[TAXONOMY-SEED-VALUES.md](TAXONOMY-SEED-VALUES.md)`.
 

@@ -23,7 +23,19 @@ function pw_timezone_options() {
 }
 
 function pw_property_fields() {
-	return [
+	$general_tail = [];
+	if ( pw_get_permalink_slug_source() === '_pw_url_slug' ) {
+		$general_tail['_pw_url_slug'] = [
+			'section'     => 'general',
+			'label'       => 'URL slug',
+			'type'        => 'text',
+			'placeholder' => 'e.g. leela-residency',
+			'help'        => 'Used in property URLs when Permalinks uses “Custom URL slug”. Falls back to the post slug if empty. Must be unique among published properties.',
+		];
+	}
+
+	return array_merge(
+		[
 		'_pw_legal_name'         => ['section' => 'general',  'label' => 'Legal Name',        'type' => 'text',   'placeholder' => 'e.g. Grand Pavilion Hospitality Pvt Ltd',    'help' => 'For invoices, contracts, and compliance.'],
 		'_pw_star_rating'        => ['section' => 'general',  'label' => 'Star Rating',       'type' => 'number', 'placeholder' => '1–5',                                        'help' => 'Hotel star classification (1–5).'],
 		'_pw_currency'           => ['section' => 'general',  'label' => 'Currency',          'type' => 'select', 'options' => 'pw_currency_options_for_profile',                'help' => 'Default currency for rates and pricing.'],
@@ -31,7 +43,9 @@ function pw_property_fields() {
 		'_pw_check_out_time'     => ['section' => 'general',  'label' => 'Check-out Time',      'type' => 'time',   'placeholder' => 'e.g. 11:00'],
 		'_pw_year_established'   => ['section' => 'general',  'label' => 'Year Established',    'type' => 'number', 'placeholder' => 'e.g. 2005'],
 		'_pw_total_rooms'        => ['section' => 'general',  'label' => 'Total Rooms',         'type' => 'number', 'placeholder' => 'e.g. 120'],
-
+		],
+		$general_tail,
+		[
 		'_pw_address_line_1'     => ['section' => 'address',  'label' => 'Address Line 1',   'type' => 'text',   'placeholder' => 'Street address, building, etc.'],
 		'_pw_address_line_2'     => ['section' => 'address',  'label' => 'Address Line 2',   'type' => 'text',   'placeholder' => 'Area, landmark (optional)'],
 		'_pw_city'               => ['section' => 'address',  'label' => 'City',             'type' => 'text',   'placeholder' => 'e.g. Kochi'],
@@ -51,7 +65,8 @@ function pw_property_fields() {
 		'_pw_social_youtube'     => ['section' => 'social',   'label' => 'YouTube',          'type' => 'url',    'placeholder' => 'https://youtube.com/@yourchannel'],
 		'_pw_social_linkedin'    => ['section' => 'social',   'label' => 'LinkedIn',         'type' => 'url',    'placeholder' => 'https://linkedin.com/company/yourcompany'],
 		'_pw_social_tripadvisor' => ['section' => 'social',   'label' => 'Tripadvisor',      'type' => 'url',    'placeholder' => 'https://tripadvisor.com/...'],
-	];
+		]
+	);
 }
 
 function pw_currency_options_for_profile() {
@@ -195,6 +210,41 @@ function pw_save_property_metabox($post_id) {
 		}
 
 		$raw  = wp_unslash($_POST[$post_key]);
+		if ( $meta_key === '_pw_url_slug' ) {
+			$slug = sanitize_title( is_string( $raw ) ? $raw : '' );
+			if ( $slug !== '' ) {
+				$dup = get_posts(
+					[
+						'post_type'              => 'pw_property',
+						'post_status'            => 'publish',
+						'post__not_in'           => [ (int) $post_id ],
+						'posts_per_page'         => 1,
+						'fields'                 => 'ids',
+						'no_found_rows'          => true,
+						'update_post_meta_cache' => false,
+						'update_post_term_cache' => false,
+						'meta_query'             => [
+							[
+								'key'   => '_pw_url_slug',
+								'value' => $slug,
+							],
+						],
+					]
+				);
+				if ( ! empty( $dup ) ) {
+					add_filter(
+						'redirect_post_location',
+						static function ( $location ) {
+							return add_query_arg( 'pw_duplicate_url_slug', '1', $location );
+						}
+					);
+					continue;
+				}
+			}
+			update_post_meta( (int) $post_id, '_pw_url_slug', $slug );
+			continue;
+		}
+
 		$type = $field['type'] ?? 'text';
 
 		switch ($type) {
@@ -217,3 +267,17 @@ function pw_save_property_metabox($post_id) {
 }
 
 add_action('save_post_pw_property', 'pw_save_property_metabox');
+
+add_action(
+	'admin_notices',
+	static function () {
+		if ( ! isset( $_GET['pw_duplicate_url_slug'] ) ) {
+			return;
+		}
+		$screen = get_current_screen();
+		if ( ! $screen || $screen->post_type !== 'pw_property' || $screen->base !== 'post' ) {
+			return;
+		}
+		echo '<div class="notice notice-error"><p>' . esc_html__( 'That URL slug is already used by another published property.', 'portico-webworks' ) . '</p></div>';
+	}
+);

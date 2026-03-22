@@ -44,6 +44,7 @@ function pw_get_sample_data_taxonomies_for_meta() {
 		'pw_event_type',
 		'pw_policy_type',
 		'pw_event_organiser',
+		'pw_property_type',
 		'category',
 		'post_tag',
 	];
@@ -184,6 +185,7 @@ function pw_get_plugin_taxonomies() {
 		'pw_event_type',
 		'pw_policy_type',
 		'pw_event_organiser',
+		'pw_property_type',
 	];
 }
 

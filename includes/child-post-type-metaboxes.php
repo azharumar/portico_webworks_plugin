@@ -475,10 +475,6 @@ function pw_register_child_metaboxes() {
 	$cmb->add_field( [ 'name' => 'Area (sqm)',            'id' => '_pw_area_sqm',           'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 	$cmb->add_field( [ 'name' => 'Pre-function area (sqft)', 'id' => '_pw_prefunction_area_sqft', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 	$cmb->add_field( [ 'name' => 'Pre-function area (sqm)',  'id' => '_pw_prefunction_area_sqm',  'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
-	$cmb->add_field( [ 'name' => 'Sales phone',    'id' => '_pw_sales_phone',    'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Sales mobile',   'id' => '_pw_sales_mobile',   'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Sales WhatsApp', 'id' => '_pw_sales_whatsapp', 'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Sales email',    'id' => '_pw_sales_email',    'type' => 'text_small' ] );
 
 	$cmb->add_field( [
 		'name' => 'Natural light',

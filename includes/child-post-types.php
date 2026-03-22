@@ -203,6 +203,10 @@ function pw_register_child_taxonomies() {
 	register_taxonomy( 'pw_event_organiser', 'pw_event', array_merge( $shared, [
 		'label' => 'Organisers',
 	] ) );
+
+	register_taxonomy( 'pw_property_type', 'pw_property', array_merge( $shared, [
+		'label' => 'Property Types',
+	] ) );
 }
 
 // ---------------------------------------------------------------------------
@@ -436,15 +440,6 @@ function pw_register_child_post_meta() {
 			'single'       => true,
 			'show_in_rest' => true,
 			'default'      => 0,
-		] );
-	}
-
-	foreach ( [ '_pw_sales_phone', '_pw_sales_mobile', '_pw_sales_whatsapp', '_pw_sales_email' ] as $key ) {
-		register_post_meta( 'pw_meeting_room', $key, [
-			'type'         => 'string',
-			'single'       => true,
-			'show_in_rest' => true,
-			'default'      => '',
 		] );
 	}
 
@@ -867,7 +862,7 @@ function pw_register_child_post_meta() {
 	] );
 }
 
-add_action( 'init', 'pw_register_child_taxonomies' );
+add_action( 'init', 'pw_register_child_taxonomies', 5 );
 add_action( 'init', 'pw_register_child_post_types' );
 add_action( 'init', 'pw_register_child_post_meta' );
 add_action( 'init', 'pw_register_seo_meta', 20 );
