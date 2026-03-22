@@ -26,10 +26,6 @@ function pw_build_reserved_slugs_from_settings( array $settings ) {
 			$slugs[] = $s;
 		}
 	}
-	$base = isset( $settings['pw_property_base'] ) ? sanitize_title( (string) $settings['pw_property_base'] ) : '';
-	if ( $base !== '' ) {
-		$slugs[] = $base;
-	}
 	$slugs = array_values( array_unique( array_filter( $slugs ) ) );
 	sort( $slugs );
 	return $slugs;

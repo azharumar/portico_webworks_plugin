@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.20] - 2026-03-22
+
+### Removed
+- Permalink settings migration: no longer maps stored `pw_property_plural_base`, `pw_permalink_base_fixed`, or `pw_property_base` into section bases / `pw_disable_property_base`; those keys are stripped from merged settings output
+- Unused `pw_sanitize_property_base()` helper
+
 ## [0.8.19] - 2026-03-22
 
 ### Added

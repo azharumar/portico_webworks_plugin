@@ -88,19 +88,7 @@ function pw_get_section_base( $cpt, $form ) {
 }
 
 /**
- * Sanitize optional URL prefix; empty = property slug at site root (multi mode).
- *
- * @param mixed $value Raw input.
- * @return string
- */
-function pw_sanitize_property_base( $value, $field_args = null, $field = null ) {
-	$value = is_string( $value ) ? trim( $value ) : '';
-	$value = trim( $value, '/' );
-	return sanitize_title( $value );
-}
-
-/**
- * Multi-property URL prefix segment (plural base when prefix enabled). Legacy stored keys ignored.
+ * Multi-property URL prefix segment (plural base when prefix enabled).
  *
  * @return string Empty when no prefix.
  */
@@ -161,10 +149,8 @@ function pw_get_merged_pw_settings() {
 	$raw = is_array( $raw ) ? $raw : [];
 	$defaults = [
 		'pw_property_mode'           => 'single',
-		'pw_property_base'           => '',
 		'pw_default_property_id'     => 0,
 		'pw_github_releases_url'     => '',
-		'pw_permalink_base_fixed'    => '',
 		'pw_disable_property_base'    => '1',
 		'pw_section_bases'           => pw_default_section_bases(),
 		'pw_property_plural_base'    => 'hotels',
@@ -189,29 +175,6 @@ function pw_get_merged_pw_settings() {
 		}
 	}
 
-	if (
-		! isset( $raw['pw_section_bases']['pw_property'] ) &&
-		isset( $raw['pw_property_plural_base'] )
-	) {
-		$legacy_pp = sanitize_title( (string) $raw['pw_property_plural_base'] );
-		if ( $legacy_pp !== '' ) {
-			$out['pw_section_bases']['pw_property']['plural'] = $legacy_pp;
-		}
-	}
-
-	if ( ! array_key_exists( 'pw_disable_property_base', $raw ) ) {
-		$legacy_fixed = '';
-		if ( isset( $raw['pw_permalink_base_fixed'] ) && (string) $raw['pw_permalink_base_fixed'] !== '' ) {
-			$legacy_fixed = pw_sanitize_property_base( (string) $raw['pw_permalink_base_fixed'] );
-		} elseif ( ! empty( $raw['pw_property_base'] ) ) {
-			$legacy_fixed = pw_sanitize_property_base( (string) $raw['pw_property_base'] );
-		}
-		if ( $legacy_fixed !== '' ) {
-			$out['pw_disable_property_base'] = '0';
-			$out['pw_section_bases']['pw_property']['plural'] = $legacy_fixed;
-		}
-	}
-
 	$out['pw_disable_property_base'] = isset( $out['pw_disable_property_base'] ) && (string) $out['pw_disable_property_base'] === '0' ? '0' : '1';
 
 	$prop_pl = isset( $out['pw_section_bases']['pw_property'] ) && is_array( $out['pw_section_bases']['pw_property'] )
@@ -224,10 +187,13 @@ function pw_get_merged_pw_settings() {
 
 	$out['pw_property_archive'] = isset( $out['pw_property_archive'] ) && (string) $out['pw_property_archive'] === '1' ? '1' : '0';
 
-	$out['pw_permalink_base_fixed'] = '';
-	$out['pw_property_base']        = '';
-
-	unset( $out['pw_permalink_slug_source'], $out['pw_permalink_subpaths'], $out['pw_permalink_base_source'] );
+	unset(
+		$out['pw_permalink_base_fixed'],
+		$out['pw_property_base'],
+		$out['pw_permalink_slug_source'],
+		$out['pw_permalink_subpaths'],
+		$out['pw_permalink_base_source']
+	);
 
 	return $out;
 }

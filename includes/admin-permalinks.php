@@ -27,8 +27,6 @@ function pw_handle_save_permalinks() {
 	$existing = pw_get_merged_pw_settings();
 
 	$settings                              = $existing;
-	$settings['pw_permalink_base_fixed']   = '';
-	$settings['pw_property_base']          = '';
 	$settings['pw_disable_property_base'] = isset( $_POST['pw_disable_property_base'] ) && (string) wp_unslash( $_POST['pw_disable_property_base'] ) === '1' ? '1' : '0';
 	$settings['pw_property_archive']      = isset( $_POST['pw_property_archive'] ) ? '1' : '0';
 
