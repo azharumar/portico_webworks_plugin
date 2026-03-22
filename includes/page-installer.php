@@ -67,9 +67,6 @@ function pw_get_required_pages( int $property_id = 0 ): array {
 
 	if ( $mode === 'single' ) {
 		foreach ( pw_get_section_bases() as $cpt => $_pair ) {
-			if ( $cpt === 'pw_property' ) {
-				continue;
-			}
 			$slug = pw_get_section_base( $cpt, 'plural' );
 			if ( $slug === '' ) {
 				continue;
@@ -86,23 +83,10 @@ function pw_get_required_pages( int $property_id = 0 ): array {
 	}
 
 	if ( $property_id === 0 ) {
-		if ( (string) pw_get_setting( 'pw_property_archive', '1' ) === '1' ) {
-			$slug = pw_get_section_base( 'pw_property', 'plural' ) ?: 'hotels';
-			$out[] = [
-				'title'       => ucwords( str_replace( '-', ' ', $slug ) ),
-				'slug'        => $slug,
-				'property_id' => 0,
-				'cpt'         => 'pw_property',
-				'type'        => 'property_listing',
-			];
-		}
 		return $out;
 	}
 
 	foreach ( pw_get_section_bases() as $cpt => $_pair ) {
-		if ( $cpt === 'pw_property' ) {
-			continue;
-		}
 		$slug = pw_get_section_base( $cpt, 'plural' );
 		if ( $slug === '' ) {
 			continue;
@@ -426,11 +410,10 @@ function pw_on_property_published( $new_status, $old_status, $post ) {
  * GenerateBlocks starter post_content for section CPT listing pages (insert only).
  * Derived from gb-pro-markup-samples.html. Room type: pw_bed_type / pw_view_type omitted (no verified GB Pro term-list tag in loops).
  *
- * @param string $cpt Section CPT or empty; pw_property returns empty (designer-owned listing).
+ * @param string $cpt Section CPT or empty.
  */
 function pw_get_section_starter_markup( string $cpt ): string {
-	if ( $cpt === '' || $cpt === 'pw_property' ) {
-		// Property listing page layout varies too much per project. The designer builds this page. No starter markup is inserted.
+	if ( $cpt === '' || ! in_array( $cpt, pw_url_section_cpts(), true ) ) {
 		return '';
 	}
 

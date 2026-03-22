@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.22] - 2026-03-22
+
+### Removed
+- **Property URL base & listing**: no `pw_property` row in section bases; removed `pw_disable_property_base`, `pw_property_plural_base`, `pw_property_archive` from settings (stripped on merge). Multi-property URLs are always `/{property-slug}` with sections under `/{property-slug}/{section}/…` — no `/hotels/` prefix or global property archive route
+- **Plugin property listing page**: installer no longer creates a site-level property listing page; Permalinks UI drops property archive checkbox and prefix checkbox
+
+### Changed
+- **`pw_get_property_url()`**: root path is the property slug only
+- **`pw_get_section_listing_url()`**: only child section CPTs (`pw_url_section_cpts()`)
+- **Rewrites**: dropped `pw_property_listing`, `pw_property_base_segment`, and `pw_base_segment` query vars; removed virtual `pw_property` archive and bare `/hotel`-style property singular redirects
+- **Multi bare `/{slug}`**: when the slug matches a published property, the front controller now sets up a singular `pw_property` query (template `single-pw_property.php` etc.)
+
 ## [0.8.21] - 2026-03-22
 
 ### Fixed

@@ -168,17 +168,7 @@ function pw_property_exists_with_slug_in_uri( $slug_seg ) {
  * @deprecated
  */
 function pw_validate_property_base_segment( $property_id, $base_seg ) {
-	$expected = pw_get_fixed_permalink_base();
-	if ( $expected === '' ) {
-		return true;
-	}
-	$base_seg = $base_seg !== '' ? sanitize_title( (string) $base_seg ) : '';
-	if ( $base_seg === '' ) {
-		global $wp;
-		$qv = ( is_object( $wp ) && isset( $wp->query_vars ) && is_array( $wp->query_vars ) ) ? $wp->query_vars : [];
-		$base_seg = isset( $qv['pw_property_base_segment'] ) ? sanitize_title( (string) $qv['pw_property_base_segment'] ) : '';
-	}
-	return $base_seg !== '' && $base_seg === $expected;
+	return true;
 }
 
 /**
@@ -199,9 +189,7 @@ function pw_get_property_url( $property_id ) {
 	if ( $slug === '' ) {
 		return '';
 	}
-	$prefix = pw_get_fixed_permalink_base();
-	$path   = $prefix !== '' ? $prefix . '/' . $slug : $slug;
-	return untrailingslashit( home_url( '/' . $path ) );
+	return untrailingslashit( home_url( '/' . $slug ) );
 }
 
 /**
@@ -212,14 +200,14 @@ function pw_get_property_url( $property_id ) {
  * @return string
  */
 function pw_get_section_listing_url( $property_id, $cpt ) {
+	if ( ! in_array( $cpt, pw_url_section_cpts(), true ) ) {
+		return '';
+	}
 	$pl = pw_get_section_base( $cpt, 'plural' );
 	if ( $pl === '' ) {
 		return '';
 	}
 	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'single' ) {
-		return untrailingslashit( home_url( '/' . $pl ) );
-	}
-	if ( $cpt === 'pw_property' ) {
 		return untrailingslashit( home_url( '/' . $pl ) );
 	}
 	$root = pw_get_property_url( (int) $property_id );

@@ -16,13 +16,10 @@ add_filter(
 		foreach (
 			[
 				'pw_property_slug',
-				'pw_property_base_segment',
-				'pw_base_segment',
 				'pw_section_cpt',
 				'pw_outlet_slug',
 				'pw_bare_singular',
 				'pw_static_page_slug',
-				'pw_property_listing',
 			] as $v
 		) {
 			$vars[] = $v;
@@ -54,24 +51,12 @@ function pw_redirect_with_qs( $url, $status = 301 ) {
  * Priority 4–6 bottom (register P4→P5→P6 so wildcard is last).
  */
 function pw_register_all_rewrite_rules() {
-	$bases      = pw_get_section_bases();
-	$mode       = pw_get_setting( 'pw_property_mode', 'single' );
-	$prefix     = pw_multi_property_url_prefix();
-	$with       = $mode === 'multi' && $prefix !== '';
-	$pp_quoted  = preg_quote( sanitize_title( (string) pw_get_setting( 'pw_property_plural_base', 'hotels' ) ), '#' );
-	$prop_pair  = isset( $bases['pw_property'] ) ? $bases['pw_property'] : [ 'plural' => 'hotels', 'singular' => 'hotel' ];
-	$prop_sing_q = preg_quote( $prop_pair['singular'], '#' );
-
+	$bases       = pw_get_section_bases();
+	$mode        = pw_get_setting( 'pw_property_mode', 'single' );
 	$child_bases = [];
 	foreach ( pw_url_section_cpts() as $cpt ) {
 		if ( isset( $bases[ $cpt ] ) ) {
 			$child_bases[ $cpt ] = $bases[ $cpt ];
-		}
-	}
-	$p3_bases = [];
-	foreach ( array_merge( [ 'pw_property' ], pw_url_section_cpts() ) as $cpt ) {
-		if ( isset( $bases[ $cpt ] ) ) {
-			$p3_bases[ $cpt ] = $bases[ $cpt ];
 		}
 	}
 
@@ -101,96 +86,38 @@ function pw_register_all_rewrite_rules() {
 				'top'
 			);
 		}
-		add_rewrite_rule(
-			"^{$prop_sing_q}/?$",
-			'index.php?pw_section_cpt=pw_property&pw_bare_singular=1',
-			'top'
-		);
 		add_rewrite_rule( '^([^/]+)/?$', 'index.php?pw_static_page_slug=$matches[1]', 'bottom' );
 	} else {
-		$bx = preg_quote( $prefix, '#' );
-		if ( $with ) {
-			foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
-				$sing = preg_quote( $pair['singular'], '#' );
-				add_rewrite_rule(
-					"^{$bx}/([^/]+)/{$sing}/([^/]+)/?$",
-					'index.php?pw_base_segment=' . $prefix . '&pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt . '&pw_outlet_slug=$matches[2]',
-					'top'
-				);
-			}
-			foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
-				$pl = preg_quote( $pair['plural'], '#' );
-				add_rewrite_rule(
-					"^{$bx}/([^/]+)/{$pl}/?$",
-					'index.php?pw_base_segment=' . $prefix . '&pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt,
-					'top'
-				);
-			}
-			foreach ( array_reverse( $p3_bases, true ) as $cpt => $pair ) {
-				$sing = preg_quote( $pair['singular'], '#' );
-				add_rewrite_rule(
-					"^{$bx}/([^/]+)/{$sing}/?$",
-					'index.php?pw_base_segment=' . $prefix . '&pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt . '&pw_bare_singular=1',
-					'top'
-				);
-			}
+		foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
+			$sing = preg_quote( $pair['singular'], '#' );
 			add_rewrite_rule(
-				"^{$prop_sing_q}/?$",
-				'index.php?pw_section_cpt=pw_property&pw_bare_singular=1',
+				"^([^/]+)/{$sing}/([^/]+)/?$",
+				'index.php?pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt . '&pw_outlet_slug=$matches[2]',
 				'top'
 			);
-			add_rewrite_rule(
-				"^{$bx}/([^/]+)/?$",
-				'index.php?pw_base_segment=' . $prefix . '&pw_property_slug=$matches[1]',
-				'bottom'
-			);
-			if ( (string) pw_get_setting( 'pw_property_archive', '1' ) === '1' ) {
-				add_rewrite_rule(
-					"^{$bx}/?$",
-					'index.php?pw_base_segment=' . $prefix . '&pw_property_listing=1',
-					'bottom'
-				);
-			}
-			add_rewrite_rule(
-				"^{$bx}/([^/]+)/([^/]+)/?$",
-				'index.php?pw_base_segment=' . $prefix . '&pw_property_slug=$matches[1]&pw_static_page_slug=$matches[2]',
-				'bottom'
-			);
-		} else {
-			foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
-				$sing = preg_quote( $pair['singular'], '#' );
-				add_rewrite_rule(
-					"^([^/]+)/{$sing}/([^/]+)/?$",
-					'index.php?pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt . '&pw_outlet_slug=$matches[2]',
-					'top'
-				);
-			}
-			foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
-				$pl = preg_quote( $pair['plural'], '#' );
-				add_rewrite_rule(
-					"^([^/]+)/{$pl}/?$",
-					'index.php?pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt,
-					'top'
-				);
-			}
-			foreach ( array_reverse( $p3_bases, true ) as $cpt => $pair ) {
-				$sing = preg_quote( $pair['singular'], '#' );
-				add_rewrite_rule(
-					"^([^/]+)/{$sing}/?$",
-					'index.php?pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt . '&pw_bare_singular=1',
-					'top'
-				);
-			}
-			add_rewrite_rule(
-				'^([^/]+)/([^/]+)/?$',
-				'index.php?pw_property_slug=$matches[1]&pw_static_page_slug=$matches[2]',
-				'bottom'
-			);
-			if ( (string) pw_get_setting( 'pw_property_archive', '1' ) === '1' ) {
-				add_rewrite_rule( "^{$pp_quoted}/?$", 'index.php?pw_property_listing=1', 'bottom' );
-			}
-			add_rewrite_rule( '^([^/]+)/?$', 'index.php?pw_property_slug=$matches[1]', 'bottom' );
 		}
+		foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
+			$pl = preg_quote( $pair['plural'], '#' );
+			add_rewrite_rule(
+				"^([^/]+)/{$pl}/?$",
+				'index.php?pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt,
+				'top'
+			);
+		}
+		foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
+			$sing = preg_quote( $pair['singular'], '#' );
+			add_rewrite_rule(
+				"^([^/]+)/{$sing}/?$",
+				'index.php?pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt . '&pw_bare_singular=1',
+				'top'
+			);
+		}
+		add_rewrite_rule(
+			'^([^/]+)/([^/]+)/?$',
+			'index.php?pw_property_slug=$matches[1]&pw_static_page_slug=$matches[2]',
+			'bottom'
+		);
+		add_rewrite_rule( '^([^/]+)/?$', 'index.php?pw_property_slug=$matches[1]', 'bottom' );
 	}
 
 	// ASSERTION: if you are adding any rule after this point, you are breaking the wildcard-last guarantee.
@@ -220,7 +147,6 @@ add_filter(
 			get_query_var( 'pw_static_page_slug', '' ),
 			get_query_var( 'pw_outlet_slug', '' ),
 			get_query_var( 'pw_bare_singular', '' ),
-			get_query_var( 'pw_property_listing', '' ),
 		];
 		foreach ( $check as $v ) {
 			if ( is_string( $v ) && $v !== '' ) {
@@ -251,21 +177,6 @@ function pw_url_front_controller() {
 		}
 		$pid = (int) pw_get_current_property_id();
 
-		if ( $cpt === 'pw_property' ) {
-			$listing_on = (string) pw_get_setting( 'pw_property_archive', '1' ) === '1';
-			if ( $listing_on ) {
-				pw_redirect_with_qs( pw_get_section_listing_url( $pid, $cpt ), 301 );
-			}
-			$dest = pw_get_setting( 'pw_property_mode', 'single' ) === 'single'
-				? home_url( '/' )
-				: pw_get_property_url( $pid );
-			if ( $dest === '' ) {
-				$dest = home_url( '/' );
-			}
-			pw_redirect_with_qs( untrailingslashit( $dest ), 301 );
-			return;
-		}
-
 		if ( $pid > 0 && pw_is_section_enabled( $pid, $cpt ) ) {
 			pw_redirect_with_qs( pw_get_section_listing_url( $pid, $cpt ), 301 );
 		}
@@ -276,6 +187,7 @@ function pw_url_front_controller() {
 			$dest = home_url( '/' );
 		}
 		pw_redirect_with_qs( untrailingslashit( $dest ), 301 );
+		return;
 	}
 
 	$outlet = (string) get_query_var( 'pw_outlet_slug', '' );
@@ -407,13 +319,50 @@ function pw_url_front_controller() {
 		return;
 	}
 
-	if ( (int) get_query_var( 'pw_property_listing', 0 ) === 1 ) {
-		if ( (string) pw_get_setting( 'pw_property_archive', '1' ) !== '1' ) {
-			pw_url_set_404();
-			return;
-		}
-		pw_url_virtual_archive( 'pw_property' );
+	if ( pw_get_setting( 'pw_property_mode', 'single' ) !== 'multi' ) {
+		return;
 	}
+	$prop_slug = (string) get_query_var( 'pw_property_slug', '' );
+	if ( $prop_slug === '' ) {
+		return;
+	}
+	if ( (string) get_query_var( 'pw_section_cpt', '' ) !== '' || (string) get_query_var( 'pw_static_page_slug', '' ) !== '' || (string) get_query_var( 'pw_outlet_slug', '' ) !== '' ) {
+		return;
+	}
+	if ( (int) get_query_var( 'pw_bare_singular', 0 ) === 1 ) {
+		return;
+	}
+	$prop_id = pw_resolve_property_slug( sanitize_title( $prop_slug ) );
+	if ( $prop_id <= 0 ) {
+		return;
+	}
+	$post = get_post( $prop_id );
+	if ( ! $post instanceof WP_Post || $post->post_status !== 'publish' || $post->post_type !== 'pw_property' ) {
+		return;
+	}
+	global $wp_query;
+	setup_postdata( $post );
+	$wp_query->queried_object    = $post;
+	$wp_query->queried_object_id = $prop_id;
+	$wp_query->is_single         = true;
+	$wp_query->is_singular       = true;
+	$wp_query->is_page           = false;
+	$wp_query->is_home           = false;
+	$wp_query->is_archive        = false;
+	$wp_query->posts             = [ $post ];
+	$wp_query->post_count        = 1;
+	$wp_query->found_posts       = 1;
+	$wp_query->max_num_pages     = 1;
+	$wp_query->current_post      = -1;
+	status_header( 200 );
+	nocache_headers();
+	add_filter(
+		'template_include',
+		static function ( $template ) {
+			$p = locate_template( [ 'single-pw_property.php', 'single.php', 'singular.php', 'index.php' ] );
+			return $p ? $p : $template;
+		}
+	);
 }
 
 function pw_url_set_404() {
