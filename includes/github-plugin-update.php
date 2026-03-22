@@ -130,9 +130,11 @@ function pw_github_api_get( $url ) {
 }
 
 /**
- * @return array{zip_url:string,tag_name:string}|WP_Error
+ * Latest release GitHub JSON plus optional zip package (same resolution rules as one-click update).
+ *
+ * @return array{release:array<string,mixed>,package:array{zip_url:string,tag_name:string}|null}|WP_Error
  */
-function pw_github_get_latest_release_package( $releases_url ) {
+function pw_github_resolve_plugin_release( $releases_url ) {
 	$repo = pw_parse_github_repo_from_releases_url( $releases_url );
 	if ( ! is_array( $repo ) ) {
 		return new WP_Error( 'pw_github_bad_url', __( 'Set a valid GitHub repository URL (e.g. https://github.com/owner/repo/releases).', 'portico-webworks' ) );
@@ -154,18 +156,10 @@ function pw_github_get_latest_release_package( $releases_url ) {
 		if ( ! is_array( $data ) ) {
 			return new WP_Error( 'pw_github_json', __( 'Invalid response from GitHub.', 'portico-webworks' ) );
 		}
-		$pkg = pw_github_zip_from_release_payload( $data );
-		if ( $pkg === null ) {
-			return new WP_Error(
-				'pw_github_no_zip',
-				sprintf(
-					/* translators: %s: zip filename */
-					__( 'Latest release has no %s asset. Add it via your release workflow.', 'portico-webworks' ),
-					PW_GITHUB_PLUGIN_RELEASE_ZIP
-				)
-			);
-		}
-		return $pkg;
+		return array(
+			'release' => $data,
+			'package' => pw_github_zip_from_release_payload( $data ),
+		);
 	}
 
 	if ( $code === 404 ) {
@@ -186,7 +180,10 @@ function pw_github_get_latest_release_package( $releases_url ) {
 				foreach ( $list as $release ) {
 					$pkg = pw_github_zip_from_release_payload( $release );
 					if ( $pkg !== null ) {
-						return $pkg;
+						return array(
+							'release' => $release,
+							'package' => $pkg,
+						);
 					}
 				}
 			}
@@ -214,6 +211,77 @@ function pw_github_get_latest_release_package( $releases_url ) {
 			(string) $code
 		)
 	);
+}
+
+/**
+ * @return array{zip_url:string,tag_name:string}|WP_Error
+ */
+function pw_github_get_latest_release_package( $releases_url ) {
+	$r = pw_github_resolve_plugin_release( $releases_url );
+	if ( is_wp_error( $r ) ) {
+		return $r;
+	}
+	if ( $r['package'] === null ) {
+		return new WP_Error(
+			'pw_github_no_zip',
+			sprintf(
+				/* translators: %s: zip filename */
+				__( 'Latest release has no %s asset. Add it via your release workflow.', 'portico-webworks' ),
+				PW_GITHUB_PLUGIN_RELEASE_ZIP
+			)
+		);
+	}
+	return $r['package'];
+}
+
+/**
+ * Cached GitHub release summary for the settings screen (version compare + release notes).
+ *
+ * @return array{ok:true,tag_name:string,name:string,body:string,html_url:string,has_package:bool,is_current:bool,installed:string}|array{ok:false,message:string}
+ */
+function pw_github_get_settings_release_info( $releases_url ) {
+	$releases_url = is_string( $releases_url ) ? trim( $releases_url ) : '';
+	if ( $releases_url === '' ) {
+		return array(
+			'ok'      => false,
+			'message' => __( 'Save a GitHub releases URL first.', 'portico-webworks' ),
+		);
+	}
+	$cache_key = 'pw_gh_rel_info_' . md5( $releases_url );
+	$cached    = get_transient( $cache_key );
+	if ( is_array( $cached ) && isset( $cached['ok'] ) ) {
+		return $cached;
+	}
+
+	$r = pw_github_resolve_plugin_release( $releases_url );
+	if ( is_wp_error( $r ) ) {
+		$out = array(
+			'ok'      => false,
+			'message' => $r->get_error_message(),
+		);
+		set_transient( $cache_key, $out, 5 * MINUTE_IN_SECONDS );
+		return $out;
+	}
+
+	$rel      = $r['release'];
+	$tag      = isset( $rel['tag_name'] ) ? (string) $rel['tag_name'] : '';
+	$name     = isset( $rel['name'] ) ? (string) $rel['name'] : '';
+	$body     = isset( $rel['body'] ) ? (string) $rel['body'] : '';
+	$html_url = isset( $rel['html_url'] ) ? (string) $rel['html_url'] : '';
+	$current  = defined( 'PW_VERSION' ) ? (string) PW_VERSION : '';
+
+	$out = array(
+		'ok'           => true,
+		'tag_name'     => $tag,
+		'name'         => $name,
+		'body'         => $body,
+		'html_url'     => $html_url,
+		'has_package'  => $r['package'] !== null,
+		'is_current'   => $tag !== '' && pw_github_versions_equal( $tag, $current ),
+		'installed'    => $current,
+	);
+	set_transient( $cache_key, $out, 15 * MINUTE_IN_SECONDS );
+	return $out;
 }
 
 /**
@@ -292,6 +360,7 @@ function pw_handle_admin_post_github_plugin_update() {
 		exit;
 	}
 
+	delete_transient( 'pw_gh_rel_info_' . md5( $releases_url ) );
 	wp_safe_redirect( add_query_arg( 'pw_github_upd', 'ok', pw_admin_settings_url() ) );
 	exit;
 }

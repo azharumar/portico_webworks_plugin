@@ -1,8 +1,17 @@
 # Changelog
 
+## [0.8.16] - 2026-03-22
+
+### Changed
+- **Admin (CMB2)**: on Portico CPT edit screens, `pw-cmb2-overrides` widens URL/email inputs, most `text_small` fields (excluding date, time, and color pickers), and `text_money` so long values fit the column
+- **`pw_contact`**: Phone, Mobile, WhatsApp, and Email use wider inputs (`large-text` / full-width email)
+- **`pw_event_organiser`**: Organiser URL term field uses `regular-text`
+- **Documentation**: `DATA-STRUCTURE.md` aligned with current CPT/meta/settings/permalinks code; sample multi-install docblock references the doc
+
 ## [0.8.15] - 2026-03-22
 
 ### Added
+- **Settings → Update from GitHub**: shows installed vs latest release tag, link to the release on GitHub, release notes (API body, cached ~15 minutes), and warns when the release has no `portico_webworks_plugin.zip` asset
 - **`pw_contact` CPT** (`rest_base` `pw-contacts`): scoped contact cards per property (outlet-specific, group-level by CPT, or property fallback); CMB2 metabox `pw_contact_metabox`; admin submenu under Portico Webworks; `assets/admin-contact-scope.js` + `GET /wp-json/pw/v1/contact-scope-posts` for outlet select
 - **`includes/contact-resolver.php`**: `PW_CONTACT_SCOPE_CPTS`, `pw_resolve_contact()`, `pw_resolve_primary_contact()`, file-level contract PHPDoc; **`GET /wp-json/pw/v1/contacts`** (`edit_posts`) returns resolved contacts
 - **`before_delete_post`**: when `pw_restaurant`, `pw_spa`, `pw_meeting_room`, or `pw_experience` is deleted, matching `pw_contact` rows demote `_pw_scope_id` to `0` and prefix `[Unlinked]` on `_pw_label`

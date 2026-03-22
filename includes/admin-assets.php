@@ -61,6 +61,9 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 
 	if ( $is_pw_cpt || $is_pw_tax ) {
 		$css = '.cmb2-postbox .cmb-row:not(:last-of-type),.cmb2-postbox .cmb-repeatable-group:not(:last-of-type),.cmb-type-group .cmb-row:not(:last-of-type),.cmb-type-group .cmb-repeatable-group:not(:last-of-type){border-bottom:0}.cmb2-postbox .cmb-row,.cmb-type-group .cmb-row{padding:0 0 .6em;margin:0 0 .4em}.pw-facet-fixed-rows .cmb-add-group-row,.pw-facet-fixed-rows .cmb-remove-group-row,.pw-facet-fixed-rows .cmb-remove-group-row-button,.pw-facet-fixed-rows .cmb-remove-field-row{display:none!important}';
+		$css .= '.cmb2-postbox .cmb2-wrap input.cmb2-text-url,.cmb2-postbox .cmb2-wrap input.cmb2-text-email{width:100%;max-width:100%;box-sizing:border-box}';
+		$css .= '.cmb2-postbox .cmb2-wrap input.cmb2-text-small:not(.cmb2-datepicker):not(.cmb2-timepicker):not(.cmb2-colorpicker){width:100%;max-width:100%;min-width:10em;box-sizing:border-box}';
+		$css .= '.cmb2-postbox .cmb2-wrap input.cmb2-text-money{width:min(100%,12rem);max-width:100%;min-width:6em;box-sizing:border-box}';
 		wp_register_style( 'pw-cmb2-overrides', false, [ 'cmb2-styles' ], '0.1.0' );
 		wp_enqueue_style( 'pw-cmb2-overrides' );
 		wp_add_inline_style( 'pw-cmb2-overrides', $css );
@@ -114,6 +117,7 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 .pw-admin .pw-card-body{padding:16px}
 .pw-admin .pw-subsection-title{margin:0 0 10px;font-size:14px;font-weight:700;color:var(--text);letter-spacing:0.02em}
 .pw-admin .pw-section-divider{border:0;border-top:1px solid var(--border);margin:20px 0}
+.pw-admin .pw-github-release-notes{max-height:20em;overflow:auto;margin-top:0.25em;padding:0.75em 1em;font-size:13px;line-height:1.45;white-space:pre-wrap;word-break:break-word;background:var(--card2);border:1px solid var(--border);border-radius:8px}
 .pw-admin .pw-subsection + .pw-section-divider{margin-top:0}
 .pw-admin .button.pw-button-purge-all{background:#b32d2d!important;border-color:#8f2424!important;color:#fff!important;box-shadow:none!important;text-shadow:none!important}
 .pw-admin .button.pw-button-purge-all:hover,.pw-admin .button.pw-button-purge-all:focus{background:#961f1f!important;border-color:#6e1818!important;color:#fff!important}

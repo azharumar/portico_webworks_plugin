@@ -2,11 +2,11 @@
 
 ## Overview
 
-The plugin registers **1 primary post type** (`pw_property`) and **13 child post types**. Child CPTs are linked to a property via a `_pw_property_id` meta field (or `_pw_connected_to` / `_pw_parents` where applicable). All CPTs expose data via the REST API (`show_in_rest: true`).
+The plugin registers **1 primary post type** (`pw_property`) and **13 child post types**. Child CPTs (except `pw_contact`) are registered in `includes/child-post-types.php`; **`pw_contact`** is registered in `includes/contact-post-type.php`. Child CPTs are linked to a property via a `_pw_property_id` meta field (or `_pw_connected_to` / `_pw_parents` where applicable). All CPTs use `show_in_rest: true`.
 
-Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** for the property profile (`includes/property-profile.php`). CMB2 is bundled in `vendor/cmb2/` and its top-level admin menu is suppressed via the `cmb2_menus` filter.
+Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** for the property profile (`includes/property-profile.php`). **`pw_contact`** uses CMB2 from `includes/contact-metabox.php`, which also registers its `register_post_meta` keys. CMB2 is bundled in `vendor/cmb2/` and its top-level admin menu is suppressed via the `cmb2_menus` filter. CPT submenus under **Portico Webworks** are registered manually in `includes/admin-page.php` (auto-generated CPT submenus are removed in `includes/child-post-types.php`).
 
-**Plugin settings UI:** **Portico Webworks → General** is **not** a CMB2 options page. A custom `<form>` posts to `admin-post.php` with `action=pw_save_settings`, nonce `pw_save_settings` / `pw_settings_nonce`, and `pw_handle_settings_save()` in `includes/admin-page.php` writes `update_option( 'pw_settings', $settings )`.
+**Plugin settings UI:** **Portico Webworks → General** is **not** a CMB2 options page. A custom `<form>` posts to `admin-post.php` with `action=pw_save_settings`, nonce `pw_save_settings` / `pw_settings_nonce`, and `pw_handle_settings_save()` in `includes/admin-page.php` updates `pw_settings`. **Property URL base, dynamic base source, slug source, and sub-paths** are on **Portico Webworks → Permalinks** (`includes/admin-permalinks.php`, `admin_post_pw_save_permalinks`).
 
 **`pw_property` viewability:** In single-property mode the post type is not publicly queryable, but an `is_post_type_viewable` filter (`includes/property-post-type.php`) still returns true so the block editor and builders (e.g. GenerateBlocks) can resolve the type.
 
@@ -26,9 +26,11 @@ Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** fo
 **REST base:** `pw-properties`  
 **Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `revisions`, `custom-fields`  
 **Taxonomies:** `pw_property_type`  
-**Public:** mode-dependent (`pw_settings['pw_property_mode']`, read via `pw_get_setting()`: `single` | `multi`). See overview: still **viewable** for block/editor discovery in single mode.
+**Public / queryable / rewrite** (`includes/property-post-type.php`): In **multi** mode, `public`, `publicly_queryable`, and `query_var` are on; **single** mode turns them off. **`rewrite`** is registered only when **multi** mode **and** `pw_get_permalink_base_source() === 'fixed'` (slug = `pw_get_fixed_permalink_base()`). If the base source is dynamic (`pw_permalink_uses_dynamic_base()` is true), URL routing uses `includes/property-rewrites.php` instead of the CPT rewrite slug. See overview: `is_post_type_viewable` still returns **true** for `pw_property` in single mode so the block editor and builders can resolve the type.
 
 ### Meta Fields
+
+Scalar profile fields below are registered in `includes/property-post-type.php`. Repeatable / structured groups for `pw_property` (`_pw_pools`, `_pw_direct_benefits`, `_pw_certifications`, sustainability and accessibility facet arrays) are registered in `pw_register_child_post_meta()` in `includes/child-post-types.php`.
 
 #### General
 
@@ -42,9 +44,10 @@ Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** fo
 | `_pw_check_out_time`   | string  | `''`    | e.g. `11:00`               | Custom metabox                              |
 | `_pw_year_established` | integer | `0`     | schema.org LodgingBusiness | Custom metabox                              |
 | `_pw_total_rooms`      | integer | `0`     | Total inventory count      | Custom metabox                              |
+| `_pw_url_slug`         | string  | `''`    | Optional segment when Permalinks uses custom slug mode (`pw_get_permalink_slug_source()`). `sanitize_title`; unique among published properties. Field appears in General only when that mode is on. | Custom metabox (`property-profile.php`) |
 
 
-> **Note:** The default front-end template is a plugin-level setting (Portico Webworks → **General** → Default Template, stored in `pw_settings`). Property profile fields (General, Address, Geo, Social) use custom metaboxes in `property-profile.php`, not CMB2.
+> **Note:** Property profile fields (General, Address, Geo, Social) use custom metaboxes in `property-profile.php`, not CMB2. Permalink behaviour (base, slug source, sub-paths) is configured under **Portico Webworks → Permalinks**.
 
 #### Address
 
@@ -304,9 +307,9 @@ Same storage and REST registration pattern as restaurant. CMB2: `pw_spa_operatin
 
 **REST base:** `pw-contacts`  
 **Supports:** `title`, `custom-fields`  
-**Public:** `false` (UI under Portico Webworks → Contacts)
+**Public:** inherits child defaults with `public` / `show_ui` as for other child CPTs; **`publicly_queryable`:** `false`; **`show_in_menu`:** `false` (list/add screens linked from **Portico Webworks → Contacts** in `admin-page.php`).
 
-Scoped contact cards for a property: outlet-specific, group-level per CPT, or property-wide fallback. **Read paths** must use `pw_resolve_contact()` / `pw_resolve_primary_contact()` — see `includes/contact-resolver.php`.
+Scoped contact cards for a property: outlet-specific, group-level per CPT, or property-wide fallback. **Read paths** must use `pw_resolve_contact()` / `pw_resolve_primary_contact()` — see `includes/contact-resolver.php`. When an outlet post (`pw_restaurant`, `pw_spa`, `pw_meeting_room`, `pw_experience`) is deleted, `pw_contact_handle_outlet_deleted()` in `contact-post-type.php` clears matching `_pw_scope_id` and prefixes the label with `[Unlinked] ` where needed.
 
 | Meta Key           | Type    | Default    | Notes                                                                 | CMB2                          |
 | ------------------ | ------- | ---------- | --------------------------------------------------------------------- | ----------------------------- |
@@ -316,8 +319,8 @@ Scoped contact cards for a property: outlet-specific, group-level per CPT, or pr
 | `_pw_mobile`       | string  | `''`       |                                                                       | text_small                    |
 | `_pw_whatsapp`     | string  | `''`       |                                                                       | text_small                    |
 | `_pw_email`        | string  | `''`       |                                                                       | text_email                    |
-| `_pw_scope_cpt`    | string  | `property` | One of `PW_CONTACT_SCOPE_CPTS`: property, restaurant, spa, meeting_room, experience, all | select                        |
-| `_pw_scope_id`     | integer | `0`        | Outlet post ID or `0` for group-level; cleared when scope is property/all | select (JS-filled)        |
+| `_pw_scope_cpt`    | string  | `property` | One of `PW_CONTACT_SCOPE_CPTS` (`includes/contact-resolver.php`): `property`, `restaurant`, `spa`, `meeting_room`, `experience`, `all` | select                        |
+| `_pw_scope_id`     | integer | `0`        | Outlet post ID or `0` for group-level                                 | select (JS-filled)            |
 
 **REST (custom):** `GET /wp-json/pw/v1/contacts?property_id=&scope_cpt=&scope_id=` — resolved contacts (`edit_posts`). `GET /wp-json/pw/v1/contact-scope-posts?property_id=&post_type=` — outlet picker for admin JS.
 
@@ -522,38 +525,49 @@ The **Sample Data** installer (`includes/sample-data-multi-install.php`) merges 
 
 ## Options Page: Portico Webworks Settings
 
-**WordPress option (single row):** `pw_settings` — associative array of the keys below.
+**WordPress option (single row):** `pw_settings` — associative array. Permalink-related keys are written from either **General** or **Permalinks** saves; both merge from the existing option.
 
-**UI:** **Portico Webworks → General** (`includes/admin-page.php`). Above the form, “Search Engine Indexing” is static copy with a link to **Settings → Reading** (`options-reading.php`). The settings `<form>` uses `action` = `admin_url( 'admin-post.php' )`, hidden field `action` = `pw_save_settings`, and `wp_nonce_field( 'pw_save_settings', 'pw_settings_nonce' )`. Submit button triggers `admin_post_pw_save_settings` → `pw_handle_settings_save()`.
+### General tab
 
-### Keys stored in `pw_settings`
+**UI:** **Portico Webworks → General** (`includes/admin-page.php`). “Search Engine Indexing” is static copy with a link to **Settings → Reading** (`options-reading.php`). Form: `admin_url( 'admin-post.php' )`, `action=pw_save_settings`, `wp_nonce_field( 'pw_save_settings', 'pw_settings_nonce' )` → `pw_handle_settings_save()`.
 
-| Option key                 | Type    | Default        | Notes |
-| -------------------------- | ------- | -------------- | ----- |
-| `pw_property_mode`         | string  | `'single'`     | `'single'` \| `'multi'` (from POST radio) |
-| `pw_property_base`         | string  | `'properties'` | URL prefix for `pw_property` rewrite (multi mode only); sanitized with `pw_sanitize_property_base()` |
-| `pw_default_property_id`   | int     | `0`            | **Single mode:** must be a **published** `pw_property` ID (invalid selection cleared to `0` + transient notice). **Multi mode:** always saved as `0`. Client script `assets/admin-settings.js` toggles `.pw-default-property-row` when switching mode before submit. |
-| `pw_default_template`      | string  | `''`           | Template slug for front-end rendering (all properties) |
-| `pw_github_releases_url`   | string  | `''`           | Sanitized with `pw_sanitize_github_releases_url()`; used by “Update from GitHub” (`includes/github-plugin-update.php`). Release asset name: `portico_webworks_plugin.zip`. |
+**`pw_handle_settings_save()`** updates `pw_property_mode`, `pw_default_property_id` (single mode only; `0` in multi), `pw_github_releases_url`, and **removes** any legacy `pw_default_template` key from the stored array. **`flush_rewrite_rules()`** runs only when **`pw_property_mode`** changed vs. previous merged settings (permalink/base changes are saved on the Permalinks tab).
+
+### Permalinks tab
+
+**UI:** **Portico Webworks → Permalinks** (`includes/admin-permalinks.php`). Nonce `pw_save_permalinks` / `pw_permalinks_nonce`, handler `admin_post_pw_save_permalinks` → `pw_handle_save_permalinks()`.
+
+**Saved keys:** `pw_permalink_base_source` (allowed values: `pw_permalink_base_source_allowed()` in `includes/permalink-config.php` — `fixed`, `_pw_city`, `_pw_state`, `_pw_country`, `_pw_country_code`, `pw_property_type`), `pw_permalink_base_fixed` (sanitized with `pw_sanitize_property_base()`), **`pw_property_base`** (set equal to the fixed base on save), `pw_permalink_slug_source` (`post_name` | `_pw_url_slug`), `pw_permalink_subpaths` (map of URL segment → published **page** `post_name`).
+
+**Flush:** `flush_rewrite_rules()` when any of the above permalink fields change vs. stored values.
+
+### Keys in `pw_settings` (effective model)
+
+| Option key                  | Type   | Default / notes |
+| --------------------------- | ------ | ---------------- |
+| `pw_property_mode`          | string | `'single'` \| `'multi'` |
+| `pw_default_property_id`   | int    | `0`; single mode: published `pw_property` only |
+| `pw_github_releases_url`    | string | Sanitized with `pw_sanitize_github_releases_url()`; “Update from GitHub” (`includes/github-plugin-update.php`); asset `portico_webworks_plugin.zip` |
+| `pw_permalink_base_source`  | string | Default `'fixed'`; see `permalink-config.php` |
+| `pw_permalink_base_fixed`   | string | Synced with `pw_property_base` in `pw_get_merged_pw_settings()` |
+| `pw_property_base`          | string | Legacy mirror of fixed base; kept in sync when merging |
+| `pw_permalink_slug_source`  | string | Stored in DB; readable via `pw_get_permalink_slug_source()` |
+| `pw_permalink_subpaths`     | array  | Segment → page slug strings |
 
 ### Read path
 
-- **`pw_get_merged_pw_settings()`** returns `wp_parse_args( $stored_array, $defaults )` where `$stored_array` is `get_option( 'pw_settings' )` coerced to array, and `$defaults` are the five keys above (`includes/admin-page.php`).
-- **`pw_get_setting( $key, $default )`** returns `$opts[ $key ]` if the key exists in the merged array, otherwise `get_option( $key, $default )` (for keys not in `pw_settings`).
-
-### Write path
-
-- **`pw_handle_settings_save()`** (capability `manage_options`, nonce check): builds a new `$settings` array from `$_POST`, sets `pw_default_property_id` to `0` in multi mode, validates default property in single mode, then `update_option( 'pw_settings', $settings )`.
-- If `pw_property_mode` or `pw_property_base` changed vs. previous merged settings, **`flush_rewrite_rules()`** runs immediately after save (same function).
+- **`pw_get_merged_pw_settings()`** (`includes/admin-page.php`): merges `get_option( 'pw_settings' )` with defaults for the keys above, normalizes `pw_permalink_base_fixed` / `pw_property_base`, and **omits** `pw_permalink_slug_source` from the **returned** array (the value remains in the option row). Use **`pw_get_permalink_slug_source()`** for the slug mode.
+- **`pw_get_setting( $key, $default )`** returns a key from the merged array if present, else **`get_option( $key, $default )`** (so `pw_permalink_slug_source` still resolves after merge).
 
 ---
 
 ## SEO Meta Box (shared)
 
-**CMB2 box:** `pw_seo_metabox`  
-**Applies to:** `pw_room_type`, `pw_restaurant`, `pw_spa`, `pw_meeting_room`, `pw_experience`, `pw_event`, `pw_offer`, `pw_nearby`
+**CMB2 box:** `pw_seo_metabox` (`includes/child-post-type-metaboxes.php`)  
+**Applies to:** `pw_room_type`, `pw_restaurant`, `pw_spa`, `pw_meeting_room`, `pw_experience`, `pw_event`, `pw_offer`, `pw_nearby`  
+**Fields:** `_pw_meta_title`, `_pw_meta_description` only (no Open Graph file field on these types).
 
-`pw_property` uses a separate CMB2 box `pw_property_seo` (same meta keys; see property section above). On the front end, Rank Math title/description are overridden from post meta where set (`includes/seo-compatibility.php`).
+`pw_property` uses **`pw_property_seo`** with the same two meta keys **plus** `_pw_og_image` (attachment ID). `register_post_meta` for `_pw_meta_title` / `_pw_meta_description` on `pw_property` is in `includes/property-post-type.php`; `_pw_og_image` is registered there as integer. Child CPT SEO meta is registered in `pw_register_seo_meta()` in `includes/child-post-types.php`. On the front end, Rank Math title/description are overridden from post meta where set (`includes/seo-compatibility.php`).
 
 | Meta Key               | Type   | CMB2                           |
 | ---------------------- | ------ | ------------------------------ |

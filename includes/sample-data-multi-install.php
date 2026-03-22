@@ -50,6 +50,8 @@ function pw_sample_install_pw_contact_rows( $property_id, array $rows ) {
 
 /**
  * Installs two demo properties (Bengaluru + Goa) and related CPT rows.
+ *
+ * Meta keys and shapes follow DATA-STRUCTURE.md and register_post_meta / CMB2 in the plugin.
  */
 function pw_install_sample_dataset_multi() {
 	$seed_terms = pw_get_taxonomy_seed_terms();

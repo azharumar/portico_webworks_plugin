@@ -116,10 +116,30 @@ function pw_register_contact_cmb2_metabox() {
 		]
 	);
 
-	$cmb->add_field( [ 'name' => 'Phone', 'id' => '_pw_phone', 'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Mobile', 'id' => '_pw_mobile', 'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'WhatsApp', 'id' => '_pw_whatsapp', 'type' => 'text_small' ] );
-	$cmb->add_field( [ 'name' => 'Email', 'id' => '_pw_email', 'type' => 'text_email' ] );
+	$cmb->add_field( [
+		'name'       => 'Phone',
+		'id'         => '_pw_phone',
+		'type'       => 'text',
+		'attributes' => [ 'class' => 'large-text', 'autocomplete' => 'tel' ],
+	] );
+	$cmb->add_field( [
+		'name'       => 'Mobile',
+		'id'         => '_pw_mobile',
+		'type'       => 'text',
+		'attributes' => [ 'class' => 'large-text', 'autocomplete' => 'tel' ],
+	] );
+	$cmb->add_field( [
+		'name'       => 'WhatsApp',
+		'id'         => '_pw_whatsapp',
+		'type'       => 'text',
+		'attributes' => [ 'class' => 'large-text', 'autocomplete' => 'tel' ],
+	] );
+	$cmb->add_field( [
+		'name'       => 'Email',
+		'id'         => '_pw_email',
+		'type'       => 'text_email',
+		'attributes' => [ 'class' => 'large-text' ],
+	] );
 
 	$cmb->add_field(
 		[

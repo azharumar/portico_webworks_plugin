@@ -895,7 +895,7 @@ add_action( 'pw_event_organiser_add_form_fields', function() {
 	?>
 	<div class="form-field">
 		<label for="organiser_url">Organiser URL</label>
-		<input type="url" name="organiser_url" id="organiser_url" value="" />
+		<input type="url" name="organiser_url" id="organiser_url" value="" class="regular-text" />
 		<p class="description">Website or profile URL for the organiser. Used in schema.org Event markup.</p>
 	</div>
 	<?php
@@ -907,7 +907,7 @@ add_action( 'pw_event_organiser_edit_form_fields', function( $term ) {
 	<tr class="form-field">
 		<th><label for="organiser_url">Organiser URL</label></th>
 		<td>
-			<input type="url" name="organiser_url" id="organiser_url" value="<?php echo esc_attr( $url ); ?>" />
+			<input type="url" name="organiser_url" id="organiser_url" value="<?php echo esc_attr( $url ); ?>" class="regular-text" />
 			<p class="description">Website or profile URL for the organiser. Used in schema.org Event markup.</p>
 		</td>
 	</tr>

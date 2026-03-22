@@ -271,6 +271,13 @@ function pw_handle_settings_save() {
 
 	update_option( 'pw_settings', $settings );
 
+	$old_gh = isset( $existing['pw_github_releases_url'] ) ? (string) $existing['pw_github_releases_url'] : '';
+	$new_gh = isset( $settings['pw_github_releases_url'] ) ? (string) $settings['pw_github_releases_url'] : '';
+	if ( $old_gh !== $new_gh ) {
+		delete_transient( 'pw_gh_rel_info_' . md5( $old_gh ) );
+		delete_transient( 'pw_gh_rel_info_' . md5( $new_gh ) );
+	}
+
 	$flush = ( $mode !== $existing['pw_property_mode'] );
 	if ( $flush ) {
 		flush_rewrite_rules();
@@ -432,6 +439,46 @@ function pw_render_root_page() {
 			echo '<h2 class="title" style="margin-top:1em;">' . esc_html__( 'Update from GitHub', 'portico-webworks' ) . '</h2>';
 			if ( is_string( $gh_url ) && $gh_url !== '' ) {
 				echo '<p class="description">' . esc_html__( 'Configured repository:', 'portico-webworks' ) . ' <code>' . esc_html( $gh_url ) . '</code></p>';
+				$gh_info = pw_github_get_settings_release_info( $gh_url );
+				if ( empty( $gh_info['ok'] ) ) {
+					echo '<p class="description">' . esc_html( isset( $gh_info['message'] ) ? (string) $gh_info['message'] : __( 'Could not load release info from GitHub.', 'portico-webworks' ) ) . '</p>';
+				} else {
+					$inst = isset( $gh_info['installed'] ) ? trim( (string) $gh_info['installed'] ) : '';
+					$tag  = isset( $gh_info['tag_name'] ) ? trim( (string) $gh_info['tag_name'] ) : '';
+					echo '<p style="margin-top:0.75em;">';
+					echo '<strong>' . esc_html__( 'Installed version', 'portico-webworks' ) . '</strong>: ';
+					echo $inst !== '' ? esc_html( 'v' . ltrim( $inst, 'v' ) ) : esc_html__( '(unknown)', 'portico-webworks' );
+					echo '<br /><strong>' . esc_html__( 'Latest release on GitHub', 'portico-webworks' ) . '</strong>: ';
+					if ( $tag !== '' ) {
+						echo esc_html( $tag );
+					} else {
+						echo esc_html__( '(unknown)', 'portico-webworks' );
+					}
+					if ( ! empty( $gh_info['html_url'] ) && is_string( $gh_info['html_url'] ) ) {
+						echo ' — <a href="' . esc_url( $gh_info['html_url'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'View on GitHub', 'portico-webworks' ) . '</a>';
+					}
+					echo '</p>';
+					if ( ! empty( $gh_info['is_current'] ) ) {
+						echo '<p class="description">' . esc_html__( 'You are running the latest release that this plugin can install from GitHub.', 'portico-webworks' ) . '</p>';
+					} else {
+						echo '<p class="description">' . esc_html__( 'A newer release is available. Use the button below to update.', 'portico-webworks' ) . '</p>';
+					}
+					if ( empty( $gh_info['has_package'] ) ) {
+						echo '<p class="description" style="color:#b32d2e;">' . esc_html(
+							sprintf(
+								/* translators: %s: zip filename */
+								__( 'This release has no %s asset, so one-click update will not work until the file is attached to the release.', 'portico-webworks' ),
+								PW_GITHUB_PLUGIN_RELEASE_ZIP
+							)
+						) . '</p>';
+					}
+					$notes = isset( $gh_info['body'] ) ? trim( (string) $gh_info['body'] ) : '';
+					if ( $notes !== '' ) {
+						$rel_title = isset( $gh_info['name'] ) && trim( (string) $gh_info['name'] ) !== '' ? trim( (string) $gh_info['name'] ) : __( 'Release notes', 'portico-webworks' );
+						echo '<p class="description" style="margin-bottom:0.35em;"><strong>' . esc_html( $rel_title ) . '</strong></p>';
+						echo '<div class="pw-github-release-notes">' . esc_html( $notes ) . '</div>';
+					}
+				}
 			} else {
 				echo '<p class="description">' . esc_html__( 'Save a GitHub releases URL above to enable one-click updates.', 'portico-webworks' ) . '</p>';
 			}
