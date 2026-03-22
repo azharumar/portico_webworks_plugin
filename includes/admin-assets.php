@@ -207,7 +207,7 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 .pw-admin .pw-section-bases-table td .regular-text{width:100%;max-width:18rem;box-sizing:border-box}
 .pw-admin .pw-page-structure-table code{font-size:12px}
 .pw-admin .pw-default-property-row.pw-is-hidden{display:none!important}
-.pw-admin[data-pw-property-mode="single"] .pw-permalinks-multi-only{display:none!important}
+.pw-admin[data-pw-property-mode='single'] .pw-permalinks-multi-only{display:none!important}
 ";
 
 	wp_register_style('pw-admin', false, array(), '0.1.0');

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.21] - 2026-03-22
+
+### Fixed
+- **Admin CSS** (`includes/admin-assets.php`): invalid PHP in a double-quoted string — selector `[data-pw-property-mode="single"]` ended the string early and caused a parse error (white screen)
+- **Revisions**: define `WP_POST_REVISIONS` when missing so `wp_insert_post` / `wp_update_post` never hit Core revision code with an undefined constant (some hosts / load orders)
+
 ## [0.8.20] - 2026-03-22
 
 ### Removed
