@@ -164,7 +164,8 @@ function pw_add_property_metabox() {
 			$callback,
 			'pw_property',
 			'normal',
-			'high'
+			'high',
+			[ '__block_editor_compatible_meta_box' => true ]
 		);
 	}
 	add_meta_box(
@@ -173,7 +174,8 @@ function pw_add_property_metabox() {
 		'pw_render_property_enabled_sections_metabox',
 		'pw_property',
 		'side',
-		'default'
+		'default',
+		[ '__block_editor_compatible_meta_box' => true ]
 	);
 }
 

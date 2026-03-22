@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.25] - 2026-03-22
+
+### Changed
+- **`pw_property`**: `public` always true; in **multi** mode native CPT **`rewrite`** (`slug` empty, `with_front` false) and **`query_var`** `pw_property` so Core permalinks and block editor slug use `%pagename%` via `get_sample_permalink()`; removed duplicate bare-segment `pw_property_slug` rule
+- **Block editor**: `__block_editor_compatible_meta_box` on property profile meta boxes and all CMB2 boxes scoped to `pw_property`
+
 ## [0.8.24] - 2026-03-22
 
 ### Added

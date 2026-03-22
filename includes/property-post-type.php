@@ -22,12 +22,12 @@ function pw_register_property_post_type() {
 			'all_items'          => 'All Properties',
 		],
 
-		// mode-dependent
-		'public'             => $is_multi,
+		// mode-dependent: `public` true so REST exposes permalink_template / slug UI; front queries only when multi.
+		'public'             => true,
 		'publicly_queryable' => $is_multi,
 		'show_in_nav_menus'  => $is_multi,
-		'rewrite'            => false,
-		'query_var'          => false,
+		'rewrite'            => $is_multi ? [ 'slug' => '', 'with_front' => false ] : false,
+		'query_var'          => $is_multi ? 'pw_property' : false,
 
 		// always on
 		'show_ui'            => true,

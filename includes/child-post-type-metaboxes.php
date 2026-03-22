@@ -930,11 +930,12 @@ function pw_register_property_sustainability_metabox() {
 	$key_sanitize = pw_sanitize_select_whitelist( $key_options );
 
 	$cmb = new_cmb2_box( [
-		'id'           => 'pw_property_sustainability',
-		'title'        => 'Sustainability practices',
-		'object_types' => [ 'pw_property' ],
-		'context'      => 'normal',
-		'priority'     => 'default',
+		'id'                 => 'pw_property_sustainability',
+		'title'              => 'Sustainability practices',
+		'object_types'       => [ 'pw_property' ],
+		'context'            => 'normal',
+		'priority'           => 'default',
+		'mb_callback_args'   => [ '__block_editor_compatible_meta_box' => true ],
 	] );
 
 	$cmb->add_field( [
@@ -985,11 +986,12 @@ add_action( 'cmb2_admin_init', 'pw_register_property_certifications_metabox' );
 
 function pw_register_property_certifications_metabox() {
 	$cmb = new_cmb2_box( [
-		'id'           => 'pw_property_certifications',
-		'title'        => 'Certifications & Awards',
-		'object_types' => [ 'pw_property' ],
-		'context'      => 'normal',
-		'priority'     => 'default',
+		'id'                 => 'pw_property_certifications',
+		'title'              => 'Certifications & Awards',
+		'object_types'       => [ 'pw_property' ],
+		'context'            => 'normal',
+		'priority'           => 'default',
+		'mb_callback_args'   => [ '__block_editor_compatible_meta_box' => true ],
 	] );
 
 	$cmb->add_field( [
@@ -1038,11 +1040,12 @@ function pw_register_property_accessibility_metabox() {
 	$key_sanitize = pw_sanitize_select_whitelist( $key_options );
 
 	$cmb = new_cmb2_box( [
-		'id'           => 'pw_property_accessibility',
-		'title'        => 'Accessibility features',
-		'object_types' => [ 'pw_property' ],
-		'context'      => 'normal',
-		'priority'     => 'default',
+		'id'                 => 'pw_property_accessibility',
+		'title'              => 'Accessibility features',
+		'object_types'       => [ 'pw_property' ],
+		'context'            => 'normal',
+		'priority'           => 'default',
+		'mb_callback_args'   => [ '__block_editor_compatible_meta_box' => true ],
 	] );
 
 	$cmb->add_field( [
@@ -1093,11 +1096,12 @@ add_action( 'cmb2_admin_init', 'pw_register_property_pools_metabox' );
 
 function pw_register_property_pools_metabox() {
 	$cmb = new_cmb2_box( [
-		'id'           => 'pw_property_pools',
-		'title'        => 'Pools',
-		'object_types' => [ 'pw_property' ],
-		'context'      => 'normal',
-		'priority'     => 'default',
+		'id'                 => 'pw_property_pools',
+		'title'              => 'Pools',
+		'object_types'       => [ 'pw_property' ],
+		'context'            => 'normal',
+		'priority'           => 'default',
+		'mb_callback_args'   => [ '__block_editor_compatible_meta_box' => true ],
 	] );
 
 	$cmb->add_field( [
@@ -1133,11 +1137,12 @@ add_action( 'cmb2_admin_init', 'pw_register_property_direct_benefits_metabox' );
 
 function pw_register_property_direct_benefits_metabox() {
 	$cmb = new_cmb2_box( [
-		'id'           => 'pw_property_direct_benefits',
-		'title'        => 'Direct booking benefits',
-		'object_types' => [ 'pw_property' ],
-		'context'      => 'normal',
-		'priority'     => 'default',
+		'id'                 => 'pw_property_direct_benefits',
+		'title'              => 'Direct booking benefits',
+		'object_types'       => [ 'pw_property' ],
+		'context'            => 'normal',
+		'priority'           => 'default',
+		'mb_callback_args'   => [ '__block_editor_compatible_meta_box' => true ],
 	] );
 
 	$cmb->add_field( [
@@ -1166,11 +1171,12 @@ add_action( 'cmb2_admin_init', 'pw_register_property_seo_metabox' );
 
 function pw_register_property_seo_metabox() {
 	$cmb = new_cmb2_box( [
-		'id'           => 'pw_property_seo',
-		'title'        => 'SEO & Social Sharing',
-		'object_types' => [ 'pw_property' ],
-		'context'      => 'normal',
-		'priority'     => 'default',
+		'id'                 => 'pw_property_seo',
+		'title'              => 'SEO & Social Sharing',
+		'object_types'       => [ 'pw_property' ],
+		'context'            => 'normal',
+		'priority'           => 'default',
+		'mb_callback_args'   => [ '__block_editor_compatible_meta_box' => true ],
 	] );
 
 	$cmb->add_field( [

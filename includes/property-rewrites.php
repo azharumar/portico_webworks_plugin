@@ -117,7 +117,7 @@ function pw_register_all_rewrite_rules() {
 			'index.php?pw_property_slug=$matches[1]&pw_static_page_slug=$matches[2]',
 			'bottom'
 		);
-		add_rewrite_rule( '^([^/]+)/?$', 'index.php?pw_property_slug=$matches[1]', 'bottom' );
+		// Bare /{property-slug}/ is handled by the pw_property permastruct (register_post_type rewrite), not pw_property_slug.
 	}
 
 	// ASSERTION: if you are adding any rule after this point, you are breaking the wildcard-last guarantee.

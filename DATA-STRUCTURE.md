@@ -26,7 +26,7 @@ Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** fo
 **REST base:** `pw-properties`  
 **Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `revisions`, `custom-fields`, `slug`  
 **Taxonomies:** `pw_property_type`  
-**Public / queryable / rewrite** (`includes/property-post-type.php`): In **multi** mode, `public`, `publicly_queryable`, and `query_var` are on; **single** mode turns them off. **`rewrite`** is registered only when **multi** mode **and** `pw_get_permalink_base_source() === 'fixed'` (slug = `pw_get_fixed_permalink_base()`). If the base source is dynamic (`pw_permalink_uses_dynamic_base()` is true), URL routing uses `includes/property-rewrites.php` instead of the CPT rewrite slug. See overview: `is_post_type_viewable` still returns **true** for `pw_property` in single mode so the block editor and builders can resolve the type.
+**Public / queryable / rewrite** (`includes/property-post-type.php`): **`public`** is always **true** (REST `permalink_template` and block editor slug). **`publicly_queryable`**, **`show_in_nav_menus`**, **`rewrite`**, and **`query_var`** are on only in **multi** mode. In multi, **`rewrite`** is `[ 'slug' => '', 'with_front' => false ]` so the permastruct is `/%pw_property%/` (root property URL = `post_name`). **Single** mode keeps `rewrite` / `query_var` off (no public singular URL). Tiered section and property-scoped page rules stay in `includes/property-rewrites.php`. **`is_post_type_viewable`** is still filtered to **true** for `pw_property` in single mode so builders resolve the type.
 
 ### Meta Fields
 
