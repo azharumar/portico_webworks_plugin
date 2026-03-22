@@ -28,7 +28,96 @@ add_filter(
 	}
 );
 
+add_action(
+	'init',
+	static function () {
+		add_rewrite_tag( '%pw_property_slug%', '([^/]+)', 'pw_property_slug=' );
+	},
+	5
+);
+
 add_action( 'init', 'pw_register_all_rewrite_rules', 10 );
+
+add_filter( 'post_type_link', 'pw_outlet_post_type_link', 10, 2 );
+
+/**
+ * Replace %pw_property_slug% in outlet permalinks (multi-property mode).
+ *
+ * @param string  $post_link Permalink with optional unresolved tag.
+ * @param WP_Post $post      Post object.
+ * @return string
+ */
+function pw_outlet_post_type_link( $post_link, $post ) {
+	if ( ! $post instanceof WP_Post || ! in_array( $post->post_type, pw_url_section_cpts(), true ) ) {
+		return $post_link;
+	}
+
+	$mode = pw_get_setting( 'pw_property_mode', 'single' );
+	if ( $mode === 'single' ) {
+		$out = str_replace( [ '%pw_property_slug%', '%pw_property_slug%/' ], [ '', '' ], $post_link );
+		$out = preg_replace( '#([^:])//+#', '$1/', $out );
+		return untrailingslashit( is_string( $out ) ? $out : $post_link );
+	}
+
+	$property_id = (int) get_post_meta( $post->ID, '_pw_property_id', true );
+	if ( $property_id <= 0 ) {
+		return untrailingslashit( $post_link );
+	}
+	$property = get_post( $property_id );
+	if ( ! $property instanceof WP_Post || $property->post_type !== 'pw_property' || $property->post_status !== 'publish' ) {
+		return untrailingslashit( $post_link );
+	}
+	$slug = $property->post_name;
+	if ( ! is_string( $slug ) || $slug === '' ) {
+		return untrailingslashit( $post_link );
+	}
+	$out = str_replace( '%pw_property_slug%', sanitize_title( $slug ), $post_link );
+	return untrailingslashit( $out );
+}
+
+add_filter( 'get_sample_permalink', 'pw_outlet_get_sample_permalink', 10, 5 );
+
+/**
+ * Sample permalink for block editor (outlet CPTs).
+ *
+ * @param array   $permalink [ template, post_name ].
+ * @param int     $post_id   Post ID.
+ * @param ?string $title     Title override.
+ * @param ?string $name      Name override.
+ * @param WP_Post $post      Post object.
+ * @return array
+ */
+function pw_outlet_get_sample_permalink( $permalink, $post_id, $title, $name, $post ) {
+	if ( ! $post instanceof WP_Post || ! in_array( $post->post_type, pw_url_section_cpts(), true ) ) {
+		return $permalink;
+	}
+	if ( ! is_array( $permalink ) || ! isset( $permalink[0] ) ) {
+		return $permalink;
+	}
+
+	$singular = pw_get_section_base( $post->post_type, 'singular' );
+	if ( $singular === '' ) {
+		return $permalink;
+	}
+
+	$mode = pw_get_setting( 'pw_property_mode', 'single' );
+	if ( $mode === 'single' ) {
+		$permalink[0] = untrailingslashit( home_url( '/' . $singular . '/%postname%' ) );
+		return $permalink;
+	}
+
+	$property_id = (int) get_post_meta( $post_id, '_pw_property_id', true );
+	if ( $property_id <= 0 ) {
+		$placeholder = '__property__';
+	} else {
+		$prop = get_post( $property_id );
+		$placeholder = ( $prop instanceof WP_Post && $prop->post_status === 'publish' && is_string( $prop->post_name ) && $prop->post_name !== '' )
+			? sanitize_title( $prop->post_name )
+			: '__property__';
+	}
+	$permalink[0] = untrailingslashit( home_url( '/' . $placeholder . '/' . $singular . '/%postname%' ) );
+	return $permalink;
+}
 
 /**
  * Append raw query string and redirect (front-end routing only).
@@ -49,6 +138,11 @@ function pw_redirect_with_qs( $url, $status = 301 ) {
 /**
  * Register rewrite rules: Priority 1–3 top (register P3→P2→P1 so P1 is tried first),
  * Priority 4–6 bottom (register P4→P5→P6 so wildcard is last).
+ *
+ * Rules use position 'top' so they are matched before permastruct-generated rules from
+ * add_permastruct() (outlet CPTs). The front controller reads pw_section_cpt and
+ * pw_outlet_slug and resolves the post. Permastructs exist for get_permalink() / REST
+ * only; they do not replace this routing for incoming requests.
  */
 function pw_register_all_rewrite_rules() {
 	$bases       = pw_get_section_bases();

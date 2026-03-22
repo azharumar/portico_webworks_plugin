@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.27] - 2026-03-23
+
+### Added
+- **Outlet permastructs** (`add_permastruct` on `init` priority 12): section CPTs keep `rewrite` false; permastructs match single (`/{singular}/%postname%`) and multi (`/%pw_property_slug%/{singular}/%postname%`) URLs so `get_permalink()` and the block editor slug panel work
+- **Rewrite tag** `%pw_property_slug%` plus `post_type_link` and `get_sample_permalink` filters for outlet CPTs; routing comment on `pw_register_all_rewrite_rules()`
+- **Permalinks tab**: Example URL column and note for outlet-slug / property-slug
+- **Site structure**: Published post count per section CPT (`wp_count_posts`)
+- **Admin**: warning when an outlet post has no property assigned; Property field description that changing property updates the outlet URL
+
+### Changed
+- After upgrading to this version, **flush rewrite rules once** (e.g. visit **Settings → Permalinks** and click **Save Changes**, or save plugin Permalinks / General if prompted) so new permastruct rules are written.
+
 ## [0.8.26] - 2026-03-23
 
 ### Added

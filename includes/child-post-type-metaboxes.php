@@ -350,6 +350,7 @@ function pw_register_child_metaboxes() {
 
 	$cmb->add_field( [
 		'name'    => 'Property',
+		'desc'    => __( 'Changing the property updates this outlet\'s URL.', 'portico-webworks' ),
 		'id'      => '_pw_property_id',
 		'type'    => 'select',
 		'options' => 'pw_property_options',
@@ -430,7 +431,7 @@ function pw_register_child_metaboxes() {
 		'priority'     => 'high',
 	] );
 
-	$cmb->add_field( [ 'name' => 'Property',          'id' => '_pw_property_id',      'type' => 'select',     'options' => 'pw_property_options' ] );
+	$cmb->add_field( [ 'name' => 'Property',          'desc' => __( 'Changing the property updates this outlet\'s URL.', 'portico-webworks' ), 'id' => '_pw_property_id',      'type' => 'select',     'options' => 'pw_property_options' ] );
 	$cmb->add_field( [ 'name' => 'Location',          'id' => '_pw_location',         'type' => 'text',       'desc' => 'e.g. Rooftop Level, Beach Side, Main Lobby' ] );
 	$cmb->add_field( [ 'name' => 'Cuisine type',       'id' => '_pw_cuisine_type',     'type' => 'text' ] );
 	$cmb->add_field( [ 'name' => 'Seating capacity',   'id' => '_pw_seating_capacity', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
@@ -449,7 +450,7 @@ function pw_register_child_metaboxes() {
 		'priority'     => 'high',
 	] );
 
-	$cmb->add_field( [ 'name' => 'Property',    'id' => '_pw_property_id', 'type' => 'select',     'options' => 'pw_property_options' ] );
+	$cmb->add_field( [ 'name' => 'Property',    'desc' => __( 'Changing the property updates this outlet\'s URL.', 'portico-webworks' ), 'id' => '_pw_property_id', 'type' => 'select',     'options' => 'pw_property_options' ] );
 	$cmb->add_field( [ 'name' => 'Booking URL', 'id' => '_pw_booking_url', 'type' => 'text_url', 'sanitization_cb' => 'pw_sanitize_url' ] );
 	$cmb->add_field( [ 'name' => 'Menu URL',    'id' => '_pw_menu_url',    'type' => 'text_url', 'sanitization_cb' => 'pw_sanitize_url' ] );
 	$cmb->add_field( [ 'name' => 'Minimum age', 'id' => '_pw_min_age',     'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
@@ -466,7 +467,7 @@ function pw_register_child_metaboxes() {
 		'priority'     => 'high',
 	] );
 
-	$cmb->add_field( [ 'name' => 'Property',             'id' => '_pw_property_id',        'type' => 'select',     'options' => 'pw_property_options' ] );
+	$cmb->add_field( [ 'name' => 'Property',             'desc' => __( 'Changing the property updates this outlet\'s URL.', 'portico-webworks' ), 'id' => '_pw_property_id',        'type' => 'select',     'options' => 'pw_property_options' ] );
 	$cmb->add_field( [ 'name' => 'Capacity — Theatre',   'id' => '_pw_capacity_theatre',   'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 	$cmb->add_field( [ 'name' => 'Capacity — Classroom', 'id' => '_pw_capacity_classroom', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 	$cmb->add_field( [ 'name' => 'Capacity — Boardroom', 'id' => '_pw_capacity_boardroom', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
@@ -686,7 +687,7 @@ function pw_register_spa_operating_hours_metabox() {
 
 	$cmb->add_field( [
 		'name' => 'Property',
-		'desc' => 'Scopes this offer for queries (multi-property / REST). Use Attach to below for property, restaurant, or spa links — both can be set.',
+		'desc' => __( 'Scopes this offer for queries (multi-property / REST). Use Attach to below for property, restaurant, or spa links — both can be set. Changing the property updates this outlet\'s URL.', 'portico-webworks' ),
 		'id'   => '_pw_property_id',
 		'type' => 'select',
 		'options' => 'pw_property_options',
@@ -781,7 +782,7 @@ function pw_register_spa_operating_hours_metabox() {
 		'priority'     => 'high',
 	] );
 
-	$cmb->add_field( [ 'name' => 'Property',          'id' => '_pw_property_id',     'type' => 'select',     'options'  => 'pw_property_options' ] );
+	$cmb->add_field( [ 'name' => 'Property',          'desc' => __( 'Changing the property updates this outlet\'s URL.', 'portico-webworks' ), 'id' => '_pw_property_id',     'type' => 'select',     'options'  => 'pw_property_options' ] );
 	$cmb->add_field( [ 'name' => 'Distance (km)',      'id' => '_pw_distance_km',     'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_float_nonneg' ] );
 	$cmb->add_field( [ 'name' => 'Travel time (min)',  'id' => '_pw_travel_time_min', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 	$cmb->add_field( [ 'name' => 'Latitude',            'id' => '_pw_lat',             'type' => 'text_small', 'attributes' => [ 'placeholder' => 'e.g. 25.7907' ], 'sanitization_cb' => 'pw_sanitize_geo_lat' ] );
@@ -801,7 +802,7 @@ function pw_register_spa_operating_hours_metabox() {
 
 	$cmb->add_field( [
 		'name' => 'Property',
-		'desc' => 'Scopes this experience for property-level archives and `meta_query`. Use Connected to below for specific restaurant/spa links — both can be set.',
+		'desc' => __( 'Scopes this experience for property-level archives and `meta_query`. Use Connected to below for specific restaurant/spa links — both can be set. Changing the property updates this outlet\'s URL.', 'portico-webworks' ),
 		'id'   => '_pw_property_id',
 		'type' => 'select',
 		'options' => 'pw_property_options',
@@ -854,7 +855,7 @@ function pw_register_spa_operating_hours_metabox() {
 		'priority'     => 'high',
 	] );
 
-	$cmb->add_field( [ 'name' => 'Property',    'id' => '_pw_property_id',    'type' => 'select',                   'options' => 'pw_property_options' ] );
+	$cmb->add_field( [ 'name' => 'Property',    'desc' => __( 'Changing the property updates this outlet\'s URL.', 'portico-webworks' ), 'id' => '_pw_property_id',    'type' => 'select',                   'options' => 'pw_property_options' ] );
 	$cmb->add_field( [ 'name' => 'Venue',       'id' => '_pw_venue_id',       'type' => 'select',                   'options' => 'pw_meeting_room_options' ] );
 	$cmb->add_field( [ 'name' => 'Description', 'id' => '_pw_description',    'type' => 'textarea' ] );
 	$cmb->add_field( [
@@ -1240,3 +1241,25 @@ add_action( 'admin_notices', function () {
 		echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html( $msg ) . '</p></div>';
 	}
 } );
+
+add_action( 'admin_notices', 'pw_outlet_missing_property_notice' );
+
+/**
+ * Warn when a section outlet post has no property (multi-property URLs need it).
+ */
+function pw_outlet_missing_property_notice(): void {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+	if ( ! $screen || $screen->base !== 'post' || ! in_array( $screen->post_type, pw_url_section_cpts(), true ) ) {
+		return;
+	}
+	global $post;
+	if ( ! $post instanceof WP_Post || $post->post_status === 'auto-draft' ) {
+		return;
+	}
+	if ( (int) get_post_meta( $post->ID, '_pw_property_id', true ) > 0 ) {
+		return;
+	}
+	echo '<div class="notice notice-warning"><p>';
+	echo esc_html__( 'This post has no property assigned. Its URL will be incorrect until a property is selected in the metabox below.', 'portico-webworks' );
+	echo '</p></div>';
+}

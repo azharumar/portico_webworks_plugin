@@ -166,6 +166,39 @@ function pw_register_child_post_types() {
 	] ) );
 }
 
+/**
+ * Permastructs for outlet CPTs (rewrite stays false on register_post_type).
+ * Enables get_permalink() and block editor slug UI; front routing remains custom rules.
+ */
+function pw_register_section_cpt_permastructs(): void {
+	$mode = pw_get_setting( 'pw_property_mode', 'single' );
+	foreach ( pw_url_section_cpts() as $cpt ) {
+		$singular = pw_get_section_base( $cpt, 'singular' );
+		if ( $singular === '' ) {
+			continue;
+		}
+		if ( $mode === 'single' ) {
+			$struct = '/' . $singular . '/%postname%';
+		} else {
+			$struct = '/%pw_property_slug%/' . $singular . '/%postname%';
+		}
+		add_permastruct(
+			$cpt,
+			$struct,
+			[
+				'with_front' => false,
+				'ep_mask'    => EP_NONE,
+				'paged'      => false,
+				'feed'       => false,
+				'forpage'    => false,
+				'walk_dirs'  => false,
+			]
+		);
+	}
+}
+
+add_action( 'init', 'pw_register_section_cpt_permastructs', 12 );
+
 // ---------------------------------------------------------------------------
 // Taxonomy registration
 // ---------------------------------------------------------------------------

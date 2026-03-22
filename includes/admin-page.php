@@ -415,12 +415,15 @@ function pw_render_page_structure_admin_panel() {
 	echo '<table class="widefat striped pw-page-structure-table" style="margin-top:0.5em;"><thead><tr>';
 	echo '<th>' . esc_html__( 'Element title', 'portico-webworks' ) . '</th>';
 	echo '<th>' . esc_html__( 'CPT', 'portico-webworks' ) . '</th>';
+	echo '<th>' . esc_html__( 'Published', 'portico-webworks' ) . '</th>';
 	echo '<th>' . esc_html__( 'Status', 'portico-webworks' ) . '</th>';
 	echo '</tr></thead><tbody>';
 	$gp_active = post_type_exists( 'gp_elements' );
 	foreach ( pw_get_required_elements() as $edef ) {
 		$cpt   = (string) ( $edef['cpt'] ?? '' );
 		$title = (string) ( $edef['title'] ?? $cpt );
+		$count     = wp_count_posts( $cpt );
+		$published = ( isset( $count->publish ) ? (int) $count->publish : 0 );
 		if ( ! $gp_active ) {
 			$status = '<span style="color:#996800;">' . esc_html__( 'GP Not Active', 'portico-webworks' ) . '</span>';
 		} else {
@@ -438,6 +441,7 @@ function pw_render_page_structure_admin_panel() {
 		echo '<tr>';
 		echo '<td>' . esc_html( $title ) . '</td>';
 		echo '<td><code>' . esc_html( $cpt ) . '</code></td>';
+		echo '<td>' . esc_html( (string) $published ) . '</td>';
 		echo '<td>' . wp_kses_post( $status ) . '</td>';
 		echo '</tr>';
 	}

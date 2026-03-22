@@ -107,23 +107,33 @@ function pw_render_permalinks_tab() {
 
 	echo '<div class="pw-subsection-title">' . esc_html__( 'Section URL bases', 'portico-webworks' ) . '</div>';
 	echo '<p class="description">' . esc_html__( 'Plural segment lists outlets; singular prefix is used for single outlet URLs.', 'portico-webworks' ) . '</p>';
+	$mode = pw_get_setting( 'pw_property_mode', 'single' );
+
 	echo '<table class="widefat striped pw-section-bases-table" style="margin-top:0.75em;"><thead><tr>';
 	echo '<th scope="col">' . esc_html__( 'Section', 'portico-webworks' ) . '</th>';
 	echo '<th scope="col">' . esc_html__( 'Singular', 'portico-webworks' ) . '</th>';
 	echo '<th scope="col">' . esc_html__( 'Plural', 'portico-webworks' ) . '</th>';
+	echo '<th scope="col">' . esc_html__( 'Example URL', 'portico-webworks' ) . '</th>';
 	echo '</tr></thead><tbody>';
 	foreach ( pw_url_section_cpts() as $cpt ) {
 		$pto   = get_post_type_object( $cpt );
 		$label = ( $pto && isset( $pto->labels->name ) ) ? $pto->labels->name : $cpt;
 		$p     = $sb[ $cpt ]['plural'] ?? '';
 		$s     = $sb[ $cpt ]['singular'] ?? '';
+		if ( $mode === 'single' ) {
+			$example = untrailingslashit( home_url( '/' . $s . '/outlet-slug' ) );
+		} else {
+			$example = untrailingslashit( home_url( '/property-slug/' . $s . '/outlet-slug' ) );
+		}
 		echo '<tr>';
 		echo '<th scope="row">' . esc_html( $label ) . '</th>';
 		echo '<td><input type="text" class="regular-text" name="pw_section_bases[' . esc_attr( $cpt ) . '][singular]" value="' . esc_attr( $s ) . '" /></td>';
 		echo '<td><input type="text" class="regular-text" name="pw_section_bases[' . esc_attr( $cpt ) . '][plural]" value="' . esc_attr( $p ) . '" /></td>';
+		echo '<td><code>' . esc_html( $example ) . '</code></td>';
 		echo '</tr>';
 	}
 	echo '</tbody></table>';
+	echo '<p class="description">' . esc_html__( 'outlet-slug is the post slug. In multi-property mode, property-slug is the property\'s URL slug set on the property edit screen.', 'portico-webworks' ) . '</p>';
 
 	submit_button( __( 'Save Permalinks', 'portico-webworks' ) );
 	echo '</form>';
