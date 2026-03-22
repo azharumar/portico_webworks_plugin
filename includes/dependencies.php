@@ -47,6 +47,15 @@ function pw_get_dependencies() {
 			'required'   => true,
 		),
 		array(
+			'name'       => 'Rank Math SEO PRO',
+			'slug'       => 'seo-by-rank-math-pro',
+			'type'       => 'plugin',
+			'source'     => 'bundled',
+			'zip'        => $plugin_dir . 'assets/zips/seo-by-rank-math-pro.zip',
+			'file'       => 'seo-by-rank-math-pro/rank-math-pro.php',
+			'required'   => true,
+		),
+		array(
 			'name'       => 'GenerateBlocks',
 			'slug'       => 'generateblocks',
 			'type'       => 'plugin',

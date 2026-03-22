@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.26] - 2026-03-23
+
+### Added
+- **Dependencies**: bundled **Rank Math SEO PRO** (`assets/zips/seo-by-rank-math-pro.zip`) in the dependency installer (after free Rank Math SEO)
+
 ## [0.8.25] - 2026-03-22
 
 ### Changed
