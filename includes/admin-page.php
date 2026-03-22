@@ -195,15 +195,19 @@ add_action(
 			delete_transient( 'pw_installer_last_run' );
 			$pt    = isset( $last['property_title'] ) ? (string) $last['property_title'] : '';
 			$pages = admin_url( 'edit.php?post_type=page' );
+			$gpel  = admin_url( 'edit.php?post_type=gp_elements' );
 			echo '<div class="notice notice-success is-dismissible"><p>';
 			echo esc_html(
 				sprintf(
 					/* translators: %s: property title */
-					__( 'Property "%s" was published. Required listing pages were updated.', 'portico-webworks' ),
+					__( 'Property "%s" was published. Site structure (pages and section archive elements) was updated where needed.', 'portico-webworks' ),
 					$pt !== '' ? $pt : __( '(untitled)', 'portico-webworks' )
 				)
 			);
-			echo ' <a href="' . esc_url( $pages ) . '">' . esc_html__( 'View pages', 'portico-webworks' ) . '</a>';
+			echo ' <a href="' . esc_url( $pages ) . '">' . esc_html__( 'Pages', 'portico-webworks' ) . '</a>';
+			if ( post_type_exists( 'gp_elements' ) ) {
+				echo ' · <a href="' . esc_url( $gpel ) . '">' . esc_html__( 'Elements', 'portico-webworks' ) . '</a>';
+			}
 			echo '</p></div>';
 		}
 		$ran = isset( $_GET['pw_installer_ran'] ) ? sanitize_text_field( wp_unslash( $_GET['pw_installer_ran'] ) ) : '';
@@ -221,7 +225,7 @@ add_action(
 				echo esc_html(
 					sprintf(
 						/* translators: 1: created count, 2: updated, 3: unchanged, 4: conflicts */
-						__( 'Page installer finished: %1$d created, %2$d updated, %3$d unchanged, %4$d conflicts.', 'portico-webworks' ),
+						__( 'Structure installer finished: %1$d created, %2$d updated, %3$d unchanged, %4$d conflicts.', 'portico-webworks' ),
 						$c,
 						$u,
 						$uc,
@@ -238,6 +242,11 @@ add_action(
 				}
 				echo '</div>';
 			}
+		}
+		$gp_notice = get_transient( 'pw_installer_gp_elements_notice' );
+		if ( is_string( $gp_notice ) && $gp_notice !== '' ) {
+			delete_transient( 'pw_installer_gp_elements_notice' );
+			echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html( $gp_notice ) . '</p></div>';
 		}
 	}
 );
@@ -347,59 +356,104 @@ add_action(
 add_action('admin_post_pw_save_settings', 'pw_handle_settings_save');
 
 /**
- * Page structure table + installer (Permalinks tab); not inside another form.
+ * Site structure tables + installer (Permalinks tab); not inside another form.
  */
 function pw_render_page_structure_admin_panel() {
-	echo '<div class="pw-subsection-title" style="margin-top:1.25em;">' . esc_html__( 'Page structure', 'portico-webworks' ) . '</div>';
-	echo '<p class="description">' . esc_html__( 'Installer-managed pages for section listings (and the property archive in multi-property mode). Starter layouts are inserted only when a page is first created.', 'portico-webworks' ) . '</p>';
-	echo '<details class="pw-page-structure"><summary style="cursor:pointer;font-weight:600;margin-top:0.5em;">' . esc_html__( 'Required pages and status', 'portico-webworks' ) . '</summary>';
-	echo '<table class="widefat striped pw-page-structure-table" style="margin-top:0.75em;"><thead><tr>';
+	echo '<div class="pw-subsection-title" style="margin-top:1.25em;">' . esc_html__( 'Site structure', 'portico-webworks' ) . '</div>';
+	echo '<p class="description">' . esc_html__( 'Installer-managed static pages (if any) and GeneratePress Elements for section archives. Section listings use Elements, not Pages. Starter block markup is inserted only when an element or page is first created.', 'portico-webworks' ) . '</p>';
+	echo '<details class="pw-page-structure"><summary style="cursor:pointer;font-weight:600;margin-top:0.5em;">' . esc_html__( 'Required pages and section archive elements', 'portico-webworks' ) . '</summary>';
+
+	$pages_list_url = admin_url( 'edit.php?post_type=page' );
+	$gp_list_url    = admin_url( 'edit.php?post_type=gp_elements' );
+
+	echo '<p class="description" style="margin-top:0.75em;"><strong>' . esc_html__( 'Pages', 'portico-webworks' ) . '</strong></p>';
+	echo '<table class="widefat striped pw-page-structure-table" style="margin-top:0.5em;"><thead><tr>';
 	echo '<th>' . esc_html__( 'Page', 'portico-webworks' ) . '</th>';
 	echo '<th>' . esc_html__( 'Slug', 'portico-webworks' ) . '</th>';
 	echo '<th>' . esc_html__( 'Scope', 'portico-webworks' ) . '</th>';
 	echo '<th>' . esc_html__( 'Status', 'portico-webworks' ) . '</th>';
 	echo '</tr></thead><tbody>';
-	$pages_list_url = admin_url( 'edit.php?post_type=page' );
-	foreach ( pw_get_page_structure_display_rows() as $pr ) {
-		$slug      = sanitize_title( $pr['slug'] ?? '' );
-		$pid_scope = (int) ( $pr['property_id'] ?? 0 );
-		$gen       = pw_find_generated_page( $slug, $pid_scope );
-		if ( $gen instanceof WP_Post ) {
-			$elink  = get_edit_post_link( $gen->ID, 'raw' );
-			$status = '<span style="color:#007017;">' . esc_html__( 'Exists', 'portico-webworks' ) . '</span>';
-			if ( is_string( $elink ) && $elink !== '' ) {
-				$status .= ' <a href="' . esc_url( $elink ) . '">' . esc_html__( 'Edit', 'portico-webworks' ) . '</a>';
-			}
-		} else {
-			// Admin display only — not used for front-end routing.
-			$by_path = get_page_by_path( $slug, OBJECT, 'page' );
-			if ( $by_path instanceof WP_Post && get_post_meta( $by_path->ID, '_pw_generated', true ) !== '1' ) {
-				$elink  = get_edit_post_link( $by_path->ID, 'raw' );
-				$status = '<span style="color:#b32d2e;">' . esc_html__( 'Conflict', 'portico-webworks' ) . '</span>';
+	$page_rows = pw_get_page_structure_display_rows();
+	if ( $page_rows === [] ) {
+		echo '<tr><td colspan="4">' . esc_html__( 'No installer-managed pages.', 'portico-webworks' ) . '</td></tr>';
+	} else {
+		foreach ( $page_rows as $pr ) {
+			$slug      = sanitize_title( $pr['slug'] ?? '' );
+			$pid_scope = (int) ( $pr['property_id'] ?? 0 );
+			$gen       = pw_find_generated_page( $slug, $pid_scope );
+			if ( $gen instanceof WP_Post ) {
+				$elink  = get_edit_post_link( $gen->ID, 'raw' );
+				$status = '<span style="color:#007017;">' . esc_html__( 'Exists', 'portico-webworks' ) . '</span>';
 				if ( is_string( $elink ) && $elink !== '' ) {
-					$status .= ' <a href="' . esc_url( $elink ) . '">' . esc_html__( 'View page', 'portico-webworks' ) . '</a>';
+					$status .= ' <a href="' . esc_url( $elink ) . '">' . esc_html__( 'Edit', 'portico-webworks' ) . '</a>';
 				}
 			} else {
-				$status = '<span style="color:#996800;">' . esc_html__( 'Missing', 'portico-webworks' ) . '</span>';
+				$by_path = get_page_by_path( $slug, OBJECT, 'page' );
+				if ( $by_path instanceof WP_Post && get_post_meta( $by_path->ID, '_pw_generated', true ) !== '1' ) {
+					$elink  = get_edit_post_link( $by_path->ID, 'raw' );
+					$status = '<span style="color:#b32d2e;">' . esc_html__( 'Conflict', 'portico-webworks' ) . '</span>';
+					if ( is_string( $elink ) && $elink !== '' ) {
+						$status .= ' <a href="' . esc_url( $elink ) . '">' . esc_html__( 'View page', 'portico-webworks' ) . '</a>';
+					}
+				} else {
+					$status = '<span style="color:#996800;">' . esc_html__( 'Missing', 'portico-webworks' ) . '</span>';
+				}
+			}
+			$title = isset( $pr['title'] ) ? (string) $pr['title'] : $slug;
+			$scope = isset( $pr['property_label'] ) ? (string) $pr['property_label'] : '';
+			echo '<tr>';
+			echo '<td>' . esc_html( $title ) . '</td>';
+			echo '<td><code>' . esc_html( $slug ) . '</code></td>';
+			echo '<td>' . esc_html( $scope ) . '</td>';
+			echo '<td>' . wp_kses_post( $status ) . '</td>';
+			echo '</tr>';
+		}
+	}
+	echo '</tbody></table>';
+
+	echo '<p class="description" style="margin-top:1.25em;"><strong>' . esc_html__( 'Section archive elements', 'portico-webworks' ) . '</strong></p>';
+	echo '<table class="widefat striped pw-page-structure-table" style="margin-top:0.5em;"><thead><tr>';
+	echo '<th>' . esc_html__( 'Element title', 'portico-webworks' ) . '</th>';
+	echo '<th>' . esc_html__( 'CPT', 'portico-webworks' ) . '</th>';
+	echo '<th>' . esc_html__( 'Status', 'portico-webworks' ) . '</th>';
+	echo '</tr></thead><tbody>';
+	$gp_active = post_type_exists( 'gp_elements' );
+	foreach ( pw_get_required_elements() as $edef ) {
+		$cpt   = (string) ( $edef['cpt'] ?? '' );
+		$title = (string) ( $edef['title'] ?? $cpt );
+		if ( ! $gp_active ) {
+			$status = '<span style="color:#996800;">' . esc_html__( 'GP Not Active', 'portico-webworks' ) . '</span>';
+		} else {
+			$gen = pw_find_generated_element( $cpt );
+			if ( $gen instanceof WP_Post ) {
+				$elink  = get_edit_post_link( $gen->ID, 'raw' );
+				$status = '<span style="color:#007017;">' . esc_html__( 'Exists', 'portico-webworks' ) . '</span>';
+				if ( is_string( $elink ) && $elink !== '' ) {
+					$status .= ' <a href="' . esc_url( $elink ) . '">' . esc_html__( 'Edit', 'portico-webworks' ) . '</a>';
+				}
+			} else {
+				$status = '<span style="color:#b32d2e;">' . esc_html__( 'Missing', 'portico-webworks' ) . '</span>';
 			}
 		}
-		$title = isset( $pr['title'] ) ? (string) $pr['title'] : $slug;
-		$scope = isset( $pr['property_label'] ) ? (string) $pr['property_label'] : '';
 		echo '<tr>';
 		echo '<td>' . esc_html( $title ) . '</td>';
-		echo '<td><code>' . esc_html( $slug ) . '</code></td>';
-		echo '<td>' . esc_html( $scope ) . '</td>';
+		echo '<td><code>' . esc_html( $cpt ) . '</code></td>';
 		echo '<td>' . wp_kses_post( $status ) . '</td>';
 		echo '</tr>';
 	}
 	echo '</tbody></table>';
+
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin-top:1em;">';
 	echo '<input type="hidden" name="action" value="pw_run_page_installer" />';
 	wp_nonce_field( 'pw_run_page_installer' );
-	submit_button( esc_attr__( 'Install Missing Pages', 'portico-webworks' ), 'secondary', 'pw-run-page-installer', false );
+	submit_button( esc_attr__( 'Install Missing Structure', 'portico-webworks' ), 'secondary', 'pw-run-page-installer', false );
 	echo '</form>';
-	echo '<p class="description">' . esc_html__( 'Creates missing pages and aligns slugs with current URL settings. Existing page content is not overwritten.', 'portico-webworks' ) . ' ';
-	echo '<a href="' . esc_url( $pages_list_url ) . '">' . esc_html__( 'All pages', 'portico-webworks' ) . '</a></p>';
+	echo '<p class="description">' . esc_html__( 'Creates missing pages and GeneratePress Elements; aligns page slugs with current URL settings. Existing content is not overwritten.', 'portico-webworks' ) . ' ';
+	echo '<a href="' . esc_url( $pages_list_url ) . '">' . esc_html__( 'All pages', 'portico-webworks' ) . '</a>';
+	if ( $gp_active ) {
+		echo ' · <a href="' . esc_url( $gp_list_url ) . '">' . esc_html__( 'All elements', 'portico-webworks' ) . '</a>';
+	}
+	echo '</p>';
 	echo '</details>';
 }
 

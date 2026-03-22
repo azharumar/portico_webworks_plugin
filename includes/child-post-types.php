@@ -57,37 +57,43 @@ function pw_register_child_post_types() {
 	] ) );
 
 	register_post_type( 'pw_room_type', array_merge( $defaults, [
-		'labels'     => pw_cpt_labels( 'Room Type', 'Room Types' ),
-		'menu_icon'  => 'dashicons-bed',
-		'taxonomies' => [ 'pw_bed_type', 'pw_view_type' ],
-		'supports'   => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
-		'public'     => true,
-		'query_var'  => true,
+		'labels'      => pw_cpt_labels( 'Room Type', 'Room Types' ),
+		'menu_icon'   => 'dashicons-bed',
+		'taxonomies'  => [ 'pw_bed_type', 'pw_view_type' ],
+		'supports'    => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'public'      => true,
+		'query_var'   => true,
+		'has_archive' => pw_get_section_base( 'pw_room_type', 'plural' ),
 	] ) );
 
 	register_post_type( 'pw_restaurant', array_merge( $defaults, [
-		'labels'     => pw_cpt_labels( 'Restaurant', 'Restaurants' ),
-		'menu_icon'  => 'dashicons-food',
-		'taxonomies' => [ 'pw_meal_period' ],
-		'supports'   => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'labels'      => pw_cpt_labels( 'Restaurant', 'Restaurants' ),
+		'menu_icon'   => 'dashicons-food',
+		'taxonomies'  => [ 'pw_meal_period' ],
+		'supports'    => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'public'      => true,
+		'query_var'   => true,
+		'has_archive' => pw_get_section_base( 'pw_restaurant', 'plural' ),
 	] ) );
 
 	register_post_type( 'pw_spa', array_merge( $defaults, [
-		'labels'     => pw_cpt_labels( 'Spa', 'Spas' ),
-		'menu_icon'  => 'dashicons-heart',
-		'taxonomies' => [ 'pw_treatment_type' ],
-		'supports'   => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
-		'public'     => true,
-		'query_var'  => true,
+		'labels'      => pw_cpt_labels( 'Spa', 'Spas' ),
+		'menu_icon'   => 'dashicons-heart',
+		'taxonomies'  => [ 'pw_treatment_type' ],
+		'supports'    => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'public'      => true,
+		'query_var'   => true,
+		'has_archive' => pw_get_section_base( 'pw_spa', 'plural' ),
 	] ) );
 
 	register_post_type( 'pw_meeting_room', array_merge( $defaults, [
-		'labels'     => pw_cpt_labels( 'Meeting Room', 'Meeting Rooms' ),
-		'menu_icon'  => 'dashicons-groups',
-		'taxonomies' => [ 'pw_av_equipment' ],
-		'supports'   => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
-		'public'     => true,
-		'query_var'  => true,
+		'labels'      => pw_cpt_labels( 'Meeting Room', 'Meeting Rooms' ),
+		'menu_icon'   => 'dashicons-groups',
+		'taxonomies'  => [ 'pw_av_equipment' ],
+		'supports'    => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'public'      => true,
+		'query_var'   => true,
+		'has_archive' => pw_get_section_base( 'pw_meeting_room', 'plural' ),
 	] ) );
 
 	register_post_type( 'pw_amenity', array_merge( $defaults, [
@@ -121,38 +127,42 @@ function pw_register_child_post_types() {
 	] ) );
 
 	register_post_type( 'pw_offer', array_merge( $defaults, [
-		'labels'    => pw_cpt_labels( 'Offer', 'Offers' ),
-		'menu_icon' => 'dashicons-tag',
-		'supports'  => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
-		'public'    => true,
-		'query_var' => true,
+		'labels'      => pw_cpt_labels( 'Offer', 'Offers' ),
+		'menu_icon'   => 'dashicons-tag',
+		'supports'    => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'public'      => true,
+		'query_var'   => true,
+		'has_archive' => pw_get_section_base( 'pw_offer', 'plural' ),
 	] ) );
 
 	register_post_type( 'pw_nearby', array_merge( $defaults, [
-		'labels'     => pw_cpt_labels( 'Nearby Location', 'Nearby' ),
-		'menu_icon'  => 'dashicons-location',
-		'taxonomies' => [ 'pw_nearby_type', 'pw_transport_mode' ],
-		'supports'   => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
-		'public'     => true,
-		'query_var'  => true,
+		'labels'      => pw_cpt_labels( 'Nearby Location', 'Nearby' ),
+		'menu_icon'   => 'dashicons-location',
+		'taxonomies'  => [ 'pw_nearby_type', 'pw_transport_mode' ],
+		'supports'    => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'public'      => true,
+		'query_var'   => true,
+		'has_archive' => pw_get_section_base( 'pw_nearby', 'plural' ),
 	] ) );
 
 	register_post_type( 'pw_experience', array_merge( $defaults, [
-		'labels'     => pw_cpt_labels( 'Experience', 'Experiences' ),
-		'menu_icon'  => 'dashicons-star-half',
-		'supports'   => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
-		'taxonomies' => [ 'pw_experience_category' ],
-		'public'     => true,
-		'query_var'  => true,
+		'labels'      => pw_cpt_labels( 'Experience', 'Experiences' ),
+		'menu_icon'   => 'dashicons-star-half',
+		'supports'    => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'taxonomies'  => [ 'pw_experience_category' ],
+		'public'      => true,
+		'query_var'   => true,
+		'has_archive' => pw_get_section_base( 'pw_experience', 'plural' ),
 	] ) );
 
 	register_post_type( 'pw_event', array_merge( $defaults, [
-		'labels'     => pw_cpt_labels( 'Event', 'Events' ),
-		'menu_icon'  => 'dashicons-calendar-alt',
-		'supports'   => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
-		'taxonomies' => [ 'pw_event_type', 'pw_event_organiser' ],
-		'public'     => true,
-		'query_var'  => true,
+		'labels'      => pw_cpt_labels( 'Event', 'Events' ),
+		'menu_icon'   => 'dashicons-calendar-alt',
+		'supports'    => [ 'title', 'editor', 'excerpt', 'thumbnail', 'custom-fields' ],
+		'taxonomies'  => [ 'pw_event_type', 'pw_event_organiser' ],
+		'public'      => true,
+		'query_var'   => true,
+		'has_archive' => pw_get_section_base( 'pw_event', 'plural' ),
 	] ) );
 }
 

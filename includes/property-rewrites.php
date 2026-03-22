@@ -253,6 +253,11 @@ function pw_url_front_controller() {
 			pw_url_set_404();
 			return;
 		}
+		global $wp_query;
+		$wp_query->is_archive           = true;
+		$wp_query->is_post_type_archive = true;
+		$wp_query->queried_object       = get_post_type_object( $cpt );
+		$wp_query->queried_object_id    = 0;
 		pw_url_virtual_archive( $cpt );
 		return;
 	}

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.23] - 2026-03-22
+
+### Added
+- **GeneratePress Elements** (`gp_elements`): idempotent installer creates one Loop Template per section CPT with display condition `is_post_type_archive`; `pw_get_required_elements()`, `pw_find_generated_element()`, `pw_install_element()`, `pw_run_elements_installer()`; guard + admin notice when GP Premium is inactive
+- **Site structure** (Permalinks): renamed from Page structure; table for installer-managed pages plus **Section archive elements** (Exists / Missing / GP Not Active); **Install Missing Structure** runs page + element installers
+
+### Changed
+- **Section CPTs** (`pw_url_section_cpts()`): `has_archive` set to plural base slug (`pw_get_section_base( …, 'plural' )`) while `rewrite` stays false; **`pw_restaurant`** now `public` with `query_var` for outlet URLs
+- **Front controller** (`pw_url_front_controller`): sets `$wp_query` archive / post type archive / `queried_object` before `pw_url_virtual_archive()` on section listing URLs
+- **`pw_get_required_pages()`**: returns empty array (no section listing pages); **`pw_get_section_starter_markup()`** used for Elements only — `posts_per_page` 10, `_pwNote` for Reading pagination, `generateblocks/query-pagination` after each looper; **`pw_on_property_published`** runs element installer idempotently
+- **Admin notices**: publish + manual installer copy updated; optional GP missing warning via transient
+
+### Removed
+- Installer no longer creates WordPress **pages** for section archive URLs (replaced by GP Elements)
+
 ## [0.8.22] - 2026-03-22
 
 ### Removed
