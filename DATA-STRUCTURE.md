@@ -24,7 +24,7 @@ Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** fo
 ## Post Type: `pw_property`
 
 **REST base:** `pw-properties`  
-**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `revisions`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `revisions`, `custom-fields`, `slug`  
 **Taxonomies:** `pw_property_type`  
 **Public / queryable / rewrite** (`includes/property-post-type.php`): In **multi** mode, `public`, `publicly_queryable`, and `query_var` are on; **single** mode turns them off. **`rewrite`** is registered only when **multi** mode **and** `pw_get_permalink_base_source() === 'fixed'` (slug = `pw_get_fixed_permalink_base()`). If the base source is dynamic (`pw_permalink_uses_dynamic_base()` is true), URL routing uses `includes/property-rewrites.php` instead of the CPT rewrite slug. See overview: `is_post_type_viewable` still returns **true** for `pw_property` in single mode so the block editor and builders can resolve the type.
 
@@ -184,7 +184,7 @@ Same shape and normalization behavior as sustainability. CMB2: `pw_property_acce
 
 ## Post Type: `pw_room_type`
 
-**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`, `slug`  
 **Taxonomies:** `pw_bed_type`, `pw_view_type`
 
 
@@ -211,7 +211,7 @@ Same shape and normalization behavior as sustainability. CMB2: `pw_property_acce
 
 ## Post Type: `pw_restaurant`
 
-**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`, `slug`  
 **Taxonomies:** `pw_meal_period`
 
 
@@ -241,7 +241,7 @@ Each day is stored as an **associative array** (map) with keys `is_closed` (bool
 
 ## Post Type: `pw_spa`
 
-**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`, `slug`  
 **Taxonomies:** `pw_treatment_type`
 
 
@@ -263,7 +263,7 @@ Same storage and REST registration pattern as restaurant. CMB2: `pw_spa_operatin
 
 ## Post Type: `pw_meeting_room`
 
-**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`, `slug`  
 **Taxonomies:** `pw_av_equipment`
 
 
@@ -372,7 +372,7 @@ For property-scoped FAQ lists (e.g. FAQPage in multi-property mode), query `meta
 
 ## Post Type: `pw_offer`
 
-**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`, `slug`
 
 For property-scoped offer lists, query `meta_key` `_pw_property_id`. `_pw_parents` remains the multi-entity attach list.
 
@@ -398,7 +398,7 @@ Description/terms: use post `editor` and `excerpt` as needed.
 
 ## Post Type: `pw_nearby`
 
-**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`, `slug`  
 **Taxonomies:** `pw_nearby_type`, `pw_transport_mode`
 
 
@@ -417,7 +417,7 @@ Description/terms: use post `editor` and `excerpt` as needed.
 
 ## Post Type: `pw_experience`
 
-**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`, `slug`  
 **Taxonomies:** `pw_experience_category`
 
 For property-level experience archives, query `_pw_property_id`. `pw_get_experiences_for( 'pw_property', $id )` also matches that meta and still honors `_pw_connected_to`-only legacy rows.
@@ -439,7 +439,7 @@ For property-level experience archives, query `_pw_property_id`. `pw_get_experie
 
 ## Post Type: `pw_event`
 
-**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`  
+**Supports:** `title`, `editor`, `excerpt`, `thumbnail`, `custom-fields`, `slug`  
 **Taxonomies:** `pw_event_type`, `pw_event_organiser`
 
 

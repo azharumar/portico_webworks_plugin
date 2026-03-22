@@ -393,7 +393,7 @@ function pw_install_sample_dataset_multi() {
 
 	$rooms_p1 = [
 		[
-			'pid' => $p1, 'title' => 'Deluxe King', 'excerpt' => 'King bed, city-facing room.', 'content' => '<p>Spacious deluxe room with king bed and executive work area.</p>',
+			'pid' => $p1, 'slug' => 'deluxe-king', 'title' => 'Deluxe King', 'excerpt' => 'King bed, city-facing room.', 'content' => '<p>Spacious deluxe room with king bed and executive work area.</p>',
 			'rate_from' => 8500, 'rate_to' => 12000, 'occ' => 2, 'adults' => 2, 'children' => 0, 'beds' => [ $king_tid ], 'views' => [ $city_view_tid ],
 			'sqft' => 380, 'sqm' => 35, 'extra_beds' => 1, 'order' => 1, 'features' => array_slice( $feature_ids, 0, 10 ),
 			'rates' => [
@@ -403,7 +403,7 @@ function pw_install_sample_dataset_multi() {
 			],
 		],
 		[
-			'pid' => $p1, 'title' => 'Premier Twin', 'excerpt' => 'Twin beds, city view.', 'content' => '<p>Ideal for colleagues or friends travelling together.</p>',
+			'pid' => $p1, 'slug' => 'premier-twin', 'title' => 'Premier Twin', 'excerpt' => 'Twin beds, city view.', 'content' => '<p>Ideal for colleagues or friends travelling together.</p>',
 			'rate_from' => 8500, 'rate_to' => 12000, 'occ' => 3, 'adults' => 2, 'children' => 1, 'beds' => [ $twin_tid ], 'views' => [ $city_view_tid ],
 			'sqft' => 380, 'sqm' => 35, 'extra_beds' => 1, 'order' => 2, 'features' => array_slice( $feature_ids, 0, 9 ),
 			'rates' => [
@@ -412,7 +412,7 @@ function pw_install_sample_dataset_multi() {
 			],
 		],
 		[
-			'pid' => $p1, 'title' => 'Executive Suite', 'excerpt' => 'Separate living area, pool view.', 'content' => '<p>Expansive suite with living room and premium bath.</p>',
+			'pid' => $p1, 'slug' => 'executive-suite', 'title' => 'Executive Suite', 'excerpt' => 'Separate living area, pool view.', 'content' => '<p>Expansive suite with living room and premium bath.</p>',
 			'rate_from' => 18000, 'rate_to' => 28000, 'occ' => 3, 'adults' => 2, 'children' => 1, 'beds' => [ $king_tid ], 'views' => [ $pool_view_tid ],
 			'sqft' => 720, 'sqm' => 67, 'extra_beds' => 1, 'order' => 3, 'features' => $feature_ids,
 			'rates' => [
@@ -424,7 +424,7 @@ function pw_install_sample_dataset_multi() {
 	];
 	$rooms_p2 = [
 		[
-			'pid' => $p2, 'title' => 'Garden Villa', 'excerpt' => 'Private garden outlook.', 'content' => '<p>Villa-style room opening to landscaped gardens.</p>',
+			'pid' => $p2, 'slug' => 'garden-villa', 'title' => 'Garden Villa', 'excerpt' => 'Private garden outlook.', 'content' => '<p>Villa-style room opening to landscaped gardens.</p>',
 			'rate_from' => 7200, 'rate_to' => 14000, 'occ' => 3, 'adults' => 2, 'children' => 1, 'beds' => [ $queen_tid ], 'views' => [ $garden_view_tid ],
 			'sqft' => 450, 'sqm' => 42, 'extra_beds' => 1, 'order' => 1, 'features' => array_slice( $feature_ids, 0, 11 ),
 			'rates' => [
@@ -435,7 +435,7 @@ function pw_install_sample_dataset_multi() {
 			],
 		],
 		[
-			'pid' => $p2, 'title' => 'Sea-Facing Deluxe', 'excerpt' => 'Direct sea views.', 'content' => '<p>Deluxe room with uninterrupted Arabian Sea views.</p>',
+			'pid' => $p2, 'slug' => 'sea-facing-deluxe', 'title' => 'Sea-Facing Deluxe', 'excerpt' => 'Direct sea views.', 'content' => '<p>Deluxe room with uninterrupted Arabian Sea views.</p>',
 			'rate_from' => 9500, 'rate_to' => 18000, 'occ' => 2, 'adults' => 2, 'children' => 0, 'beds' => [ $king_tid ], 'views' => [ $sea_view_tid ],
 			'sqft' => 410, 'sqm' => 38, 'extra_beds' => 0, 'order' => 2, 'features' => array_slice( $feature_ids, 0, 12 ),
 			'rates' => [
@@ -453,6 +453,7 @@ function pw_install_sample_dataset_multi() {
 			[
 				'post_type'    => 'pw_room_type',
 				'post_status'  => 'publish',
+				'post_name'    => sanitize_title( $rd['slug'] ?? $rd['title'] ),
 				'post_title'   => $rd['title'],
 				'post_excerpt' => $rd['excerpt'],
 				'post_content' => wp_kses_post( $rd['content'] ),
@@ -533,6 +534,7 @@ function pw_install_sample_dataset_multi() {
 		[
 			'post_type'    => 'pw_restaurant',
 			'post_status'  => 'publish',
+			'post_name'    => 'karavali-rooftop',
 			'post_title'   => 'Karavali Rooftop',
 			'post_excerpt' => 'South Indian, Pan-Asian, and Continental on Level 12.',
 			'post_content' => '<p>Rooftop dining with city views.</p>',
@@ -559,6 +561,7 @@ function pw_install_sample_dataset_multi() {
 		[
 			'post_type'    => 'pw_restaurant',
 			'post_status'  => 'publish',
+			'post_name'    => 'spice-verandah-all-day-dining',
 			'post_title'   => 'Spice Verandah (All-Day Dining)',
 			'post_excerpt' => 'Indian and international all day.',
 			'post_content' => '<p>Lobby-level all-day dining.</p>',
@@ -591,6 +594,7 @@ function pw_install_sample_dataset_multi() {
 		[
 			'post_type'    => 'pw_restaurant',
 			'post_status'  => 'publish',
+			'post_name'    => 'the-tides-beach-bar-restaurant',
 			'post_title'   => 'The Tides Beach Bar & Restaurant',
 			'post_excerpt' => 'Goan seafood by the pool and beach.',
 			'post_content' => '<p>Poolside and beachfront dining.</p>',
@@ -623,6 +627,7 @@ function pw_install_sample_dataset_multi() {
 		[
 			'post_type'    => 'pw_spa',
 			'post_status'  => 'publish',
+			'post_name'    => 'nirvana-spa-wellness',
 			'post_title'   => 'Nirvana Spa & Wellness',
 			'post_excerpt' => 'Full-service spa in Bengaluru.',
 			'post_content' => '<p>Eight treatment rooms and wellness rituals.</p>',
@@ -644,6 +649,7 @@ function pw_install_sample_dataset_multi() {
 		[
 			'post_type'    => 'pw_spa',
 			'post_status'  => 'publish',
+			'post_name'    => 'seawind-wellness-hut',
 			'post_title'   => 'Seawind Wellness Hut',
 			'post_excerpt' => 'Boutique spa by the sea.',
 			'post_content' => '<p>Three treatment rooms in a garden hut setting.</p>',
@@ -675,6 +681,7 @@ function pw_install_sample_dataset_multi() {
 		[
 			'post_type'    => 'pw_meeting_room',
 			'post_status'  => 'publish',
+			'post_name'    => 'deccan-ballroom',
 			'post_title'   => 'Deccan Ballroom',
 			'post_excerpt' => 'Grand ballroom for conferences and galas.',
 			'post_content' => '<p>Pillar-free ballroom with pre-function space.</p>',
@@ -701,6 +708,7 @@ function pw_install_sample_dataset_multi() {
 		[
 			'post_type'    => 'pw_meeting_room',
 			'post_status'  => 'publish',
+			'post_name'    => 'cubbon-boardroom',
 			'post_title'   => 'Cubbon Boardroom',
 			'post_excerpt' => 'Executive boardroom with natural light.',
 			'post_content' => '<p>Intimate boardroom for leadership meetings.</p>',
@@ -884,10 +892,12 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 	}
 
 	$offer_insert = static function ( $args ) {
-		$id = pw_sample_wp_insert_post(
+		$post_name = isset( $args['slug'] ) ? sanitize_title( (string) $args['slug'] ) : sanitize_title( (string) $args['title'] );
+		$id        = pw_sample_wp_insert_post(
 			[
 				'post_type'    => 'pw_offer',
 				'post_status'  => 'publish',
+				'post_name'    => $post_name,
 				'post_title'   => $args['title'],
 				'post_excerpt' => $args['excerpt'] ?? '',
 				'post_content' => $args['content'] ?? '',
@@ -921,6 +931,7 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 
 	$offer_insert(
 		[
+			'slug' => 'advance-purchase-save-15',
 			'title' => 'Advance Purchase — Save 15%', 'excerpt' => '', 'content' => '',
 			'property_id' => $p1, 'offer_type' => 'promotion', 'discount_type' => 'percentage', 'discount_value' => 15,
 			'featured' => false, 'min_stay' => 1, 'valid_from' => '', 'valid_to' => '', 'order' => 1,
@@ -929,6 +940,7 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 	);
 	$offer_insert(
 		[
+			'slug' => 'bengaluru-business-package',
 			'title' => 'Bengaluru Business Package', 'excerpt' => 'Breakfast, transfer, minibar, spa discount.',
 			'content' => '<p>Includes breakfast for two, one-way airport transfer, complimentary minibar refresh, and 15% off spa services.</p>',
 			'property_id' => $p1, 'offer_type' => 'package', 'discount_type' => 'value_add', 'discount_value' => 0,
@@ -938,6 +950,7 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 	);
 	$offer_insert(
 		[
+			'slug' => 'extended-stay-4-nights-1-free',
 			'title' => 'Extended Stay — 4 Nights + 1 Free', 'excerpt' => '', 'content' => '<p>Fifth night complimentary on qualifying stays.</p>',
 			'property_id' => $p1, 'offer_type' => 'promotion', 'discount_type' => 'value_add', 'discount_value' => 0,
 			'featured' => false, 'min_stay' => 4, 'valid_from' => '', 'valid_to' => '', 'order' => 3,
@@ -946,6 +959,7 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 	);
 	$offer_insert(
 		[
+			'slug' => 'conference-season-special',
 			'title' => 'Conference Season Special', 'excerpt' => 'September–November',
 			'content' => '<p>10% off best available rate during conference season.</p>',
 			'property_id' => $p1, 'offer_type' => 'promotion', 'discount_type' => 'percentage', 'discount_value' => 10,
@@ -956,6 +970,7 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 
 	$offer_insert(
 		[
+			'slug' => 'early-bird-goa-escape-save-20',
 			'title' => 'Early Bird Goa Escape — Save 20%', 'excerpt' => '', 'content' => '',
 			'property_id' => $p2, 'offer_type' => 'promotion', 'discount_type' => 'percentage', 'discount_value' => 20,
 			'featured' => true, 'min_stay' => 2, 'valid_from' => '', 'valid_to' => '', 'order' => 1,
@@ -971,6 +986,7 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 	}
 	$offer_insert(
 		[
+			'slug' => 'honeymoon-by-the-sea-package',
 			'title' => 'Honeymoon by the Sea Package', 'excerpt' => 'Sea-facing room, dinner, massage, late checkout.',
 			'content' => '<p>Includes sea-facing room, flower-decorated room on arrival, candlelight dinner for two at The Tides, couple\'s massage at Seawind Wellness Hut, and late check-out.</p>',
 			'property_id' => $p2, 'offer_type' => 'package', 'discount_type' => 'value_add', 'discount_value' => 0,
@@ -980,6 +996,7 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 	);
 	$offer_insert(
 		[
+			'slug' => 'festive-goa-christmas-new-year',
 			'title' => 'Festive Goa — Christmas & New Year', 'excerpt' => 'Flat savings on qualifying stays.',
 			'content' => '<p>₹2,000 off festive stays; see terms at booking.</p>',
 			'property_id' => $p2, 'offer_type' => 'promotion', 'discount_type' => 'flat', 'discount_value' => 2000,
@@ -1001,13 +1018,13 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 	$drive_tid   = pw_sample_ensure_term( 'Drive', 'pw_transport_mode' );
 
 	$near_p1 = [
-		[ 'title' => 'Kempegowda International Airport', 'excerpt' => 'International and domestic hub.', 'km' => 38, 'min' => 60, 'lat' => 13.19890, 'lng' => 77.70680, 'type' => $airport_tid, 'trans' => $drive_tid ],
-		[ 'title' => 'MG Road Metro Station', 'excerpt' => 'Namma Metro connectivity.', 'km' => 0.8, 'min' => 10, 'lat' => 12.97533, 'lng' => 77.60780, 'type' => $metro_tid, 'trans' => $walk_tid ],
-		[ 'title' => 'UB City Mall', 'excerpt' => 'Luxury retail and dining.', 'km' => 0.5, 'min' => 7, 'lat' => 12.97262, 'lng' => 77.59660, 'type' => $shop_tid, 'trans' => $walk_tid ],
-		[ 'title' => 'Cubbon Park', 'excerpt' => 'Historic green lung of Bengaluru.', 'km' => 1.2, 'min' => 15, 'lat' => 12.97619, 'lng' => 77.59290, 'type' => $park_tid, 'trans' => $walk_tid ],
-		[ 'title' => 'Lido Mall', 'excerpt' => 'Shopping and cinema.', 'km' => 4.5, 'min' => 20, 'lat' => 12.99320, 'lng' => 77.64510, 'type' => $shop_tid, 'trans' => $drive_tid ],
-		[ 'title' => 'St. Mark\'s Cathedral', 'excerpt' => 'Anglican landmark.', 'km' => 0.9, 'min' => 12, 'lat' => 12.97277, 'lng' => 77.59560, 'type' => $land_tid, 'trans' => $walk_tid ],
-		[ 'title' => 'Bangalore Palace', 'excerpt' => 'Tudor-style palace and events venue.', 'km' => 3.2, 'min' => 15, 'lat' => 12.99844, 'lng' => 77.59240, 'type' => $attr_tid, 'trans' => $drive_tid ],
+		[ 'slug' => 'kempegowda-international-airport-blr', 'title' => 'Kempegowda International Airport', 'excerpt' => 'International and domestic hub.', 'km' => 38, 'min' => 60, 'lat' => 13.19890, 'lng' => 77.70680, 'type' => $airport_tid, 'trans' => $drive_tid ],
+		[ 'slug' => 'mg-road-metro-station', 'title' => 'MG Road Metro Station', 'excerpt' => 'Namma Metro connectivity.', 'km' => 0.8, 'min' => 10, 'lat' => 12.97533, 'lng' => 77.60780, 'type' => $metro_tid, 'trans' => $walk_tid ],
+		[ 'slug' => 'ub-city-mall', 'title' => 'UB City Mall', 'excerpt' => 'Luxury retail and dining.', 'km' => 0.5, 'min' => 7, 'lat' => 12.97262, 'lng' => 77.59660, 'type' => $shop_tid, 'trans' => $walk_tid ],
+		[ 'slug' => 'cubbon-park', 'title' => 'Cubbon Park', 'excerpt' => 'Historic green lung of Bengaluru.', 'km' => 1.2, 'min' => 15, 'lat' => 12.97619, 'lng' => 77.59290, 'type' => $park_tid, 'trans' => $walk_tid ],
+		[ 'slug' => 'lido-mall', 'title' => 'Lido Mall', 'excerpt' => 'Shopping and cinema.', 'km' => 4.5, 'min' => 20, 'lat' => 12.99320, 'lng' => 77.64510, 'type' => $shop_tid, 'trans' => $drive_tid ],
+		[ 'slug' => 'st-marks-cathedral', 'title' => 'St. Mark\'s Cathedral', 'excerpt' => 'Anglican landmark.', 'km' => 0.9, 'min' => 12, 'lat' => 12.97277, 'lng' => 77.59560, 'type' => $land_tid, 'trans' => $walk_tid ],
+		[ 'slug' => 'bangalore-palace', 'title' => 'Bangalore Palace', 'excerpt' => 'Tudor-style palace and events venue.', 'km' => 3.2, 'min' => 15, 'lat' => 12.99844, 'lng' => 77.59240, 'type' => $attr_tid, 'trans' => $drive_tid ],
 	];
 	$i = 1;
 	foreach ( $near_p1 as $nd ) {
@@ -1015,6 +1032,7 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 			[
 				'post_type'    => 'pw_nearby',
 				'post_status'  => 'publish',
+				'post_name'    => sanitize_title( $nd['slug'] ?? $nd['title'] ),
 				'post_title'   => $nd['title'],
 				'post_excerpt' => $nd['excerpt'],
 				'post_content' => '',
@@ -1038,12 +1056,12 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 	}
 
 	$near_p2 = [
-		[ 'title' => 'Goa International Airport', 'excerpt' => 'Dabolim / Mopa region.', 'km' => 42, 'min' => 60, 'lat' => 15.38018, 'lng' => 73.83141, 'type' => $airport_tid, 'trans' => $drive_tid ],
-		[ 'title' => 'Calangute Beach', 'excerpt' => 'Walking distance.', 'km' => 0.3, 'min' => 4, 'lat' => 15.54426, 'lng' => 73.75572, 'type' => $beach_tid, 'trans' => $walk_tid ],
-		[ 'title' => 'Baga Beach', 'excerpt' => 'Popular stretch north of Calangute.', 'km' => 2.1, 'min' => 8, 'lat' => 15.55633, 'lng' => 73.75276, 'type' => $beach_tid, 'trans' => $drive_tid ],
-		[ 'title' => 'Saturday Night Market, Arpora', 'excerpt' => 'Seasonal night market.', 'km' => 4.8, 'min' => 15, 'lat' => 15.56100, 'lng' => 73.76890, 'type' => $market_tid, 'trans' => $drive_tid ],
-		[ 'title' => 'Basilica of Bom Jesus', 'excerpt' => 'UNESCO World Heritage church.', 'km' => 18.5, 'min' => 35, 'lat' => 15.50064, 'lng' => 73.91146, 'type' => $herit_tid, 'trans' => $drive_tid ],
-		[ 'title' => 'Anjuna Flea Market', 'excerpt' => 'Wednesday market.', 'km' => 5.2, 'min' => 18, 'lat' => 15.57370, 'lng' => 73.74170, 'type' => $market_tid, 'trans' => $drive_tid ],
+		[ 'slug' => 'goa-international-airport', 'title' => 'Goa International Airport', 'excerpt' => 'Dabolim / Mopa region.', 'km' => 42, 'min' => 60, 'lat' => 15.38018, 'lng' => 73.83141, 'type' => $airport_tid, 'trans' => $drive_tid ],
+		[ 'slug' => 'calangute-beach', 'title' => 'Calangute Beach', 'excerpt' => 'Walking distance.', 'km' => 0.3, 'min' => 4, 'lat' => 15.54426, 'lng' => 73.75572, 'type' => $beach_tid, 'trans' => $walk_tid ],
+		[ 'slug' => 'baga-beach', 'title' => 'Baga Beach', 'excerpt' => 'Popular stretch north of Calangute.', 'km' => 2.1, 'min' => 8, 'lat' => 15.55633, 'lng' => 73.75276, 'type' => $beach_tid, 'trans' => $drive_tid ],
+		[ 'slug' => 'saturday-night-market-arpora', 'title' => 'Saturday Night Market, Arpora', 'excerpt' => 'Seasonal night market.', 'km' => 4.8, 'min' => 15, 'lat' => 15.56100, 'lng' => 73.76890, 'type' => $market_tid, 'trans' => $drive_tid ],
+		[ 'slug' => 'basilica-of-bom-jesus', 'title' => 'Basilica of Bom Jesus', 'excerpt' => 'UNESCO World Heritage church.', 'km' => 18.5, 'min' => 35, 'lat' => 15.50064, 'lng' => 73.91146, 'type' => $herit_tid, 'trans' => $drive_tid ],
+		[ 'slug' => 'anjuna-flea-market', 'title' => 'Anjuna Flea Market', 'excerpt' => 'Wednesday market.', 'km' => 5.2, 'min' => 18, 'lat' => 15.57370, 'lng' => 73.74170, 'type' => $market_tid, 'trans' => $drive_tid ],
 	];
 	$i = 1;
 	foreach ( $near_p2 as $nd ) {
@@ -1051,6 +1069,7 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 			[
 				'post_type'    => 'pw_nearby',
 				'post_status'  => 'publish',
+				'post_name'    => sanitize_title( $nd['slug'] ?? $nd['title'] ),
 				'post_title'   => $nd['title'],
 				'post_excerpt' => $nd['excerpt'],
 				'post_content' => '',
@@ -1080,21 +1099,22 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 	$nat = pw_sample_ensure_term( 'Nature', 'pw_experience_category' );
 
 	$exp_rows = [
-		[ 'pid' => $p1, 'title' => 'Craft Beer & Bengaluru Food Walk', 'excerpt' => 'Evening culinary tour.', 'cat' => $cul, 'hours' => 3, 'price' => 2500, 'free' => false, 'order' => 1, 'url' => 'https://leela-residency.com/experiences/food-walk' ],
-		[ 'pid' => $p1, 'title' => 'Yoga & Meditation at Sunrise', 'excerpt' => 'Complimentary wellness session.', 'cat' => $wel, 'hours' => 1, 'price' => 0, 'free' => true, 'order' => 2, 'url' => 'https://leela-residency.com/experiences/sunrise-yoga' ],
-		[ 'pid' => $p1, 'title' => 'Bengaluru Heritage City Tour', 'excerpt' => 'Half-day heritage routing.', 'cat' => $cult, 'hours' => 4, 'price' => 1800, 'free' => false, 'order' => 3, 'url' => 'https://leela-residency.com/experiences/heritage' ],
-		[ 'pid' => $p1, 'title' => 'Whisky Masterclass at Spice Verandah', 'excerpt' => 'Guided tasting experience.', 'cat' => $cul, 'hours' => 2, 'price' => 3500, 'free' => false, 'order' => 4, 'url' => 'https://leela-residency.com/experiences/whisky' ],
-		[ 'pid' => $p2, 'title' => 'Sunrise Kayaking', 'excerpt' => 'Complimentary for direct bookers.', 'cat' => $adv, 'hours' => 1.5, 'price' => 0, 'free' => true, 'order' => 1, 'url' => 'https://seawindgoa.com/experiences/kayak' ],
-		[ 'pid' => $p2, 'title' => 'Goan Cooking Masterclass', 'excerpt' => 'Learn classic Goan dishes.', 'cat' => $cul, 'hours' => 3, 'price' => 2800, 'free' => false, 'order' => 2, 'url' => 'https://seawindgoa.com/experiences/cooking' ],
-		[ 'pid' => $p2, 'title' => 'Spice Plantation Half-Day Tour', 'excerpt' => 'Nature and spice estates.', 'cat' => $nat, 'hours' => 4, 'price' => 1500, 'free' => false, 'order' => 3, 'url' => 'https://seawindgoa.com/experiences/plantation' ],
-		[ 'pid' => $p2, 'title' => 'Dolphin Watching Boat Trip', 'excerpt' => 'Coastal wildlife outing.', 'cat' => $adv, 'hours' => 2, 'price' => 1200, 'free' => false, 'order' => 4, 'url' => 'https://seawindgoa.com/experiences/dolphins' ],
-		[ 'pid' => $p2, 'title' => 'Full Moon Beach Bonfire Dinner', 'excerpt' => 'Seasonal beach dining.', 'cat' => $cul, 'hours' => 3, 'price' => 3500, 'free' => false, 'order' => 5, 'url' => 'https://seawindgoa.com/experiences/bonfire' ],
+		[ 'pid' => $p1, 'slug' => 'craft-beer-bengaluru-food-walk', 'title' => 'Craft Beer & Bengaluru Food Walk', 'excerpt' => 'Evening culinary tour.', 'cat' => $cul, 'hours' => 3, 'price' => 2500, 'free' => false, 'order' => 1, 'url' => 'https://leela-residency.com/experiences/food-walk' ],
+		[ 'pid' => $p1, 'slug' => 'yoga-meditation-sunrise', 'title' => 'Yoga & Meditation at Sunrise', 'excerpt' => 'Complimentary wellness session.', 'cat' => $wel, 'hours' => 1, 'price' => 0, 'free' => true, 'order' => 2, 'url' => 'https://leela-residency.com/experiences/sunrise-yoga' ],
+		[ 'pid' => $p1, 'slug' => 'bengaluru-heritage-city-tour', 'title' => 'Bengaluru Heritage City Tour', 'excerpt' => 'Half-day heritage routing.', 'cat' => $cult, 'hours' => 4, 'price' => 1800, 'free' => false, 'order' => 3, 'url' => 'https://leela-residency.com/experiences/heritage' ],
+		[ 'pid' => $p1, 'slug' => 'whisky-masterclass-spice-verandah', 'title' => 'Whisky Masterclass at Spice Verandah', 'excerpt' => 'Guided tasting experience.', 'cat' => $cul, 'hours' => 2, 'price' => 3500, 'free' => false, 'order' => 4, 'url' => 'https://leela-residency.com/experiences/whisky' ],
+		[ 'pid' => $p2, 'slug' => 'sunrise-kayaking', 'title' => 'Sunrise Kayaking', 'excerpt' => 'Complimentary for direct bookers.', 'cat' => $adv, 'hours' => 1.5, 'price' => 0, 'free' => true, 'order' => 1, 'url' => 'https://seawindgoa.com/experiences/kayak' ],
+		[ 'pid' => $p2, 'slug' => 'goan-cooking-masterclass', 'title' => 'Goan Cooking Masterclass', 'excerpt' => 'Learn classic Goan dishes.', 'cat' => $cul, 'hours' => 3, 'price' => 2800, 'free' => false, 'order' => 2, 'url' => 'https://seawindgoa.com/experiences/cooking' ],
+		[ 'pid' => $p2, 'slug' => 'spice-plantation-half-day-tour', 'title' => 'Spice Plantation Half-Day Tour', 'excerpt' => 'Nature and spice estates.', 'cat' => $nat, 'hours' => 4, 'price' => 1500, 'free' => false, 'order' => 3, 'url' => 'https://seawindgoa.com/experiences/plantation' ],
+		[ 'pid' => $p2, 'slug' => 'dolphin-watching-boat-trip', 'title' => 'Dolphin Watching Boat Trip', 'excerpt' => 'Coastal wildlife outing.', 'cat' => $adv, 'hours' => 2, 'price' => 1200, 'free' => false, 'order' => 4, 'url' => 'https://seawindgoa.com/experiences/dolphins' ],
+		[ 'pid' => $p2, 'slug' => 'full-moon-beach-bonfire-dinner', 'title' => 'Full Moon Beach Bonfire Dinner', 'excerpt' => 'Seasonal beach dining.', 'cat' => $cul, 'hours' => 3, 'price' => 3500, 'free' => false, 'order' => 5, 'url' => 'https://seawindgoa.com/experiences/bonfire' ],
 	];
 	foreach ( $exp_rows as $er ) {
 		$eid = pw_sample_wp_insert_post(
 			[
 				'post_type'    => 'pw_experience',
 				'post_status'  => 'publish',
+				'post_name'    => sanitize_title( $er['slug'] ?? $er['title'] ),
 				'post_title'   => $er['title'],
 				'post_excerpt' => $er['excerpt'],
 				'post_content' => '',
@@ -1125,18 +1145,19 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 	$brunch_tid = pw_sample_ensure_term( 'Brunch', 'pw_event_type' );
 
 	$event_rows = [
-		[ 'pid' => $p1, 'title' => 'Diwali Gala Dinner — Karavali Rooftop', 'start' => '2025-10-20 19:30:00', 'end' => '2025-10-20 23:30:00', 'price' => 4500, 'cap' => 120, 'type' => $gala_tid, 'venue' => 0 ],
-		[ 'pid' => $p1, 'title' => 'Corporate Leadership Summit', 'start' => '2025-10-15 09:00:00', 'end' => '2025-10-16 18:00:00', 'price' => 12000, 'cap' => 200, 'type' => $conf_tid, 'venue' => $deccan ? $deccan : 0 ],
-		[ 'pid' => $p1, 'title' => 'New Year\'s Eve — Bengaluru Countdown', 'start' => '2025-12-31 20:00:00', 'end' => '2026-01-01 01:30:00', 'price' => 8000, 'cap' => 300, 'type' => $gala_tid, 'venue' => $deccan ? $deccan : 0 ],
-		[ 'pid' => $p2, 'title' => 'Full Moon Beach Party — Goa', 'start' => '2025-11-05 19:00:00', 'end' => '2025-11-05 23:59:00', 'price' => 1500, 'cap' => 150, 'type' => $beach_ev_tid, 'venue' => 0 ],
-		[ 'pid' => $p2, 'title' => 'Goa Christmas Brunch', 'start' => '2025-12-25 11:00:00', 'end' => '2025-12-25 15:00:00', 'price' => 3200, 'cap' => 90, 'type' => $brunch_tid, 'venue' => 0 ],
-		[ 'pid' => $p2, 'title' => 'New Year\'s Eve Beach Bash — Goa', 'start' => '2025-12-31 19:00:00', 'end' => '2026-01-01 02:00:00', 'price' => 5500, 'cap' => 200, 'type' => $beach_ev_tid, 'venue' => 0 ],
+		[ 'pid' => $p1, 'slug' => 'diwali-gala-dinner-karavali', 'title' => 'Diwali Gala Dinner — Karavali Rooftop', 'start' => '2025-10-20 19:30:00', 'end' => '2025-10-20 23:30:00', 'price' => 4500, 'cap' => 120, 'type' => $gala_tid, 'venue' => 0 ],
+		[ 'pid' => $p1, 'slug' => 'corporate-leadership-summit', 'title' => 'Corporate Leadership Summit', 'start' => '2025-10-15 09:00:00', 'end' => '2025-10-16 18:00:00', 'price' => 12000, 'cap' => 200, 'type' => $conf_tid, 'venue' => $deccan ? $deccan : 0 ],
+		[ 'pid' => $p1, 'slug' => 'new-years-eve-bengaluru-countdown', 'title' => 'New Year\'s Eve — Bengaluru Countdown', 'start' => '2025-12-31 20:00:00', 'end' => '2026-01-01 01:30:00', 'price' => 8000, 'cap' => 300, 'type' => $gala_tid, 'venue' => $deccan ? $deccan : 0 ],
+		[ 'pid' => $p2, 'slug' => 'full-moon-beach-party-goa', 'title' => 'Full Moon Beach Party — Goa', 'start' => '2025-11-05 19:00:00', 'end' => '2025-11-05 23:59:00', 'price' => 1500, 'cap' => 150, 'type' => $beach_ev_tid, 'venue' => 0 ],
+		[ 'pid' => $p2, 'slug' => 'goa-christmas-brunch', 'title' => 'Goa Christmas Brunch', 'start' => '2025-12-25 11:00:00', 'end' => '2025-12-25 15:00:00', 'price' => 3200, 'cap' => 90, 'type' => $brunch_tid, 'venue' => 0 ],
+		[ 'pid' => $p2, 'slug' => 'new-years-eve-beach-bash-goa', 'title' => 'New Year\'s Eve Beach Bash — Goa', 'start' => '2025-12-31 19:00:00', 'end' => '2026-01-01 02:00:00', 'price' => 5500, 'cap' => 200, 'type' => $beach_ev_tid, 'venue' => 0 ],
 	];
 	foreach ( $event_rows as $ev ) {
 		$eid = pw_sample_wp_insert_post(
 			[
 				'post_type'    => 'pw_event',
 				'post_status'  => 'publish',
+				'post_name'    => sanitize_title( $ev['slug'] ?? $ev['title'] ),
 				'post_title'   => $ev['title'],
 				'post_excerpt' => '',
 				'post_content' => '<p>Demo event for sample data.</p>',

@@ -40,7 +40,7 @@ function pw_register_property_post_type() {
 		'menu_icon'          => 'dashicons-building',
 		'menu_position'      => 25,
 
-		'supports'           => [ 'title', 'editor', 'excerpt', 'thumbnail', 'revisions', 'custom-fields' ],
+		'supports'           => [ 'title', 'editor', 'excerpt', 'thumbnail', 'revisions', 'custom-fields', 'slug' ],
 		'taxonomies'         => [ 'pw_property_type' ],
 
 		'can_export'         => true,

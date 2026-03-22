@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.24] - 2026-03-22
+
+### Added
+- **Slug support** (`supports` → `slug`): `pw_property`, `pw_room_type`, `pw_restaurant`, `pw_spa`, `pw_meeting_room`, `pw_offer`, `pw_nearby`, `pw_experience`, `pw_event` — native WordPress permalink slug field in the block editor
+
+### Changed
+- **Multi-property sample data** (`sample-data-multi-install.php`): explicit `post_name` / slug keys for room types, outlets, offers, nearby, experiences, and events
+
 ## [0.8.23] - 2026-03-22
 
 ### Added
