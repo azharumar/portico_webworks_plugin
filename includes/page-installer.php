@@ -994,7 +994,7 @@ function pw_handle_admin_post_pw_run_page_installer() {
 		add_query_arg(
 			'pw_installer_ran',
 			'1',
-			pw_admin_settings_url()
+			pw_admin_permalinks_url()
 		)
 	);
 	exit;

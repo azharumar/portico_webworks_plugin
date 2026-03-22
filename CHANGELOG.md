@@ -1,6 +1,9 @@
 # Changelog
 
-## [0.8.18] - Unreleased
+## [0.8.18] - 2026-03-22
+
+### Changed
+- **Admin**: **General** tab is property mode + default property only; **Permalinks** tab holds URL prefix, property listing slug / archive, section URL bases (table: Section | Singular | Plural), and **Page structure** + installer (no nested forms); new **Update** tab (second-to-last, before **About**) for GitHub URL + one-click update; `pw_save_github_settings` saves releases URL separately; installer redirect returns to Permalinks
 
 ## [0.8.17] - 2026-03-22
 

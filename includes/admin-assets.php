@@ -202,6 +202,10 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
   .pw-admin .pw-card-body .cmb2-wrap .cmb-th{flex:1 1 auto;width:100%}
   .pw-admin .pw-card-body .cmb2-wrap .cmb-td{min-width:0}
 }
+.pw-admin .pw-section-bases-table th[scope=\"col\"]{text-align:left}
+.pw-admin .pw-section-bases-table th[scope=\"row\"]{width:28%;font-weight:600;vertical-align:middle}
+.pw-admin .pw-section-bases-table td .regular-text{width:100%;max-width:18rem;box-sizing:border-box}
+.pw-admin .pw-page-structure-table code{font-size:12px}
 .pw-admin .pw-default-property-row.pw-is-hidden{display:none!important}
 ";
 

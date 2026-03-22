@@ -297,7 +297,7 @@ function pw_github_get_settings_release_info( $releases_url ) {
 	if ( $releases_url === '' ) {
 		return array(
 			'ok'      => false,
-			'message' => __( 'Save a GitHub releases URL first.', 'portico-webworks' ),
+			'message' => __( 'Save a GitHub releases URL on the Update tab first.', 'portico-webworks' ),
 		);
 	}
 	$cache_key = 'pw_gh_rel_info_' . md5( $releases_url );
@@ -399,32 +399,32 @@ function pw_handle_admin_post_github_plugin_update() {
 
 	$releases_url = pw_get_setting( 'pw_github_releases_url', '' );
 	if ( ! is_string( $releases_url ) || $releases_url === '' ) {
-		set_transient( 'pw_github_ud_msg_' . get_current_user_id(), __( 'Save a GitHub releases URL in settings first.', 'portico-webworks' ), 60 );
-		wp_safe_redirect( add_query_arg( 'pw_github_upd', 'err', pw_admin_settings_url() ) );
+		set_transient( 'pw_github_ud_msg_' . get_current_user_id(), __( 'Save a GitHub releases URL on the Update tab first.', 'portico-webworks' ), 60 );
+		wp_safe_redirect( add_query_arg( 'pw_github_upd', 'err', pw_admin_update_url() ) );
 		exit;
 	}
 
 	$info = pw_github_get_latest_release_package( $releases_url );
 	if ( is_wp_error( $info ) ) {
 		set_transient( 'pw_github_ud_msg_' . get_current_user_id(), $info->get_error_message(), 60 );
-		wp_safe_redirect( add_query_arg( 'pw_github_upd', 'err', pw_admin_settings_url() ) );
+		wp_safe_redirect( add_query_arg( 'pw_github_upd', 'err', pw_admin_update_url() ) );
 		exit;
 	}
 
 	if ( pw_github_versions_equal( $info['tag_name'], PW_VERSION ) ) {
-		wp_safe_redirect( add_query_arg( 'pw_github_upd', 'uptodate', pw_admin_settings_url() ) );
+		wp_safe_redirect( add_query_arg( 'pw_github_upd', 'uptodate', pw_admin_update_url() ) );
 		exit;
 	}
 
 	$run = pw_github_run_plugin_update_from_zip_url( $info['zip_url'] );
 	if ( is_wp_error( $run ) ) {
 		set_transient( 'pw_github_ud_msg_' . get_current_user_id(), $run->get_error_message(), 60 );
-		wp_safe_redirect( add_query_arg( 'pw_github_upd', 'err', pw_admin_settings_url() ) );
+		wp_safe_redirect( add_query_arg( 'pw_github_upd', 'err', pw_admin_update_url() ) );
 		exit;
 	}
 
 	delete_transient( 'pw_gh_rel_info_' . md5( $releases_url ) );
-	wp_safe_redirect( add_query_arg( 'pw_github_upd', 'ok', pw_admin_settings_url() ) );
+	wp_safe_redirect( add_query_arg( 'pw_github_upd', 'ok', pw_admin_update_url() ) );
 	exit;
 }
 
@@ -437,7 +437,7 @@ function pw_github_plugin_update_admin_notices() {
 	if ( empty( $_GET['page'] ) || sanitize_key( wp_unslash( $_GET['page'] ) ) !== pw_admin_page_slug() ) {
 		return;
 	}
-	if ( empty( $_GET['tab'] ) || sanitize_key( wp_unslash( $_GET['tab'] ) ) !== 'settings' ) {
+	if ( empty( $_GET['tab'] ) || sanitize_key( wp_unslash( $_GET['tab'] ) ) !== 'update' ) {
 		return;
 	}
 	if ( empty( $_GET['pw_github_upd'] ) ) {
@@ -461,4 +461,139 @@ function pw_github_plugin_update_admin_notices() {
 		$text = is_string( $msg ) && $msg !== '' ? $msg : __( 'Update failed.', 'portico-webworks' );
 		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html( $text ) . '</p></div>';
 	}
+}
+
+add_filter(
+	'pw_admin_tabs',
+	static function ( $tabs ) {
+		$tabs['update'] = __( 'Update', 'portico-webworks' );
+		return $tabs;
+	},
+	25
+);
+
+add_action( 'admin_post_pw_save_github_settings', 'pw_handle_save_github_settings' );
+
+function pw_handle_save_github_settings() {
+	if (
+		! isset( $_POST['pw_github_settings_nonce'] ) ||
+		! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['pw_github_settings_nonce'] ) ), 'pw_save_github_settings' ) ||
+		! current_user_can( 'manage_options' )
+	) {
+		wp_die( __( 'Invalid request.', 'portico-webworks' ), '', array( 'response' => 403 ) );
+	}
+
+	$existing = pw_get_merged_pw_settings();
+	$settings = $existing;
+	$settings['pw_github_releases_url'] = pw_sanitize_github_releases_url( wp_unslash( $_POST['pw_github_releases_url'] ?? '' ) );
+
+	$old_gh = isset( $existing['pw_github_releases_url'] ) ? (string) $existing['pw_github_releases_url'] : '';
+	$new_gh = (string) $settings['pw_github_releases_url'];
+
+	update_option( 'pw_settings', $settings );
+
+	if ( $old_gh !== $new_gh ) {
+		delete_transient( 'pw_gh_rel_info_' . md5( $old_gh ) );
+		delete_transient( 'pw_gh_rel_info_' . md5( $new_gh ) );
+	}
+
+	wp_safe_redirect( add_query_arg( 'pw_github_settings_saved', '1', pw_admin_update_url() ) );
+	exit;
+}
+
+add_action( 'pw_render_tab_update', 'pw_render_github_update_tab' );
+
+function pw_render_github_update_tab() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	if ( isset( $_GET['pw_github_settings_saved'] ) ) {
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Update settings saved.', 'portico-webworks' ) . '</p></div>';
+	}
+
+	echo '<div class="pw-card">';
+	echo '<div class="pw-card-head"><div class="pw-card-title">' . esc_html__( 'Update from GitHub', 'portico-webworks' ) . '</div></div>';
+	echo '<div class="pw-card-body">';
+
+	if ( ! current_user_can( 'update_plugins' ) ) {
+		echo '<p class="description">' . esc_html__( 'You need permission to update plugins to use one-click updates from GitHub.', 'portico-webworks' ) . '</p>';
+		echo '</div></div>';
+		return;
+	}
+
+	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+	echo '<input type="hidden" name="action" value="pw_save_github_settings" />';
+	wp_nonce_field( 'pw_save_github_settings', 'pw_github_settings_nonce' );
+	echo '<table class="form-table" role="presentation"><tbody>';
+	echo '<tr><th scope="row"><label for="pw_github_releases_url">' . esc_html__( 'GitHub releases URL', 'portico-webworks' ) . '</label></th><td>';
+	echo '<input type="text" class="large-text" name="pw_github_releases_url" id="pw_github_releases_url" value="' . esc_attr( (string) pw_get_setting( 'pw_github_releases_url' ) ) . '" placeholder="' . esc_attr( 'https://github.com/owner/repo/releases' ) . '" />';
+	echo '<p class="description">' . esc_html__( 'Repository releases page, e.g. https://github.com/owner/repo/releases — latest release must include portico_webworks_plugin.zip.', 'portico-webworks' ) . '</p>';
+	echo '</td></tr>';
+	echo '</tbody></table>';
+	submit_button( esc_attr__( 'Save', 'portico-webworks' ) );
+	echo '</form>';
+
+	$gh_url = pw_get_setting( 'pw_github_releases_url', '' );
+	if ( is_string( $gh_url ) && $gh_url !== '' ) {
+		$gh_info = pw_github_get_settings_release_info( $gh_url );
+		if ( empty( $gh_info['ok'] ) ) {
+			echo '<p class="description">' . esc_html( isset( $gh_info['message'] ) ? (string) $gh_info['message'] : __( 'Could not load release info from GitHub.', 'portico-webworks' ) ) . '</p>';
+		} else {
+			$inst = isset( $gh_info['installed'] ) ? trim( (string) $gh_info['installed'] ) : '';
+			$tag  = isset( $gh_info['tag_name'] ) ? trim( (string) $gh_info['tag_name'] ) : '';
+			echo '<p style="margin-top:0.75em;">';
+			echo '<strong>' . esc_html__( 'Installed version', 'portico-webworks' ) . '</strong>: ';
+			echo $inst !== '' ? esc_html( 'v' . ltrim( $inst, 'v' ) ) : esc_html__( '(unknown)', 'portico-webworks' );
+			echo '<br /><strong>' . esc_html__( 'Latest release on GitHub', 'portico-webworks' ) . '</strong>: ';
+			if ( $tag !== '' ) {
+				echo esc_html( $tag );
+			} else {
+				echo esc_html__( '(unknown)', 'portico-webworks' );
+			}
+			if ( ! empty( $gh_info['html_url'] ) && is_string( $gh_info['html_url'] ) ) {
+				echo ' — <a href="' . esc_url( $gh_info['html_url'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'View on GitHub', 'portico-webworks' ) . '</a>';
+			}
+			echo '</p>';
+			if ( ! empty( $gh_info['is_current'] ) ) {
+				echo '<p class="description">' . esc_html__( 'You are running the latest release that this plugin can install from GitHub.', 'portico-webworks' ) . '</p>';
+			} else {
+				echo '<p class="description">' . esc_html__( 'A newer release is available. Use the button below to update.', 'portico-webworks' ) . '</p>';
+			}
+			if ( empty( $gh_info['has_package'] ) ) {
+				echo '<p class="description" style="color:#b32d2e;">' . esc_html(
+					sprintf(
+						/* translators: %s: zip filename */
+						__( 'This release has no %s asset, so one-click update will not work until the file is attached to the release.', 'portico-webworks' ),
+						PW_GITHUB_PLUGIN_RELEASE_ZIP
+					)
+				) . '</p>';
+			}
+			$notes = isset( $gh_info['body'] ) ? trim( (string) $gh_info['body'] ) : '';
+			if ( $notes !== '' ) {
+				$rel_title = isset( $gh_info['name'] ) && trim( (string) $gh_info['name'] ) !== '' ? trim( (string) $gh_info['name'] ) : __( 'Release notes', 'portico-webworks' );
+				echo '<p class="description" style="margin-bottom:0.35em;"><strong>' . esc_html( $rel_title ) . '</strong></p>';
+				$notes_html = isset( $gh_info['body_html'] ) && is_string( $gh_info['body_html'] ) ? $gh_info['body_html'] : '';
+				if ( $notes_html === '' ) {
+					$notes_html = pw_github_release_body_to_html( $notes, $gh_url );
+				}
+				echo '<div class="pw-github-release-notes">' . $notes_html . '</div>';
+			}
+		}
+	} else {
+		echo '<p class="description">' . esc_html__( 'Enter a GitHub releases URL and save to enable one-click updates.', 'portico-webworks' ) . '</p>';
+	}
+
+	$upd_url = admin_url( 'admin-post.php' );
+	echo '<form method="post" action="' . esc_url( $upd_url ) . '" style="margin-top:0.75em;">';
+	echo '<input type="hidden" name="action" value="pw_github_plugin_update" />';
+	wp_nonce_field( 'pw_github_plugin_update' );
+	$btn_attrs = array();
+	if ( ! is_string( $gh_url ) || $gh_url === '' ) {
+		$btn_attrs['disabled'] = 'disabled';
+	}
+	submit_button( esc_attr__( 'Update from GitHub', 'portico-webworks' ), 'secondary', 'pw-github-update', false, $btn_attrs );
+	echo '</form>';
+
+	echo '</div></div>';
 }

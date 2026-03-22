@@ -16,8 +16,12 @@ function pw_admin_permalinks_url() {
 	return admin_url( 'admin.php?page=' . rawurlencode( pw_admin_page_slug() ) . '&tab=permalinks' );
 }
 
+function pw_admin_update_url() {
+	return admin_url( 'admin.php?page=' . rawurlencode( pw_admin_page_slug() ) . '&tab=update' );
+}
+
 /**
- * Keep General (settings) first, Permalinks second, About last; other tabs stay in filter order between them.
+ * Order: General, Permalinks, other registered tabs (e.g. Data, Dependencies), Update, About.
  */
 function pw_order_admin_tabs( $tabs ) {
 	if ( ! is_array( $tabs ) || $tabs === [] ) {
@@ -25,9 +29,11 @@ function pw_order_admin_tabs( $tabs ) {
 	}
 	$settings_key   = 'settings';
 	$permalinks_key = 'permalinks';
+	$update_key     = 'update';
 	$about_key      = 'about';
 	$general        = [];
 	$permalinks     = [];
+	$update         = [];
 	$about          = [];
 	if ( isset( $tabs[ $settings_key ] ) ) {
 		$general[ $settings_key ] = $tabs[ $settings_key ];
@@ -37,11 +43,15 @@ function pw_order_admin_tabs( $tabs ) {
 		$permalinks[ $permalinks_key ] = $tabs[ $permalinks_key ];
 		unset( $tabs[ $permalinks_key ] );
 	}
+	if ( isset( $tabs[ $update_key ] ) ) {
+		$update[ $update_key ] = $tabs[ $update_key ];
+		unset( $tabs[ $update_key ] );
+	}
 	if ( isset( $tabs[ $about_key ] ) ) {
 		$about[ $about_key ] = $tabs[ $about_key ];
 		unset( $tabs[ $about_key ] );
 	}
-	return array_merge( $general, $permalinks, $tabs, $about );
+	return array_merge( $general, $permalinks, $tabs, $update, $about );
 }
 
 add_filter('plugin_action_links_' . plugin_basename(PW_PLUGIN_FILE), function ($links) {
@@ -285,9 +295,6 @@ function pw_handle_settings_save() {
 	$settings                     = $existing;
 	$settings['pw_property_mode'] = $mode;
 	unset( $settings['pw_default_template'] );
-	if ( array_key_exists( 'pw_github_releases_url', $_POST ) ) {
-		$settings['pw_github_releases_url'] = pw_sanitize_github_releases_url( wp_unslash( $_POST['pw_github_releases_url'] ?? '' ) );
-	}
 	$settings['pw_default_property_id'] = $mode === 'single' ? (int) ( $_POST['pw_default_property_id'] ?? 0 ) : 0;
 
 	if ( $mode === 'single' && $settings['pw_default_property_id'] > 0 ) {
@@ -298,61 +305,18 @@ function pw_handle_settings_save() {
 		}
 	}
 
-	$settings['pw_property_plural_base'] = sanitize_title( wp_unslash( $_POST['pw_property_plural_base'] ?? $existing['pw_property_plural_base'] ) );
-	if ( $settings['pw_property_plural_base'] === '' ) {
-		$settings['pw_property_plural_base'] = 'hotels';
-	}
-	$settings['pw_property_archive'] = isset( $_POST['pw_property_archive'] ) ? '1' : '0';
-
-	$new_bases = pw_default_section_bases();
-	$post_bases = isset( $_POST['pw_section_bases'] ) && is_array( $_POST['pw_section_bases'] ) ? wp_unslash( $_POST['pw_section_bases'] ) : [];
-	foreach ( $new_bases as $cpt => $def ) {
-		if ( ! isset( $post_bases[ $cpt ] ) || ! is_array( $post_bases[ $cpt ] ) ) {
-			continue;
-		}
-		$p = sanitize_title( (string) ( $post_bases[ $cpt ]['plural'] ?? '' ) );
-		$s = sanitize_title( (string) ( $post_bases[ $cpt ]['singular'] ?? '' ) );
-		if ( $p === '' || $s === '' ) {
-			set_transient( 'pw_settings_section_base_error', __( 'Plural and singular bases cannot be empty.', 'portico-webworks' ), 120 );
-			// Admin redirect — pw_redirect_with_qs() not required.
-			wp_safe_redirect( add_query_arg( 'pw_settings_error', '1', wp_get_referer() ?: pw_admin_settings_url() ) );
-			exit;
-		}
-		if ( $p === $s ) {
-			set_transient( 'pw_settings_section_base_error', __( 'Plural and singular bases must differ for each section.', 'portico-webworks' ), 120 );
-			// Admin redirect — pw_redirect_with_qs() not required.
-			wp_safe_redirect( add_query_arg( 'pw_settings_error', '1', wp_get_referer() ?: pw_admin_settings_url() ) );
-			exit;
-		}
-		$new_bases[ $cpt ] = [ 'plural' => $p, 'singular' => $s ];
-	}
-	$settings['pw_section_bases'] = $new_bases;
-
 	if ( ! pw_validate_new_settings_reserved_conflicts( $settings ) ) {
 		// Admin redirect — pw_redirect_with_qs() not required.
 		wp_safe_redirect( add_query_arg( 'pw_settings_error', '1', wp_get_referer() ?: pw_admin_settings_url() ) );
 		exit;
 	}
 
-	$need_flush = (
-		$mode !== $existing['pw_property_mode'] ||
-		(string) ( $existing['pw_property_base'] ?? '' ) !== (string) ( $settings['pw_property_base'] ?? '' ) ||
-		(string) $existing['pw_property_plural_base'] !== (string) $settings['pw_property_plural_base'] ||
-		(string) $existing['pw_property_archive'] !== (string) $settings['pw_property_archive'] ||
-		wp_json_encode( $existing['pw_section_bases'] ) !== wp_json_encode( $settings['pw_section_bases'] )
-	);
+	$need_flush = ( $mode !== $existing['pw_property_mode'] );
 
 	update_option( 'pw_settings', $settings );
 
-	if ( pw_installer_section_plural_bases_changed( $existing, $settings ) || $mode !== $existing['pw_property_mode'] ) {
+	if ( $mode !== $existing['pw_property_mode'] ) {
 		pw_run_page_installer_all_scopes();
-	}
-
-	$old_gh = isset( $existing['pw_github_releases_url'] ) ? (string) $existing['pw_github_releases_url'] : '';
-	$new_gh = isset( $settings['pw_github_releases_url'] ) ? (string) $settings['pw_github_releases_url'] : '';
-	if ( $old_gh !== $new_gh ) {
-		delete_transient( 'pw_gh_rel_info_' . md5( $old_gh ) );
-		delete_transient( 'pw_gh_rel_info_' . md5( $new_gh ) );
 	}
 
 	if ( $need_flush ) {
@@ -381,6 +345,63 @@ add_action(
 	}
 );
 add_action('admin_post_pw_save_settings', 'pw_handle_settings_save');
+
+/**
+ * Page structure table + installer (Permalinks tab); not inside another form.
+ */
+function pw_render_page_structure_admin_panel() {
+	echo '<div class="pw-subsection-title" style="margin-top:1.25em;">' . esc_html__( 'Page structure', 'portico-webworks' ) . '</div>';
+	echo '<p class="description">' . esc_html__( 'Installer-managed pages for section listings (and the property archive in multi-property mode). Starter layouts are inserted only when a page is first created.', 'portico-webworks' ) . '</p>';
+	echo '<details class="pw-page-structure"><summary style="cursor:pointer;font-weight:600;margin-top:0.5em;">' . esc_html__( 'Required pages and status', 'portico-webworks' ) . '</summary>';
+	echo '<table class="widefat striped pw-page-structure-table" style="margin-top:0.75em;"><thead><tr>';
+	echo '<th>' . esc_html__( 'Page', 'portico-webworks' ) . '</th>';
+	echo '<th>' . esc_html__( 'Slug', 'portico-webworks' ) . '</th>';
+	echo '<th>' . esc_html__( 'Scope', 'portico-webworks' ) . '</th>';
+	echo '<th>' . esc_html__( 'Status', 'portico-webworks' ) . '</th>';
+	echo '</tr></thead><tbody>';
+	$pages_list_url = admin_url( 'edit.php?post_type=page' );
+	foreach ( pw_get_page_structure_display_rows() as $pr ) {
+		$slug      = sanitize_title( $pr['slug'] ?? '' );
+		$pid_scope = (int) ( $pr['property_id'] ?? 0 );
+		$gen       = pw_find_generated_page( $slug, $pid_scope );
+		if ( $gen instanceof WP_Post ) {
+			$elink  = get_edit_post_link( $gen->ID, 'raw' );
+			$status = '<span style="color:#007017;">' . esc_html__( 'Exists', 'portico-webworks' ) . '</span>';
+			if ( is_string( $elink ) && $elink !== '' ) {
+				$status .= ' <a href="' . esc_url( $elink ) . '">' . esc_html__( 'Edit', 'portico-webworks' ) . '</a>';
+			}
+		} else {
+			// Admin display only — not used for front-end routing.
+			$by_path = get_page_by_path( $slug, OBJECT, 'page' );
+			if ( $by_path instanceof WP_Post && get_post_meta( $by_path->ID, '_pw_generated', true ) !== '1' ) {
+				$elink  = get_edit_post_link( $by_path->ID, 'raw' );
+				$status = '<span style="color:#b32d2e;">' . esc_html__( 'Conflict', 'portico-webworks' ) . '</span>';
+				if ( is_string( $elink ) && $elink !== '' ) {
+					$status .= ' <a href="' . esc_url( $elink ) . '">' . esc_html__( 'View page', 'portico-webworks' ) . '</a>';
+				}
+			} else {
+				$status = '<span style="color:#996800;">' . esc_html__( 'Missing', 'portico-webworks' ) . '</span>';
+			}
+		}
+		$title = isset( $pr['title'] ) ? (string) $pr['title'] : $slug;
+		$scope = isset( $pr['property_label'] ) ? (string) $pr['property_label'] : '';
+		echo '<tr>';
+		echo '<td>' . esc_html( $title ) . '</td>';
+		echo '<td><code>' . esc_html( $slug ) . '</code></td>';
+		echo '<td>' . esc_html( $scope ) . '</td>';
+		echo '<td>' . wp_kses_post( $status ) . '</td>';
+		echo '</tr>';
+	}
+	echo '</tbody></table>';
+	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin-top:1em;">';
+	echo '<input type="hidden" name="action" value="pw_run_page_installer" />';
+	wp_nonce_field( 'pw_run_page_installer' );
+	submit_button( esc_attr__( 'Install Missing Pages', 'portico-webworks' ), 'secondary', 'pw-run-page-installer', false );
+	echo '</form>';
+	echo '<p class="description">' . esc_html__( 'Creates missing pages and aligns slugs with current URL settings. Existing page content is not overwritten.', 'portico-webworks' ) . ' ';
+	echo '<a href="' . esc_url( $pages_list_url ) . '">' . esc_html__( 'All pages', 'portico-webworks' ) . '</a></p>';
+	echo '</details>';
+}
 
 function pw_render_root_page() {
 	if (!current_user_can('manage_options')) {
@@ -477,8 +498,14 @@ function pw_render_root_page() {
 		$blog_public = is_numeric($blog_public) ? (int) $blog_public : 1;
 		$indexing_on = $blog_public === 1;
 		echo '<div class="pw-card">';
-		echo '<div class="pw-card-head"><div class="pw-card-title">Settings</div></div>';
+		echo '<div class="pw-card-head"><div class="pw-card-title">General</div></div>';
 		echo '<div class="pw-card-body">';
+		if ( isset( $_GET['settings-updated'] ) && sanitize_text_field( wp_unslash( (string) $_GET['settings-updated'] ) ) === 'true' ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved.', 'portico-webworks' ) . '</p></div>';
+		}
+		if ( isset( $_GET['pw_settings_error'] ) ) {
+			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Could not save settings.', 'portico-webworks' ) . '</p></div>';
+		}
 		echo '<table class="form-table" role="presentation"><tbody>';
 		echo '<tr><th scope="row">Search Engine Indexing</th><td>';
 		echo '<strong>' . esc_html($indexing_on ? 'ON' : 'OFF') . '</strong>';
@@ -513,170 +540,21 @@ function pw_render_root_page() {
 		echo '<p class="description">' . esc_html('Used as the site-wide property context in Single Property mode (required).') . '</p>';
 		echo '</td></tr>';
 
-		$pp_base = (string) pw_get_setting( 'pw_property_plural_base', 'hotels' );
-		$arch_on = (string) pw_get_setting( 'pw_property_archive', '1' ) === '1';
-		echo '<tr><th scope="row"><label for="pw_property_plural_base">' . esc_html__( 'Property listing slug (plural)', 'portico-webworks' ) . '</label></th><td>';
-		echo '<input type="text" class="regular-text" name="pw_property_plural_base" id="pw_property_plural_base" value="' . esc_attr( $pp_base ) . '" />';
-		echo '<p class="description">' . esc_html__( 'Multi-property mode: URL segment for the property archive (e.g. hotels).', 'portico-webworks' ) . '</p>';
-		echo '</td></tr>';
-		echo '<tr><th scope="row">' . esc_html__( 'Property archive', 'portico-webworks' ) . '</th><td>';
-		echo '<label><input type="checkbox" name="pw_property_archive" value="1"' . checked( $arch_on, true, false ) . ' /> ' . esc_html__( 'Enable property listing page', 'portico-webworks' ) . '</label>';
-		echo '</td></tr>';
-
-		echo '<tr><th colspan="2"><h2 class="title" style="margin:0;">' . esc_html__( 'Section URL bases', 'portico-webworks' ) . '</h2></th></tr>';
-		$sb = pw_get_section_bases();
-		foreach ( pw_url_section_cpts() as $cpt ) {
-			$pto = get_post_type_object( $cpt );
-			$label = $pto && isset( $pto->labels->name ) ? $pto->labels->name : $cpt;
-			$p = $sb[ $cpt ]['plural'] ?? '';
-			$s = $sb[ $cpt ]['singular'] ?? '';
-			echo '<tr><th scope="row">' . esc_html( $label ) . '</th><td>';
-			echo '<label style="display:inline-block;margin-right:1em;">' . esc_html__( 'Plural', 'portico-webworks' ) . ' ';
-			echo '<input type="text" class="regular-text" name="pw_section_bases[' . esc_attr( $cpt ) . '][plural]" value="' . esc_attr( $p ) . '" /></label> ';
-			echo '<label>' . esc_html__( 'Singular', 'portico-webworks' ) . ' ';
-			echo '<input type="text" class="regular-text" name="pw_section_bases[' . esc_attr( $cpt ) . '][singular]" value="' . esc_attr( $s ) . '" /></label>';
-			echo '</td></tr>';
-		}
-
-		echo '<tr><th colspan="2"><h2 class="title" style="margin:0;">' . esc_html__( 'Page structure', 'portico-webworks' ) . '</h2>';
-		echo '<p class="description" style="margin:0.5em 0 0;">' . esc_html__( 'Installer-managed pages for section listings (and the property archive in multi-property mode). Starter layouts are inserted only when a page is first created.', 'portico-webworks' ) . '</p></th></tr>';
-		echo '<tr><td colspan="2">';
-		echo '<details class="pw-page-structure"><summary style="cursor:pointer;font-weight:600;">' . esc_html__( 'Required pages and status', 'portico-webworks' ) . '</summary>';
-		echo '<table class="widefat striped" style="margin-top:0.75em;"><thead><tr>';
-		echo '<th>' . esc_html__( 'Page', 'portico-webworks' ) . '</th>';
-		echo '<th>' . esc_html__( 'Slug', 'portico-webworks' ) . '</th>';
-		echo '<th>' . esc_html__( 'Scope', 'portico-webworks' ) . '</th>';
-		echo '<th>' . esc_html__( 'Status', 'portico-webworks' ) . '</th>';
-		echo '</tr></thead><tbody>';
-		$pages_list_url = admin_url( 'edit.php?post_type=page' );
-		foreach ( pw_get_page_structure_display_rows() as $pr ) {
-			$slug      = sanitize_title( $pr['slug'] ?? '' );
-			$pid_scope = (int) ( $pr['property_id'] ?? 0 );
-			$gen       = pw_find_generated_page( $slug, $pid_scope );
-			if ( $gen instanceof WP_Post ) {
-				$elink  = get_edit_post_link( $gen->ID, 'raw' );
-				$status = '<span style="color:#007017;">' . esc_html__( 'Exists', 'portico-webworks' ) . '</span>';
-				if ( is_string( $elink ) && $elink !== '' ) {
-					$status .= ' <a href="' . esc_url( $elink ) . '">' . esc_html__( 'Edit', 'portico-webworks' ) . '</a>';
-				}
-			} else {
-				// Admin display only — not used for front-end routing.
-				$by_path = get_page_by_path( $slug, OBJECT, 'page' );
-				if ( $by_path instanceof WP_Post && get_post_meta( $by_path->ID, '_pw_generated', true ) !== '1' ) {
-					$elink  = get_edit_post_link( $by_path->ID, 'raw' );
-					$status = '<span style="color:#b32d2e;">' . esc_html__( 'Conflict', 'portico-webworks' ) . '</span>';
-					if ( is_string( $elink ) && $elink !== '' ) {
-						$status .= ' <a href="' . esc_url( $elink ) . '">' . esc_html__( 'View page', 'portico-webworks' ) . '</a>';
-					}
-				} else {
-					$status = '<span style="color:#996800;">' . esc_html__( 'Missing', 'portico-webworks' ) . '</span>';
-				}
-			}
-			$title = isset( $pr['title'] ) ? (string) $pr['title'] : $slug;
-			$scope = isset( $pr['property_label'] ) ? (string) $pr['property_label'] : '';
-			echo '<tr>';
-			echo '<td>' . esc_html( $title ) . '</td>';
-			echo '<td><code>' . esc_html( $slug ) . '</code></td>';
-			echo '<td>' . esc_html( $scope ) . '</td>';
-			echo '<td>' . wp_kses_post( $status ) . '</td>';
-			echo '</tr>';
-		}
-		echo '</tbody></table>';
-		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin-top:1em;">';
-		echo '<input type="hidden" name="action" value="pw_run_page_installer" />';
-		wp_nonce_field( 'pw_run_page_installer' );
-		submit_button( esc_attr__( 'Install Missing Pages', 'portico-webworks' ), 'secondary', 'pw-run-page-installer', false );
-		echo '</form>';
-		echo '<p class="description">' . esc_html__( 'Creates missing pages and aligns slugs with current URL settings. Existing page content is not overwritten.', 'portico-webworks' ) . ' ';
-		echo '<a href="' . esc_url( $pages_list_url ) . '">' . esc_html__( 'All pages', 'portico-webworks' ) . '</a></p>';
-		echo '</details>';
-		echo '</td></tr>';
-
-		echo '<tr><th scope="row">' . esc_html__( 'URL prefix', 'portico-webworks' ) . '</th><td>';
-		echo '<p class="description">' . esc_html__( 'Optional multi-property path prefix (leave empty for property slug at site root).', 'portico-webworks' ) . ' ';
-		echo '<a href="' . esc_url( pw_admin_permalinks_url() ) . '">' . esc_html__( 'Configure under Permalinks', 'portico-webworks' ) . '</a></p>';
-		echo '</td></tr>';
-
 		echo '</tbody></table>';
 
 		echo '<div id="pw-mode-switch-warning-multi" class="notice notice-warning inline" style="display:none;margin:1em 0;"><p>' . esc_html__( 'Switching from multi-property to single-property mode will break all existing property-prefixed URLs. There is no automatic redirect mapping. Ensure this is intentional before saving.', 'portico-webworks' ) . '</p></div>';
 		echo '<div id="pw-mode-switch-warning-single" class="notice notice-warning inline" style="display:none;margin:1em 0;"><p>' . esc_html__( 'Switching to multi-property mode will break all existing URLs that do not include a property slug prefix. There is no automatic redirect mapping. Ensure this is intentional before saving.', 'portico-webworks' ) . '</p></div>';
 
+		echo '<p class="description" style="margin-top:1em;">' . esc_html__( 'URL segments, section bases, and listing pages are configured under the Permalinks tab.', 'portico-webworks' ) . ' ';
+		echo '<a href="' . esc_url( pw_admin_permalinks_url() ) . '">' . esc_html__( 'Open Permalinks', 'portico-webworks' ) . '</a>';
 		if ( current_user_can( 'update_plugins' ) ) {
-			echo '<hr class="pw-settings-divider" />';
-			echo '<h2 class="title" style="margin-top:1em;">' . esc_html__( 'Update from GitHub', 'portico-webworks' ) . '</h2>';
-			echo '<table class="form-table" role="presentation"><tbody>';
-			echo '<tr><th scope="row"><label for="pw_github_releases_url">' . esc_html( 'GitHub releases URL' ) . '</label></th><td>';
-			echo '<input type="text" class="large-text" name="pw_github_releases_url" id="pw_github_releases_url" value="' . esc_attr( (string) pw_get_setting( 'pw_github_releases_url' ) ) . '" placeholder="' . esc_attr( 'https://github.com/owner/repo/releases' ) . '" />';
-			echo '<p class="description">' . esc_html( 'Repository releases page, e.g. https://github.com/owner/repo/releases — latest release must include portico_webworks_plugin.zip.' ) . '</p>';
-			echo '</td></tr>';
-			echo '</tbody></table>';
+			echo ' ' . esc_html__( 'Plugin updates from GitHub are under the Update tab.', 'portico-webworks' ) . ' ';
+			echo '<a href="' . esc_url( pw_admin_update_url() ) . '">' . esc_html__( 'Open Update', 'portico-webworks' ) . '</a>';
 		}
+		echo '</p>';
 
-		submit_button(esc_attr__('Save Settings', 'portico-webworks'), 'primary', 'pw-save-settings');
+		submit_button( esc_attr__( 'Save General', 'portico-webworks' ), 'primary', 'pw-save-settings' );
 		echo '</form>';
-
-		if ( current_user_can( 'update_plugins' ) ) {
-			$gh_url = pw_get_setting( 'pw_github_releases_url', '' );
-			if ( is_string( $gh_url ) && $gh_url !== '' ) {
-				$gh_info = pw_github_get_settings_release_info( $gh_url );
-				if ( empty( $gh_info['ok'] ) ) {
-					echo '<p class="description">' . esc_html( isset( $gh_info['message'] ) ? (string) $gh_info['message'] : __( 'Could not load release info from GitHub.', 'portico-webworks' ) ) . '</p>';
-				} else {
-					$inst = isset( $gh_info['installed'] ) ? trim( (string) $gh_info['installed'] ) : '';
-					$tag  = isset( $gh_info['tag_name'] ) ? trim( (string) $gh_info['tag_name'] ) : '';
-					echo '<p style="margin-top:0.75em;">';
-					echo '<strong>' . esc_html__( 'Installed version', 'portico-webworks' ) . '</strong>: ';
-					echo $inst !== '' ? esc_html( 'v' . ltrim( $inst, 'v' ) ) : esc_html__( '(unknown)', 'portico-webworks' );
-					echo '<br /><strong>' . esc_html__( 'Latest release on GitHub', 'portico-webworks' ) . '</strong>: ';
-					if ( $tag !== '' ) {
-						echo esc_html( $tag );
-					} else {
-						echo esc_html__( '(unknown)', 'portico-webworks' );
-					}
-					if ( ! empty( $gh_info['html_url'] ) && is_string( $gh_info['html_url'] ) ) {
-						echo ' — <a href="' . esc_url( $gh_info['html_url'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'View on GitHub', 'portico-webworks' ) . '</a>';
-					}
-					echo '</p>';
-					if ( ! empty( $gh_info['is_current'] ) ) {
-						echo '<p class="description">' . esc_html__( 'You are running the latest release that this plugin can install from GitHub.', 'portico-webworks' ) . '</p>';
-					} else {
-						echo '<p class="description">' . esc_html__( 'A newer release is available. Use the button below to update.', 'portico-webworks' ) . '</p>';
-					}
-					if ( empty( $gh_info['has_package'] ) ) {
-						echo '<p class="description" style="color:#b32d2e;">' . esc_html(
-							sprintf(
-								/* translators: %s: zip filename */
-								__( 'This release has no %s asset, so one-click update will not work until the file is attached to the release.', 'portico-webworks' ),
-								PW_GITHUB_PLUGIN_RELEASE_ZIP
-							)
-						) . '</p>';
-					}
-					$notes = isset( $gh_info['body'] ) ? trim( (string) $gh_info['body'] ) : '';
-					if ( $notes !== '' ) {
-						$rel_title = isset( $gh_info['name'] ) && trim( (string) $gh_info['name'] ) !== '' ? trim( (string) $gh_info['name'] ) : __( 'Release notes', 'portico-webworks' );
-						echo '<p class="description" style="margin-bottom:0.35em;"><strong>' . esc_html( $rel_title ) . '</strong></p>';
-						$notes_html = isset( $gh_info['body_html'] ) && is_string( $gh_info['body_html'] ) ? $gh_info['body_html'] : '';
-						if ( $notes_html === '' ) {
-							$notes_html = pw_github_release_body_to_html( $notes, $gh_url );
-						}
-						echo '<div class="pw-github-release-notes">' . $notes_html . '</div>';
-					}
-				}
-			} else {
-				echo '<p class="description">' . esc_html__( 'Enter a GitHub releases URL and save settings to enable one-click updates.', 'portico-webworks' ) . '</p>';
-			}
-			$upd_url = admin_url( 'admin-post.php' );
-			echo '<form method="post" action="' . esc_url( $upd_url ) . '" style="margin-top:0.75em;">';
-			echo '<input type="hidden" name="action" value="pw_github_plugin_update" />';
-			wp_nonce_field( 'pw_github_plugin_update' );
-			$btn_attrs = array();
-			if ( ! is_string( $gh_url ) || $gh_url === '' ) {
-				$btn_attrs['disabled'] = 'disabled';
-			}
-			submit_button( esc_attr__( 'Update from GitHub', 'portico-webworks' ), 'secondary', 'pw-github-update', false, $btn_attrs );
-			echo '</form>';
-		}
 
 		echo '</div>';
 		echo '</div>';
