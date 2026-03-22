@@ -67,6 +67,9 @@ function pw_get_required_pages( int $property_id = 0 ): array {
 
 	if ( $mode === 'single' ) {
 		foreach ( pw_get_section_bases() as $cpt => $_pair ) {
+			if ( $cpt === 'pw_property' ) {
+				continue;
+			}
 			$slug = pw_get_section_base( $cpt, 'plural' );
 			if ( $slug === '' ) {
 				continue;
@@ -84,7 +87,7 @@ function pw_get_required_pages( int $property_id = 0 ): array {
 
 	if ( $property_id === 0 ) {
 		if ( (string) pw_get_setting( 'pw_property_archive', '1' ) === '1' ) {
-			$slug = (string) pw_get_setting( 'pw_property_plural_base', 'hotels' );
+			$slug = pw_get_section_base( 'pw_property', 'plural' ) ?: 'hotels';
 			$out[] = [
 				'title'       => ucwords( str_replace( '-', ' ', $slug ) ),
 				'slug'        => $slug,
@@ -97,6 +100,9 @@ function pw_get_required_pages( int $property_id = 0 ): array {
 	}
 
 	foreach ( pw_get_section_bases() as $cpt => $_pair ) {
+		if ( $cpt === 'pw_property' ) {
+			continue;
+		}
 		$slug = pw_get_section_base( $cpt, 'plural' );
 		if ( $slug === '' ) {
 			continue;

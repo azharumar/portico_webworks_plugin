@@ -423,7 +423,7 @@ function pw_render_root_page() {
 
 	$footer_link = 'https://porticowebworks.com/?utm_source=wp-admin&utm_medium=plugin&utm_campaign=portico_webworks&utm_content=footer';
 
-	echo '<div class="wrap pw-admin">';
+	echo '<div class="wrap pw-admin" data-pw-property-mode="' . esc_attr( pw_get_setting( 'pw_property_mode', 'single' ) ) . '">';
 	echo '<div class="pw-header">';
 	echo '<div class="pw-brand">';
 	echo '<img class="pw-logo" src="' . esc_url(pw_logo_url()) . '" alt="" />';

@@ -26,10 +26,6 @@ function pw_build_reserved_slugs_from_settings( array $settings ) {
 			$slugs[] = $s;
 		}
 	}
-	$pp = sanitize_title( (string) ( $settings['pw_property_plural_base'] ?? 'hotels' ) );
-	if ( $pp !== '' ) {
-		$slugs[] = $pp;
-	}
 	$base = isset( $settings['pw_property_base'] ) ? sanitize_title( (string) $settings['pw_property_base'] ) : '';
 	if ( $base !== '' ) {
 		$slugs[] = $base;

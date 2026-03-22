@@ -29,7 +29,7 @@ Both are configurable independently.
 
 | CPT | Default plural base | Default singular base | Listing page optional? |
 |---|---|---|---|
-| `pw_property` | `hotels` | — | Yes |
+| `pw_property` | `hotels` | `hotel` | Yes |
 | `pw_room_type` | `rooms` | `room` | Yes |
 | `pw_restaurant` | `restaurants` | `restaurant` | Yes |
 | `pw_spa` | `spas` | `spa` | Yes |
@@ -47,6 +47,8 @@ Both are configurable independently.
 >
 > **`pw_property` listing page is also optional.** A hotel group may prefer not to expose
 > a property listing page and instead link each property directly from navigation.
+
+> **Note on property base prefix:** In multi-property mode, a base prefix before the property slug is optional and disabled by default. When disabled: `/leela-residency`. When enabled (plural base used as prefix): `/hotels/leela-residency`. Controlled by the "Disable base prefix in multi-property mode" checkbox in Permalinks settings. Bare singular `/hotel` redirects 301 to `/hotels` following the same pattern as all other section CPTs (when the property archive is enabled; otherwise to the property root or home per the rules below).
 
 ---
 
@@ -188,6 +190,7 @@ Bare singular base redirects to the plural listing page.
 | `/event` | `/events` | 301 |
 | `/offer` | `/offers` | 301 |
 | `/place` | `/places` | 301 |
+| `/hotel` | `/hotels` | 301 |
 
 ### When listing page is disabled
 
@@ -274,10 +277,9 @@ WordPress must prevent any post, page, or CPT record from using these slugs.
 ### What is reserved
 
 At any given time, the full reserved slug list is:
-- All plural section bases (`rooms`, `restaurants`, `spas`, `meetings`, `experiences`, `events`, `offers`, `places`)
-- All singular section bases (`room`, `restaurant`, `spa`, `meeting`, `experience`, `event`, `offer`, `place`)
-- The property plural base if configured (`hotels`)
-- The property base prefix if configured (e.g. `stays`)
+- All plural section bases (`hotels`, `rooms`, `restaurants`, `spas`, `meetings`, `experiences`, `events`, `offers`, `places`)
+- All singular section bases (`hotel`, `room`, `restaurant`, `spa`, `meeting`, `experience`, `event`, `offer`, `place`)
+- When multi-property mode uses the plural base as a URL prefix, that segment matches the configured property plural base (same slug as the property listing URL)
 - WordPress core reserved slugs (unchanged)
 
 ### Enforcement — post slug validation
@@ -505,6 +507,7 @@ PASS  /offers                     → section listing page (pw_offer archive)
 PASS  /offer/advance-purchase     → outlet singular (pw_offer, slug: advance-purchase)
 PASS  /places                     → section listing page (pw_places archive)
 PASS  /place/cubbon-park          → outlet singular (pw_places, slug: cubbon-park)
+PASS  /hotel                      → 301 to /hotels  (listing enabled; pw_property archive)
 PASS  /fact-sheet                 → static page wildcard (Page slug: fact-sheet)
 PASS  /gallery                    → static page wildcard (Page slug: gallery)
 PASS  /nonexistent-page           → 404
@@ -714,11 +717,14 @@ No custom PHP per listing page.
 | Setting | Type | Default | Notes |
 |---|---|---|---|
 | Property mode | radio | `single` | `single` / `multi` |
-| Property base | text | *(empty)* | Optional prefix for multi mode. Empty = property slug at root. |
-| Property plural base | text | `hotels` | Listing page slug for `pw_property` archive |
-| Enable property archive | checkbox | `true` | Enables or disables the property listing page globally |
-| Section plural bases | text (per CPT) | see table | Listing page slug per CPT. Shared across all properties. |
-| Section singular bases | text (per CPT) | see table | Outlet URL prefix per CPT. Shared across all properties. |
+
+### Global — Portico Webworks → Permalinks
+
+| Setting | Type | Default | Notes |
+|---|---|---|---|
+| Enable property archive | checkbox | on | Property listing page (`/hotels` by default) |
+| Section URL bases | text (per CPT) | see Section Bases table | Includes `pw_property` (plural / singular) first |
+| Disable base prefix in multi-property mode | checkbox | checked | When checked, property slug at site root; when unchecked, plural base prefixes property URLs |
 
 ### Per-Property — `pw_property` Edit Screen
 

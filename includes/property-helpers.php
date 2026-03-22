@@ -219,6 +219,9 @@ function pw_get_section_listing_url( $property_id, $cpt ) {
 	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'single' ) {
 		return untrailingslashit( home_url( '/' . $pl ) );
 	}
+	if ( $cpt === 'pw_property' ) {
+		return untrailingslashit( home_url( '/' . $pl ) );
+	}
 	$root = pw_get_property_url( (int) $property_id );
 	if ( $root === '' ) {
 		return '';

@@ -25,17 +25,12 @@ function pw_handle_save_permalinks() {
 	}
 
 	$existing = pw_get_merged_pw_settings();
-	$fixed    = pw_sanitize_property_base( wp_unslash( $_POST['pw_permalink_base_fixed'] ?? '' ) );
 
-	$settings                            = $existing;
-	$settings['pw_permalink_base_fixed'] = $fixed;
-	$settings['pw_property_base']        = $fixed;
-
-	$settings['pw_property_plural_base'] = sanitize_title( wp_unslash( $_POST['pw_property_plural_base'] ?? $existing['pw_property_plural_base'] ) );
-	if ( $settings['pw_property_plural_base'] === '' ) {
-		$settings['pw_property_plural_base'] = 'hotels';
-	}
-	$settings['pw_property_archive'] = isset( $_POST['pw_property_archive'] ) ? '1' : '0';
+	$settings                              = $existing;
+	$settings['pw_permalink_base_fixed']   = '';
+	$settings['pw_property_base']          = '';
+	$settings['pw_disable_property_base'] = isset( $_POST['pw_disable_property_base'] ) && (string) wp_unslash( $_POST['pw_disable_property_base'] ) === '1' ? '1' : '0';
+	$settings['pw_property_archive']      = isset( $_POST['pw_property_archive'] ) ? '1' : '0';
 
 	$new_bases  = pw_default_section_bases();
 	$post_bases = isset( $_POST['pw_section_bases'] ) && is_array( $_POST['pw_section_bases'] ) ? wp_unslash( $_POST['pw_section_bases'] ) : [];
@@ -47,13 +42,11 @@ function pw_handle_save_permalinks() {
 		$s = sanitize_title( (string) ( $post_bases[ $cpt ]['singular'] ?? '' ) );
 		if ( $p === '' || $s === '' ) {
 			set_transient( 'pw_settings_section_base_error', __( 'Plural and singular bases cannot be empty.', 'portico-webworks' ), 120 );
-			// Admin redirect — pw_redirect_with_qs() not required.
 			wp_safe_redirect( wp_get_referer() ?: pw_admin_permalinks_url() );
 			exit;
 		}
 		if ( $p === $s ) {
 			set_transient( 'pw_settings_section_base_error', __( 'Plural and singular bases must differ for each section.', 'portico-webworks' ), 120 );
-			// Admin redirect — pw_redirect_with_qs() not required.
 			wp_safe_redirect( wp_get_referer() ?: pw_admin_permalinks_url() );
 			exit;
 		}
@@ -61,14 +54,17 @@ function pw_handle_save_permalinks() {
 	}
 	$settings['pw_section_bases'] = $new_bases;
 
+	if ( isset( $settings['pw_section_bases']['pw_property']['plural'] ) ) {
+		$settings['pw_property_plural_base'] = (string) $settings['pw_section_bases']['pw_property']['plural'];
+	}
+
 	if ( ! pw_validate_new_settings_reserved_conflicts( $settings ) ) {
 		wp_safe_redirect( add_query_arg( 'pw_permalinks_error', '1', pw_admin_permalinks_url() ) );
 		exit;
 	}
 
 	$need_flush = (
-		(string) ( $existing['pw_property_base'] ?? '' ) !== (string) $fixed ||
-		(string) $existing['pw_property_plural_base'] !== (string) $settings['pw_property_plural_base'] ||
+		(string) ( $existing['pw_disable_property_base'] ?? '1' ) !== (string) $settings['pw_disable_property_base'] ||
 		(string) $existing['pw_property_archive'] !== (string) $settings['pw_property_archive'] ||
 		wp_json_encode( $existing['pw_section_bases'] ) !== wp_json_encode( $settings['pw_section_bases'] )
 	);
@@ -107,11 +103,10 @@ function pw_render_permalinks_tab() {
 		echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Could not save: reserved slug conflicts with existing content.', 'portico-webworks' ) . '</p></div>';
 	}
 
-	$fixed             = pw_get_fixed_permalink_base();
 	$permalink_reading = admin_url( 'options-permalink.php' );
-	$pp_base           = (string) pw_get_setting( 'pw_property_plural_base', 'hotels' );
 	$arch_on           = (string) pw_get_setting( 'pw_property_archive', '1' ) === '1';
 	$sb                = pw_get_section_bases();
+	$disable_prefix_on = (string) pw_get_setting( 'pw_disable_property_base', '1' ) === '1';
 
 	echo '<div class="pw-card">';
 	echo '<div class="pw-card-head"><div class="pw-card-title">' . esc_html__( 'Permalinks', 'portico-webworks' ) . '</div></div>';
@@ -125,15 +120,6 @@ function pw_render_permalinks_tab() {
 	wp_nonce_field( 'pw_save_permalinks', 'pw_permalinks_nonce' );
 
 	echo '<table class="form-table" role="presentation"><tbody>';
-	echo '<tr><th scope="row"><label for="pw_permalink_base_fixed">' . esc_html__( 'URL prefix', 'portico-webworks' ) . '</label></th><td>';
-	echo '<input type="text" class="regular-text" id="pw_permalink_base_fixed" name="pw_permalink_base_fixed" value="' . esc_attr( $fixed ) . '" placeholder="' . esc_attr__( 'empty or e.g. hotels', 'portico-webworks' ) . '" />';
-	echo '<p class="description">' . esc_html__( 'Optional path prefix before property slugs in multi-property mode. Sanitized like a slug. Empty means /your-property-slug/ with no leading segment.', 'portico-webworks' ) . '</p>';
-	echo '</td></tr>';
-
-	echo '<tr><th scope="row"><label for="pw_property_plural_base">' . esc_html__( 'Property listing slug (plural)', 'portico-webworks' ) . '</label></th><td>';
-	echo '<input type="text" class="regular-text" name="pw_property_plural_base" id="pw_property_plural_base" value="' . esc_attr( $pp_base ) . '" />';
-	echo '<p class="description">' . esc_html__( 'Multi-property mode: URL segment for the property archive (e.g. hotels).', 'portico-webworks' ) . '</p>';
-	echo '</td></tr>';
 	echo '<tr><th scope="row">' . esc_html__( 'Property archive', 'portico-webworks' ) . '</th><td>';
 	echo '<label><input type="checkbox" name="pw_property_archive" value="1"' . checked( $arch_on, true, false ) . ' /> ' . esc_html__( 'Enable property listing page', 'portico-webworks' ) . '</label>';
 	echo '</td></tr>';
@@ -146,9 +132,11 @@ function pw_render_permalinks_tab() {
 	echo '<th scope="col">' . esc_html__( 'Singular', 'portico-webworks' ) . '</th>';
 	echo '<th scope="col">' . esc_html__( 'Plural', 'portico-webworks' ) . '</th>';
 	echo '</tr></thead><tbody>';
-	foreach ( pw_url_section_cpts() as $cpt ) {
+	foreach ( array_keys( pw_default_section_bases() ) as $cpt ) {
 		$pto   = get_post_type_object( $cpt );
-		$label = $pto && isset( $pto->labels->name ) ? $pto->labels->name : $cpt;
+		$label = $cpt === 'pw_property'
+			? __( 'Properties', 'portico-webworks' )
+			: ( $pto && isset( $pto->labels->name ) ? $pto->labels->name : $cpt );
 		$p     = $sb[ $cpt ]['plural'] ?? '';
 		$s     = $sb[ $cpt ]['singular'] ?? '';
 		echo '<tr>';
@@ -156,6 +144,13 @@ function pw_render_permalinks_tab() {
 		echo '<td><input type="text" class="regular-text" name="pw_section_bases[' . esc_attr( $cpt ) . '][singular]" value="' . esc_attr( $s ) . '" /></td>';
 		echo '<td><input type="text" class="regular-text" name="pw_section_bases[' . esc_attr( $cpt ) . '][plural]" value="' . esc_attr( $p ) . '" /></td>';
 		echo '</tr>';
+		if ( $cpt === 'pw_property' ) {
+			echo '<tr class="pw-permalinks-multi-only"><td colspan="3">';
+			echo '<label><input type="checkbox" name="pw_disable_property_base" value="1"' . checked( $disable_prefix_on, true, false ) . ' /> ';
+			echo esc_html__( 'Disable base prefix in multi-property mode', 'portico-webworks' ) . '</label>';
+			echo '<p class="description" style="margin:0.5em 0 0;">' . esc_html__( 'When checked (default), property URLs use no prefix: /leela-residency. When unchecked, the plural base acts as a prefix: /hotels/leela-residency. Only affects multi-property mode.', 'portico-webworks' ) . '</p>';
+			echo '</td></tr>';
+		}
 	}
 	echo '</tbody></table>';
 

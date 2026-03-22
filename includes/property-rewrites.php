@@ -54,14 +54,29 @@ function pw_redirect_with_qs( $url, $status = 301 ) {
  * Priority 4–6 bottom (register P4→P5→P6 so wildcard is last).
  */
 function pw_register_all_rewrite_rules() {
-	$bases = pw_get_section_bases();
-	$mode  = pw_get_setting( 'pw_property_mode', 'single' );
-	$base  = pw_get_fixed_permalink_base();
-	$with  = $base !== '';
-	$pp    = preg_quote( sanitize_title( (string) pw_get_setting( 'pw_property_plural_base', 'hotels' ) ), '#' );
+	$bases      = pw_get_section_bases();
+	$mode       = pw_get_setting( 'pw_property_mode', 'single' );
+	$prefix     = pw_multi_property_url_prefix();
+	$with       = $mode === 'multi' && $prefix !== '';
+	$pp_quoted  = preg_quote( sanitize_title( (string) pw_get_setting( 'pw_property_plural_base', 'hotels' ) ), '#' );
+	$prop_pair  = isset( $bases['pw_property'] ) ? $bases['pw_property'] : [ 'plural' => 'hotels', 'singular' => 'hotel' ];
+	$prop_sing_q = preg_quote( $prop_pair['singular'], '#' );
+
+	$child_bases = [];
+	foreach ( pw_url_section_cpts() as $cpt ) {
+		if ( isset( $bases[ $cpt ] ) ) {
+			$child_bases[ $cpt ] = $bases[ $cpt ];
+		}
+	}
+	$p3_bases = [];
+	foreach ( array_merge( [ 'pw_property' ], pw_url_section_cpts() ) as $cpt ) {
+		if ( isset( $bases[ $cpt ] ) ) {
+			$p3_bases[ $cpt ] = $bases[ $cpt ];
+		}
+	}
 
 	if ( $mode === 'single' ) {
-		foreach ( array_reverse( $bases, true ) as $cpt => $pair ) {
+		foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
 			$sing = preg_quote( $pair['singular'], '#' );
 			$pl   = preg_quote( $pair['plural'], '#' );
 			add_rewrite_rule(
@@ -70,7 +85,7 @@ function pw_register_all_rewrite_rules() {
 				'top'
 			);
 		}
-		foreach ( array_reverse( $bases, true ) as $cpt => $pair ) {
+		foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
 			$pl = preg_quote( $pair['plural'], '#' );
 			add_rewrite_rule(
 				"^{$pl}/?$",
@@ -78,7 +93,7 @@ function pw_register_all_rewrite_rules() {
 				'top'
 			);
 		}
-		foreach ( array_reverse( $bases, true ) as $cpt => $pair ) {
+		foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
 			$sing = preg_quote( $pair['singular'], '#' );
 			add_rewrite_rule(
 				"^{$sing}/?$",
@@ -86,53 +101,63 @@ function pw_register_all_rewrite_rules() {
 				'top'
 			);
 		}
+		add_rewrite_rule(
+			"^{$prop_sing_q}/?$",
+			'index.php?pw_section_cpt=pw_property&pw_bare_singular=1',
+			'top'
+		);
 		add_rewrite_rule( '^([^/]+)/?$', 'index.php?pw_static_page_slug=$matches[1]', 'bottom' );
 	} else {
-		$bx = preg_quote( $base, '#' );
+		$bx = preg_quote( $prefix, '#' );
 		if ( $with ) {
-			foreach ( array_reverse( $bases, true ) as $cpt => $pair ) {
+			foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
 				$sing = preg_quote( $pair['singular'], '#' );
 				add_rewrite_rule(
 					"^{$bx}/([^/]+)/{$sing}/([^/]+)/?$",
-					'index.php?pw_base_segment=' . $base . '&pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt . '&pw_outlet_slug=$matches[2]',
+					'index.php?pw_base_segment=' . $prefix . '&pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt . '&pw_outlet_slug=$matches[2]',
 					'top'
 				);
 			}
-			foreach ( array_reverse( $bases, true ) as $cpt => $pair ) {
+			foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
 				$pl = preg_quote( $pair['plural'], '#' );
 				add_rewrite_rule(
 					"^{$bx}/([^/]+)/{$pl}/?$",
-					'index.php?pw_base_segment=' . $base . '&pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt,
+					'index.php?pw_base_segment=' . $prefix . '&pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt,
 					'top'
 				);
 			}
-			foreach ( array_reverse( $bases, true ) as $cpt => $pair ) {
+			foreach ( array_reverse( $p3_bases, true ) as $cpt => $pair ) {
 				$sing = preg_quote( $pair['singular'], '#' );
 				add_rewrite_rule(
 					"^{$bx}/([^/]+)/{$sing}/?$",
-					'index.php?pw_base_segment=' . $base . '&pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt . '&pw_bare_singular=1',
+					'index.php?pw_base_segment=' . $prefix . '&pw_property_slug=$matches[1]&pw_section_cpt=' . $cpt . '&pw_bare_singular=1',
 					'top'
 				);
 			}
 			add_rewrite_rule(
+				"^{$prop_sing_q}/?$",
+				'index.php?pw_section_cpt=pw_property&pw_bare_singular=1',
+				'top'
+			);
+			add_rewrite_rule(
 				"^{$bx}/([^/]+)/?$",
-				'index.php?pw_base_segment=' . $base . '&pw_property_slug=$matches[1]',
+				'index.php?pw_base_segment=' . $prefix . '&pw_property_slug=$matches[1]',
 				'bottom'
 			);
 			if ( (string) pw_get_setting( 'pw_property_archive', '1' ) === '1' ) {
 				add_rewrite_rule(
 					"^{$bx}/?$",
-					'index.php?pw_base_segment=' . $base . '&pw_property_listing=1',
+					'index.php?pw_base_segment=' . $prefix . '&pw_property_listing=1',
 					'bottom'
 				);
 			}
 			add_rewrite_rule(
 				"^{$bx}/([^/]+)/([^/]+)/?$",
-				'index.php?pw_base_segment=' . $base . '&pw_property_slug=$matches[1]&pw_static_page_slug=$matches[2]',
+				'index.php?pw_base_segment=' . $prefix . '&pw_property_slug=$matches[1]&pw_static_page_slug=$matches[2]',
 				'bottom'
 			);
 		} else {
-			foreach ( array_reverse( $bases, true ) as $cpt => $pair ) {
+			foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
 				$sing = preg_quote( $pair['singular'], '#' );
 				add_rewrite_rule(
 					"^([^/]+)/{$sing}/([^/]+)/?$",
@@ -140,7 +165,7 @@ function pw_register_all_rewrite_rules() {
 					'top'
 				);
 			}
-			foreach ( array_reverse( $bases, true ) as $cpt => $pair ) {
+			foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
 				$pl = preg_quote( $pair['plural'], '#' );
 				add_rewrite_rule(
 					"^([^/]+)/{$pl}/?$",
@@ -148,7 +173,7 @@ function pw_register_all_rewrite_rules() {
 					'top'
 				);
 			}
-			foreach ( array_reverse( $bases, true ) as $cpt => $pair ) {
+			foreach ( array_reverse( $p3_bases, true ) as $cpt => $pair ) {
 				$sing = preg_quote( $pair['singular'], '#' );
 				add_rewrite_rule(
 					"^([^/]+)/{$sing}/?$",
@@ -162,7 +187,7 @@ function pw_register_all_rewrite_rules() {
 				'bottom'
 			);
 			if ( (string) pw_get_setting( 'pw_property_archive', '1' ) === '1' ) {
-				add_rewrite_rule( "^{$pp}/?$", 'index.php?pw_property_listing=1', 'bottom' );
+				add_rewrite_rule( "^{$pp_quoted}/?$", 'index.php?pw_property_listing=1', 'bottom' );
 			}
 			add_rewrite_rule( '^([^/]+)/?$', 'index.php?pw_property_slug=$matches[1]', 'bottom' );
 		}
@@ -219,11 +244,28 @@ function pw_url_front_controller() {
 	}
 
 	if ( (int) get_query_var( 'pw_bare_singular', 0 ) === 1 ) {
-		$cpt = sanitize_key( (string) get_query_var( 'pw_section_cpt', '' ) );
-		if ( ! in_array( $cpt, pw_url_section_cpts(), true ) ) {
+		$cpt   = sanitize_key( (string) get_query_var( 'pw_section_cpt', '' ) );
+		$bases = pw_get_section_bases();
+		if ( $cpt === '' || ! isset( $bases[ $cpt ] ) ) {
 			return;
 		}
 		$pid = (int) pw_get_current_property_id();
+
+		if ( $cpt === 'pw_property' ) {
+			$listing_on = (string) pw_get_setting( 'pw_property_archive', '1' ) === '1';
+			if ( $listing_on ) {
+				pw_redirect_with_qs( pw_get_section_listing_url( $pid, $cpt ), 301 );
+			}
+			$dest = pw_get_setting( 'pw_property_mode', 'single' ) === 'single'
+				? home_url( '/' )
+				: pw_get_property_url( $pid );
+			if ( $dest === '' ) {
+				$dest = home_url( '/' );
+			}
+			pw_redirect_with_qs( untrailingslashit( $dest ), 301 );
+			return;
+		}
+
 		if ( $pid > 0 && pw_is_section_enabled( $pid, $cpt ) ) {
 			pw_redirect_with_qs( pw_get_section_listing_url( $pid, $cpt ), 301 );
 		}

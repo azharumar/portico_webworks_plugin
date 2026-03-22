@@ -10,6 +10,9 @@
 		v = v ? v.value : saved;
 		if (wMulti) wMulti.style.display = (saved === 'multi' && v === 'single') ? '' : 'none';
 		if (wSingle) wSingle.style.display = (saved === 'single' && v === 'multi') ? '' : 'none';
+		document.querySelectorAll('.pw-default-property-row').forEach(function (row) {
+			row.classList.toggle('pw-is-hidden', v === 'multi');
+		});
 	}
 	radios.forEach(function (r) { r.addEventListener('change', toggle); });
 	toggle();

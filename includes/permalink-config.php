@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function pw_default_section_bases() {
 	return [
+		'pw_property'     => [ 'plural' => 'hotels', 'singular' => 'hotel' ],
 		'pw_room_type'    => [ 'plural' => 'rooms', 'singular' => 'room' ],
 		'pw_restaurant'   => [ 'plural' => 'restaurants', 'singular' => 'restaurant' ],
 		'pw_spa'          => [ 'plural' => 'spas', 'singular' => 'spa' ],
@@ -23,12 +24,21 @@ function pw_default_section_bases() {
 }
 
 /**
- * Section CPTs that participate in tiered URLs (order matches defaults).
+ * Child section CPTs (outlets + per-property listings). Excludes `pw_property`.
  *
  * @return list<string>
  */
 function pw_url_section_cpts() {
-	return array_keys( pw_default_section_bases() );
+	return [
+		'pw_room_type',
+		'pw_restaurant',
+		'pw_spa',
+		'pw_meeting_room',
+		'pw_experience',
+		'pw_event',
+		'pw_offer',
+		'pw_nearby',
+	];
 }
 
 /**
@@ -63,7 +73,7 @@ function pw_get_section_bases() {
 }
 
 /**
- * @param string $cpt    One of pw_url_section_cpts().
+ * @param string $cpt    `pw_property`, or one of pw_url_section_cpts().
  * @param string $form   'plural' or 'singular'.
  * @return string
  */
@@ -90,18 +100,34 @@ function pw_sanitize_property_base( $value, $field_args = null, $field = null ) 
 }
 
 /**
- * Optional fixed prefix for multi-property URLs (synced with pw_property_base).
+ * Multi-property URL prefix segment (plural base when prefix enabled). Legacy stored keys ignored.
  *
  * @return string Empty when no prefix.
  */
 function pw_get_fixed_permalink_base() {
-	$fixed = pw_get_setting( 'pw_permalink_base_fixed', null );
-	if ( $fixed === null || $fixed === '' ) {
-		$fixed = pw_get_setting( 'pw_property_base', '' );
+	return pw_multi_property_url_prefix();
+}
+
+/**
+ * Whether the plural base is not used as a path prefix before the property slug (multi mode default).
+ */
+function pw_property_base_disabled(): bool {
+	return pw_get_setting( 'pw_disable_property_base', '1' ) === '1';
+}
+
+/**
+ * First path segment before property slug in multi mode when prefix is enabled; empty otherwise.
+ */
+function pw_multi_property_url_prefix(): string {
+	if ( pw_get_setting( 'pw_property_mode', 'single' ) !== 'multi' ) {
+		return '';
 	}
-	$fixed = is_string( $fixed ) ? trim( $fixed ) : '';
-	$fixed = trim( $fixed, '/' );
-	return sanitize_title( $fixed );
+	if ( pw_property_base_disabled() ) {
+		return '';
+	}
+	$p = pw_get_section_base( 'pw_property', 'plural' );
+
+	return $p !== '' ? $p : '';
 }
 
 /**
@@ -134,14 +160,15 @@ function pw_get_merged_pw_settings() {
 	$raw = get_option( 'pw_settings', [] );
 	$raw = is_array( $raw ) ? $raw : [];
 	$defaults = [
-		'pw_property_mode'         => 'single',
-		'pw_property_base'         => '',
-		'pw_default_property_id'   => 0,
-		'pw_github_releases_url'   => '',
-		'pw_permalink_base_fixed'  => '',
-		'pw_section_bases'         => pw_default_section_bases(),
-		'pw_property_plural_base'  => 'hotels',
-		'pw_property_archive'      => '1',
+		'pw_property_mode'           => 'single',
+		'pw_property_base'           => '',
+		'pw_default_property_id'     => 0,
+		'pw_github_releases_url'     => '',
+		'pw_permalink_base_fixed'    => '',
+		'pw_disable_property_base'    => '1',
+		'pw_section_bases'           => pw_default_section_bases(),
+		'pw_property_plural_base'    => 'hotels',
+		'pw_property_archive'        => '1',
 	];
 	$out = wp_parse_args( $raw, $defaults );
 
@@ -162,15 +189,43 @@ function pw_get_merged_pw_settings() {
 		}
 	}
 
-	$out['pw_property_plural_base'] = sanitize_title( (string) ( $out['pw_property_plural_base'] ?? 'hotels' ) ) ?: 'hotels';
-	$out['pw_property_archive']    = isset( $out['pw_property_archive'] ) && (string) $out['pw_property_archive'] === '1' ? '1' : '0';
-
-	if ( $out['pw_permalink_base_fixed'] === '' && ! empty( $raw['pw_property_base'] ) ) {
-		$out['pw_permalink_base_fixed'] = $raw['pw_property_base'];
+	if (
+		! isset( $raw['pw_section_bases']['pw_property'] ) &&
+		isset( $raw['pw_property_plural_base'] )
+	) {
+		$legacy_pp = sanitize_title( (string) $raw['pw_property_plural_base'] );
+		if ( $legacy_pp !== '' ) {
+			$out['pw_section_bases']['pw_property']['plural'] = $legacy_pp;
+		}
 	}
-	$fixed = pw_sanitize_property_base( (string) $out['pw_permalink_base_fixed'] );
-	$out['pw_permalink_base_fixed'] = $fixed;
-	$out['pw_property_base']        = $fixed;
+
+	if ( ! array_key_exists( 'pw_disable_property_base', $raw ) ) {
+		$legacy_fixed = '';
+		if ( isset( $raw['pw_permalink_base_fixed'] ) && (string) $raw['pw_permalink_base_fixed'] !== '' ) {
+			$legacy_fixed = pw_sanitize_property_base( (string) $raw['pw_permalink_base_fixed'] );
+		} elseif ( ! empty( $raw['pw_property_base'] ) ) {
+			$legacy_fixed = pw_sanitize_property_base( (string) $raw['pw_property_base'] );
+		}
+		if ( $legacy_fixed !== '' ) {
+			$out['pw_disable_property_base'] = '0';
+			$out['pw_section_bases']['pw_property']['plural'] = $legacy_fixed;
+		}
+	}
+
+	$out['pw_disable_property_base'] = isset( $out['pw_disable_property_base'] ) && (string) $out['pw_disable_property_base'] === '0' ? '0' : '1';
+
+	$prop_pl = isset( $out['pw_section_bases']['pw_property'] ) && is_array( $out['pw_section_bases']['pw_property'] )
+		? sanitize_title( (string) ( $out['pw_section_bases']['pw_property']['plural'] ?? '' ) )
+		: '';
+	$out['pw_property_plural_base'] = $prop_pl !== '' ? $prop_pl : 'hotels';
+	if ( isset( $out['pw_section_bases']['pw_property'] ) && is_array( $out['pw_section_bases']['pw_property'] ) ) {
+		$out['pw_section_bases']['pw_property']['plural'] = $out['pw_property_plural_base'];
+	}
+
+	$out['pw_property_archive'] = isset( $out['pw_property_archive'] ) && (string) $out['pw_property_archive'] === '1' ? '1' : '0';
+
+	$out['pw_permalink_base_fixed'] = '';
+	$out['pw_property_base']        = '';
 
 	unset( $out['pw_permalink_slug_source'], $out['pw_permalink_subpaths'], $out['pw_permalink_base_source'] );
 

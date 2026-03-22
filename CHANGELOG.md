@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.8.19] - 2026-03-22
+
+### Added
+- **`pw_property` in section URL bases** (`pw_default_section_bases()` first row: `hotels` / `hotel`); Permalinks table lists **Properties** with plural/singular like other sections
+- **`pw_disable_property_base`** (default on): multi-property mode can use plural base as path prefix (`/hotels/leela-residency`) or property slug at root (`/leela-residency`); checkbox under the Properties row (hidden in single-property mode via `data-pw-property-mode` + CSS)
+- **`pw_property_base_disabled()`**, **`pw_multi_property_url_prefix()`**; legacy `pw_permalink_base_fixed` / `pw_property_base` cleared in merged settings; migration from old fixed base and `pw_property_plural_base` when `pw_property` was absent from stored section bases
+
+### Changed
+- **`pw_url_section_cpts()`**: child outlet CPTs only (excludes `pw_property`); rewrites use child loops plus explicit `pw_property` archive/singular/bare-singular rules; root `/hotel` → `/hotels` in single and multi+prefix modes; property-scoped `/…/hotel` bare singular in multi (no root bare when prefix disabled)
+- **Permalinks save**: drops separate URL prefix / property listing slug fields; syncs `pw_property_plural_base` from section bases; flush when `pw_disable_property_base` changes
+- **`pw_get_fixed_permalink_base()`** → effective multi prefix via `pw_multi_property_url_prefix()`; **`pw_get_section_listing_url()`** for `pw_property` in multi returns global `/{plural}`
+- **Page installer**: skips `pw_property` in single and per-property section loops; global listing slug from `pw_get_section_base( 'pw_property', 'plural' )`
+- **Reserved slugs**: property plural no longer duplicated from `pw_property_plural_base` (covered by section bases)
+- **Admin**: `.wrap.pw-admin` has `data-pw-property-mode`; **General** hides default-property row when Multi is selected (`admin-settings.js`)
+- **`URL-ARCHITECTURE.md`**: `pw_property` row, prefix note, reserved list, settings reference, `/hotel` redirect tests
+
 ## [0.8.18] - 2026-03-22
 
 ### Changed
