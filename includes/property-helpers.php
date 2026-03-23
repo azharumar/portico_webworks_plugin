@@ -573,6 +573,35 @@ add_filter( 'render_block', 'pw_replace_property_currency_token', 999, 1 );
 add_filter( 'the_content', 'pw_replace_property_currency_token', 999, 1 );
 add_filter( 'widget_block_content', 'pw_replace_property_currency_token', 999, 1 );
 
+/**
+ * Replace {{pw_section_url:cpt}} in block HTML with listing URLs for the current property context.
+ *
+ * @param string $html  Rendered block HTML.
+ * @param array  $block Parsed block.
+ * @return string
+ */
+function pw_resolve_section_url_tokens( string $html, array $block ): string {
+	unset( $block );
+
+	if ( strpos( $html, '{{pw_section_url:' ) === false ) {
+		return $html;
+	}
+
+	$property_id = pw_get_current_property_id();
+
+	foreach ( pw_url_section_cpts() as $cpt ) {
+		$token = '{{pw_section_url:' . $cpt . '}}';
+		if ( strpos( $html, $token ) !== false ) {
+			$url  = pw_get_section_listing_url( $property_id, $cpt );
+			$html = str_replace( $token, esc_url( $url ), $html );
+		}
+	}
+
+	return $html;
+}
+
+add_filter( 'render_block', 'pw_resolve_section_url_tokens', 10, 2 );
+
 // Scoping: Query block Additional CSS class "pw-gb-scope-property", or legacy pw_scope_to_property attribute.
 function pw_gb_query_should_scope_to_property( array $attributes ) {
 	if ( ! empty( $attributes['pw_scope_to_property'] ) ) {
@@ -592,14 +621,14 @@ function pw_filter_generateblocks_query_loop_property_scope( $query_args, $attri
 		pw_set_block_property_id( (int) $query_args['pw_property_id'] );
 	}
 
-	$pid = pw_get_current_property_id();
-	if ( $pid <= 0 ) {
+	$property_id = pw_get_current_property_id();
+	if ( $property_id <= 0 ) {
 		return $query_args;
 	}
 
 	$clause = array(
 		'key'     => '_pw_property_id',
-		'value'   => (int) $pid,
+		'value'   => (int) $property_id,
 		'type'    => 'NUMERIC',
 		'compare' => '=',
 	);

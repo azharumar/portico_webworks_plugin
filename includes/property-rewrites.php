@@ -362,6 +362,12 @@ function pw_url_front_controller() {
 		$wp_query->queried_object       = get_post_type_object( $cpt );
 		$wp_query->queried_object_id    = 0;
 		pw_url_virtual_archive( $cpt );
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			$debug_pid = pw_get_current_property_id();
+			if ( $debug_pid === 0 ) {
+				error_log( 'PW: section archive for ' . $cpt . ' has no property context. GB scope filter will return no results.' );
+			}
+		}
 		return;
 	}
 

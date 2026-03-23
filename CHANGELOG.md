@@ -1,11 +1,24 @@
 # Changelog
 
+## [0.8.32] - 2026-03-23
+
+### Fixed
+- **GP Elements singular layouts**: installer sets `_generate_block_type` to `content-template` (not `block`) so single-post templates replace the content area; archives remain `loop-template`
+- **GenerateBlocks section archives**: `pw_filter_generateblocks_query_loop_property_scope` does not inject `_pw_property_id` meta when `pw_get_current_property_id()` is missing (≤ 0), avoiding empty loops
+
+### Added
+- **`pw_repair_element_block_types()`**: runs when **Install Missing Structure** is used; corrects `_generate_block_type` on generated elements, rewrites legacy `#rooms`-style back-link hrefs to `{{post_type_archive_link}}` on outlet singulars, and property section hashes to `{{pw_section_url:…}}` tokens
+- **`pw_resolve_section_url_tokens`** (`render_block`): replaces `{{pw_section_url:cpt}}` with `pw_get_section_listing_url()` for the current property (single vs multi URLs)
+
+### Changed
+- **Starter markup**: outlet singular “Back to …” links use `{{post_type_archive_link}}`; property singular section links use `{{pw_section_url:…}}` instead of hash fragments
+- **Routing** (`pw_url_front_controller`): when `WP_DEBUG` is on, logs if a section listing archive is set up with no property context after `pw_url_virtual_archive()`
+
 ## [0.8.31] - 2026-03-23
 
 ### Added
 - **GP Elements — singular templates**: installer creates **17** elements — property singular (`pw-property-singular`) plus **archive + singular** pairs for each section CPT (`_pw_element_type` meta: `archive` | `singular`; singulars use `_generate_block_type` `block`, archives remain `loop-template`)
 - **Starter markup** (`pw_get_section_starter_markup( $cpt, $type )`): property singular (identity, address, `_pw_direct_benefits` meta query, section link placeholders, scoped `pw_contact` query) and outlet singular markup per CPT (prefixed uniqueIds `rms-*`, `rsts-*`, …)
-- **`_pw_sales_whatsapp`** registered for `pw_meeting_room`
 - **Sample data**: empty **Fact Sheet** page per sample property with `_pw_property_id`, `_pw_generated`, `_pw_section_cpt`, `_pw_is_sample_data`
 
 ### Changed
