@@ -136,7 +136,7 @@ function pw_get_required_elements(): array {
 }
 
 /**
- * Repair _generate_block_type and legacy hash / section hrefs on plugin-generated gp_elements.
+ * Repair _generate_block_type, `_generate_element_display_conditions`, and legacy hash / section hrefs on plugin-generated gp_elements.
  */
 function pw_repair_element_block_types(): void {
 	if ( ! post_type_exists( 'gp_elements' ) ) {
@@ -188,6 +188,18 @@ function pw_repair_element_block_types(): void {
 			$current = get_post_meta( $id, '_generate_block_type', true );
 			if ( $current !== 'loop-template' ) {
 				update_post_meta( $id, '_generate_block_type', 'loop-template' );
+			}
+		}
+
+		if ( ( $element_type === 'singular' || $element_type === 'archive' ) && $section_cpt !== '' ) {
+			$display_rows = pw_build_element_display_conditions(
+				[
+					'cpt'  => $section_cpt,
+					'type' => $element_type,
+				]
+			);
+			if ( $display_rows !== [] ) {
+				update_post_meta( $id, '_generate_element_display_conditions', $display_rows );
 			}
 		}
 
@@ -324,6 +336,36 @@ function pw_build_element_conditions( array $element_def ): array {
 }
 
 /**
+ * GP Premium `GeneratePress_Block_Element` uses `_generate_element_display_conditions` (Location rules), not `_generate_element_conditions`.
+ *
+ * @return array<int, array{rule: string, object: string}>
+ */
+function pw_build_element_display_conditions( array $element_def ): array {
+	$cpt  = sanitize_key( (string) ( $element_def['cpt'] ?? '' ) );
+	$type = (string) ( $element_def['type'] ?? 'archive' );
+
+	if ( $cpt === '' ) {
+		return [];
+	}
+
+	if ( $type === 'singular' ) {
+		return [
+			[
+				'rule'   => 'post:' . $cpt,
+				'object' => '',
+			],
+		];
+	}
+
+	return [
+		[
+			'rule'   => 'archive:' . $cpt,
+			'object' => '',
+		],
+	];
+}
+
+/**
  * @return array{action: 'created'|'skipped', post_id: int, message: string}
  */
 function pw_install_element( array $element_def ): array {
@@ -393,6 +435,7 @@ function pw_install_element( array $element_def ): array {
 	update_post_meta( $post_id, '_pw_section_cpt', $cpt );
 	update_post_meta( $post_id, '_pw_element_type', $type );
 	update_post_meta( $post_id, '_generate_element_conditions', pw_build_element_conditions( $element_def ) );
+	update_post_meta( $post_id, '_generate_element_display_conditions', pw_build_element_display_conditions( $element_def ) );
 	update_post_meta( $post_id, '_generate_element_is_content', '' );
 
 	return [

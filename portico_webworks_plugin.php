@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Portico Webworks Hotel Website Manager
  * Description: Portico Webworks plugin.
- * Version: 0.8.32
+ * Version: 0.8.33
  * Requires at least: 6.9.4
  * Requires PHP: 8.3
  * Author: Portico Webworks
@@ -24,7 +24,7 @@ if ( is_readable( $pw_fatal_log ) ) {
 }
 
 define('PW_PLUGIN_FILE', __FILE__);
-define('PW_VERSION', '0.8.32');
+define('PW_VERSION', '0.8.33');
 
 function pw_apply_install_defaults() {
 	if (get_option('pw_install_defaults_applied', 0)) {
@@ -33,6 +33,9 @@ function pw_apply_install_defaults() {
 
 	// Settings -> Media: "Organize my uploads into month- and year-based folders" (checked => uploads_use_yearmonth_folders = 1)
 	update_option('uploads_use_yearmonth_folders', 0);
+
+	// Settings -> General: timezone (Kolkata)
+	update_option( 'timezone_string', 'Asia/Kolkata' );
 
 	update_option('pw_install_defaults_applied', 1);
 	update_option( 'pw_seed_taxonomies', 1 );

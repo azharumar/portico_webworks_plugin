@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.33] - 2026-03-24
+
+### Fixed
+- **GP Block Elements visibility**: installer and `pw_repair_element_block_types()` set `_generate_element_display_conditions` with GP Premium Location rules (`post:{cpt}` for singulars, `archive:{cpt}` for archives) so content-template and loop-template Elements hook on property, outlet, and section archive URLs
+
 ## [0.8.32] - 2026-03-23
 
 ### Fixed
