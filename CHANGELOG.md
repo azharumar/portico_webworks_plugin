@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.30] - 2026-03-23
+
+### Fixed
+- **Property singular URL rule order**: bare `/{property-slug}` rule moved from `bottom` to `top` so it matches before WordPress page permastruct. After updating, visit Settings → Permalinks and click Save to flush rewrite rules.
+
 ## [0.8.29] - 2026-03-23
 
 ### Fixed

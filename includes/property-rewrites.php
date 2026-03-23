@@ -214,7 +214,7 @@ function pw_register_all_rewrite_rules() {
 		add_rewrite_rule(
 			'^([^/]+)/?$',
 			'index.php?pw_property_slug=$matches[1]',
-			'bottom'
+			'top'
 		);
 		$rules_ver = defined( 'PW_VERSION' ) ? (string) PW_VERSION : '0';
 		if ( get_option( 'pw_rewrite_rules_version', '' ) !== $rules_ver ) {
