@@ -211,7 +211,16 @@ function pw_register_all_rewrite_rules() {
 			'index.php?pw_property_slug=$matches[1]&pw_static_page_slug=$matches[2]',
 			'bottom'
 		);
-		// Bare /{property-slug}/ is handled by the pw_property permastruct (register_post_type rewrite), not pw_property_slug.
+		add_rewrite_rule(
+			'^([^/]+)/?$',
+			'index.php?pw_property_slug=$matches[1]',
+			'bottom'
+		);
+		$rules_ver = defined( 'PW_VERSION' ) ? (string) PW_VERSION : '0';
+		if ( get_option( 'pw_rewrite_rules_version', '' ) !== $rules_ver ) {
+			update_option( 'pw_rewrite_rules_version', $rules_ver );
+			set_transient( 'pw_flush_rewrites', 1, 120 );
+		}
 	}
 
 	// ASSERTION: if you are adding any rule after this point, you are breaking the wildcard-last guarantee.
@@ -431,7 +440,8 @@ function pw_url_front_controller() {
 	if ( (int) get_query_var( 'pw_bare_singular', 0 ) === 1 ) {
 		return;
 	}
-	$prop_id = pw_resolve_property_slug( sanitize_title( $prop_slug ) );
+	$slug   = sanitize_title( $prop_slug );
+	$prop_id = pw_resolve_property_slug( $slug );
 	if ( $prop_id <= 0 ) {
 		return;
 	}
@@ -440,27 +450,33 @@ function pw_url_front_controller() {
 		return;
 	}
 	global $wp_query;
-	setup_postdata( $post );
+	$GLOBALS['post'] = $post;
+	$wp_query->init();
 	$wp_query->queried_object    = $post;
 	$wp_query->queried_object_id = $prop_id;
 	$wp_query->is_single         = true;
 	$wp_query->is_singular       = true;
+	$wp_query->is_404            = false;
+	$wp_query->posts             = [ $post ];
+	$wp_query->post              = $post;
+	$wp_query->post_count        = 1;
+	$wp_query->found_posts       = 1;
 	$wp_query->is_page           = false;
 	$wp_query->is_home           = false;
 	$wp_query->is_archive        = false;
-	$wp_query->posts             = [ $post ];
-	$wp_query->post_count        = 1;
-	$wp_query->found_posts       = 1;
 	$wp_query->max_num_pages     = 1;
 	$wp_query->current_post      = -1;
+	setup_postdata( $post );
 	status_header( 200 );
 	nocache_headers();
+	set_query_var( 'pw_property_slug', $slug );
 	add_filter(
 		'template_include',
 		static function ( $template ) {
 			$p = locate_template( [ 'single-pw_property.php', 'single.php', 'singular.php', 'index.php' ] );
 			return $p ? $p : $template;
-		}
+		},
+		10
 	);
 }
 

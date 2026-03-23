@@ -1,30 +1,9 @@
 # Changelog
 
-## [0.8.28] - 2026-03-23
+## [0.8.29] - 2026-03-23
 
-### Added
-- **`pw_property` permastruct** (`pw_register_property_permastruct` on `init` priority 12): `/%postname%` with `rewrite` false on the CPT; `post_type_link` and `get_sample_permalink` filters (priority 15) for root `/{property-slug}` URLs and block editor slug panel
-- **Outlet permalink live preview**: `assets/admin-outlet-permalink.js` + `pw_get_cpt_rest_base()`; REST `rest_prepare_{$cpt}` with `pw_property_id_preview` updates `link` and `permalink_template` when the Property select changes on section CPT edit screens
-
-### Changed
-- After upgrading, **flush rewrite rules once** (e.g. **Settings → Permalinks** → **Save Changes**) so the `pw_property` permastruct rules are written.
-
-## [0.8.27] - 2026-03-23
-
-### Added
-- **Outlet permastructs** (`add_permastruct` on `init` priority 12): section CPTs keep `rewrite` false; permastructs match single (`/{singular}/%postname%`) and multi (`/%pw_property_slug%/{singular}/%postname%`) URLs so `get_permalink()` and the block editor slug panel work
-- **Rewrite tag** `%pw_property_slug%` plus `post_type_link` and `get_sample_permalink` filters for outlet CPTs; routing comment on `pw_register_all_rewrite_rules()`
-- **Permalinks tab**: Example URL column and note for outlet-slug / property-slug
-- **Site structure**: Published post count per section CPT (`wp_count_posts`)
-- **Admin**: warning when an outlet post has no property assigned; Property field description that changing property updates the outlet URL
-
-### Changed
-- After upgrading to this version, **flush rewrite rules once** (e.g. visit **Settings → Permalinks** and click **Save Changes**, or save plugin Permalinks / General if prompted) so new permastruct rules are written.
-
-## [0.8.26] - 2026-03-23
-
-### Added
-- **Dependencies**: bundled **Rank Math SEO PRO** (`assets/zips/seo-by-rank-math-pro.zip`) in the dependency installer (after free Rank Math SEO)
+### Fixed
+- **Property singular 404** in multi-property mode. After updating, visit Settings → Permalinks and click Save to flush rewrite rules.
 
 ## [0.8.25] - 2026-03-22
 
