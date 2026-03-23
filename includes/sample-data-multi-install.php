@@ -112,6 +112,26 @@ function pw_install_sample_dataset_multi() {
 	$p1 = (int) $p1_ins;
 	$p2 = (int) $p2_ins;
 
+	foreach ( [ $p1, $p2 ] as $_pid ) {
+		$_fs = pw_sample_wp_insert_post(
+			[
+				'post_title'   => 'Fact Sheet',
+				'post_name'    => 'fact-sheet',
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+				'post_content' => '',
+			],
+			true
+		);
+		if ( $_fs && ! is_wp_error( $_fs ) ) {
+			$_fs = (int) $_fs;
+			update_post_meta( $_fs, '_pw_property_id', $_pid );
+			update_post_meta( $_fs, '_pw_generated', '1' );
+			update_post_meta( $_fs, '_pw_section_cpt', '' );
+			update_post_meta( $_fs, '_pw_is_sample_data', '1' );
+		}
+	}
+
 	$p1_strings = [
 		'_pw_legal_name'         => 'Leela Residency Hotels Private Limited',
 		'_pw_currency'           => 'INR',

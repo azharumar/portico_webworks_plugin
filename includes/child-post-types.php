@@ -520,6 +520,13 @@ function pw_register_child_post_meta() {
 		'default'      => '',
 	] );
 
+	register_post_meta( 'pw_meeting_room', '_pw_sales_whatsapp', [
+		'type'         => 'string',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => '',
+	] );
+
 	register_post_meta( 'pw_meeting_room', '_pw_floor_plan', [
 		'type'         => 'integer',
 		'single'       => true,

@@ -68,10 +68,10 @@ function pw_get_required_pages( int $property_id = 0 ): array {
 }
 
 /**
- * @return array<int, array{title: string, cpt: string, slug: string}>
+ * @return array<int, array{title: string, cpt: string, slug: string, type: string}>
  */
 function pw_get_required_elements(): array {
-	$titles = [
+	$archive_titles = [
 		'pw_room_type'    => __( 'Rooms Archive', 'portico-webworks' ),
 		'pw_restaurant'   => __( 'Restaurants Archive', 'portico-webworks' ),
 		'pw_spa'          => __( 'Spas Archive', 'portico-webworks' ),
@@ -82,16 +82,53 @@ function pw_get_required_elements(): array {
 		'pw_nearby'       => __( 'Places Archive', 'portico-webworks' ),
 	];
 
+	$singular_titles = [
+		'pw_room_type'    => __( 'Room', 'portico-webworks' ),
+		'pw_restaurant'   => __( 'Restaurant', 'portico-webworks' ),
+		'pw_spa'          => __( 'Spa', 'portico-webworks' ),
+		'pw_meeting_room' => __( 'Meeting Room', 'portico-webworks' ),
+		'pw_experience'   => __( 'Experience', 'portico-webworks' ),
+		'pw_event'        => __( 'Event', 'portico-webworks' ),
+		'pw_offer'        => __( 'Offer', 'portico-webworks' ),
+		'pw_nearby'       => __( 'Place', 'portico-webworks' ),
+	];
+
+	$singular_slugs = [
+		'pw_room_type'    => 'pw-room-singular',
+		'pw_restaurant'   => 'pw-restaurant-singular',
+		'pw_spa'          => 'pw-spa-singular',
+		'pw_meeting_room' => 'pw-meeting-singular',
+		'pw_experience'   => 'pw-experience-singular',
+		'pw_event'        => 'pw-event-singular',
+		'pw_offer'        => 'pw-offer-singular',
+		'pw_nearby'       => 'pw-place-singular',
+	];
+
 	$out = [];
+
+	$out[] = [
+		'title' => __( 'Property', 'portico-webworks' ),
+		'cpt'   => 'pw_property',
+		'slug'  => 'pw-property-singular',
+		'type'  => 'singular',
+	];
+
 	foreach ( pw_url_section_cpts() as $cpt ) {
 		$pl = pw_get_section_base( $cpt, 'plural' );
 		if ( $pl === '' ) {
 			continue;
 		}
 		$out[] = [
-			'title' => $titles[ $cpt ] ?? $cpt,
+			'title' => $archive_titles[ $cpt ] ?? $cpt,
 			'cpt'   => $cpt,
 			'slug'  => 'pw-' . $pl . '-archive',
+			'type'  => 'archive',
+		];
+		$out[] = [
+			'title' => $singular_titles[ $cpt ] ?? $cpt,
+			'cpt'   => $cpt,
+			'slug'  => $singular_slugs[ $cpt ] ?? 'pw-' . $pl . '-singular',
+			'type'  => 'singular',
 		];
 	}
 
@@ -99,9 +136,9 @@ function pw_get_required_elements(): array {
 }
 
 /**
- * Generated GP Elements loop template for a section CPT (_pw_generated, _pw_section_cpt).
+ * Generated GP Element for a section CPT + type (_pw_generated, _pw_section_cpt, _pw_element_type).
  */
-function pw_find_generated_element( string $cpt ): ?WP_Post {
+function pw_find_generated_element( string $cpt, string $type = 'archive' ): ?WP_Post {
 	$cpt = sanitize_key( $cpt );
 	if ( $cpt === '' ) {
 		return null;
@@ -109,7 +146,7 @@ function pw_find_generated_element( string $cpt ): ?WP_Post {
 
 	$slug = '';
 	foreach ( pw_get_required_elements() as $def ) {
-		if ( ( $def['cpt'] ?? '' ) === $cpt ) {
+		if ( ( $def['cpt'] ?? '' ) === $cpt && ( $def['type'] ?? 'archive' ) === $type ) {
 			$slug = sanitize_title( (string) ( $def['slug'] ?? '' ) );
 			break;
 		}
@@ -118,21 +155,42 @@ function pw_find_generated_element( string $cpt ): ?WP_Post {
 		return null;
 	}
 
+	$meta_query = [
+		[
+			'key'   => '_pw_generated',
+			'value' => '1',
+		],
+		[
+			'key'   => '_pw_section_cpt',
+			'value' => $cpt,
+		],
+	];
+
+	if ( $type === 'archive' ) {
+		$meta_query[] = [
+			'relation' => 'OR',
+			[
+				'key'   => '_pw_element_type',
+				'value' => 'archive',
+			],
+			[
+				'key'     => '_pw_element_type',
+				'compare' => 'NOT EXISTS',
+			],
+		];
+	} else {
+		$meta_query[] = [
+			'key'   => '_pw_element_type',
+			'value' => $type,
+		];
+	}
+
 	$posts = get_posts(
 		[
 			'post_type'        => 'gp_elements',
 			'name'             => $slug,
 			'post_status'      => [ 'publish', 'draft', 'private' ],
-			'meta_query'       => [
-				[
-					'key'   => '_pw_generated',
-					'value' => '1',
-				],
-				[
-					'key'   => '_pw_section_cpt',
-					'value' => $cpt,
-				],
-			],
+			'meta_query'       => $meta_query,
 			'posts_per_page'   => 1,
 			'no_found_rows'    => true,
 			'suppress_filters' => true,
@@ -150,7 +208,20 @@ function pw_find_generated_element( string $cpt ): ?WP_Post {
 /**
  * @return array<int, array{type: string, rule: string, object: string}>
  */
-function pw_build_element_conditions( string $cpt ): array {
+function pw_build_element_conditions( array $element_def ): array {
+	$cpt  = (string) ( $element_def['cpt'] ?? '' );
+	$type = (string) ( $element_def['type'] ?? 'archive' );
+
+	if ( $type === 'singular' ) {
+		return [
+			[
+				'type'   => 'basic',
+				'rule'   => 'is_singular',
+				'object' => $cpt,
+			],
+		];
+	}
+
 	return [
 		[
 			'type'   => 'basic',
@@ -176,7 +247,9 @@ function pw_install_element( array $element_def ): array {
 		];
 	}
 
-	$existing = pw_find_generated_element( $cpt );
+	$type = (string) ( $element_def['type'] ?? 'archive' );
+
+	$existing = pw_find_generated_element( $cpt, $type );
 	if ( $existing ) {
 		return [
 			'action'  => 'skipped',
@@ -185,7 +258,7 @@ function pw_install_element( array $element_def ): array {
 		];
 	}
 
-	$content = pw_get_section_starter_markup( $cpt );
+	$content = pw_get_section_starter_markup( $cpt, $type );
 	if ( $content === '' ) {
 		return [
 			'action'  => 'skipped',
@@ -219,12 +292,15 @@ function pw_install_element( array $element_def ): array {
 		];
 	}
 
+	$block_type = $type === 'singular' ? 'block' : 'loop-template';
+
 	$post_id = (int) $post_id;
 	update_post_meta( $post_id, '_generate_element_type', 'block' );
-	update_post_meta( $post_id, '_generate_block_type', 'loop-template' );
+	update_post_meta( $post_id, '_generate_block_type', $block_type );
 	update_post_meta( $post_id, '_pw_generated', '1' );
 	update_post_meta( $post_id, '_pw_section_cpt', $cpt );
-	update_post_meta( $post_id, '_generate_element_conditions', pw_build_element_conditions( $cpt ) );
+	update_post_meta( $post_id, '_pw_element_type', $type );
+	update_post_meta( $post_id, '_generate_element_conditions', pw_build_element_conditions( $element_def ) );
 	update_post_meta( $post_id, '_generate_element_is_content', '' );
 
 	return [
@@ -574,7 +650,11 @@ function pw_on_property_published( $new_status, $old_status, $post ) {
  *
  * @param string $cpt Section CPT or empty.
  */
-function pw_get_section_starter_markup( string $cpt ): string {
+function pw_get_section_starter_markup( string $cpt, string $type = 'archive' ): string {
+	if ( $type === 'singular' ) {
+		return _pw_get_singular_starter_markup( $cpt );
+	}
+
 	if ( $cpt === '' || ! in_array( $cpt, pw_url_section_cpts(), true ) ) {
 		return '';
 	}
@@ -1120,6 +1200,287 @@ PW_ST_EVENT,
 PW_ST_OFFER,
 		default => '',
 	};
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Singular markup helpers (private — used by _pw_get_singular_starter_markup)
+ * ──────────────────────────────────────────────────────────────────────── */
+
+function _pw_gb_row( string $uid, string $label, string $value ): string {
+	return '<!-- wp:generateblocks/element {"uniqueId":"' . $uid . '","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-' . $uid . '{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media(max-width:640px){.gb-element-' . $uid . '{grid-template-columns:1fr}}","className":"gb-el gb-el-' . $uid . '"} -->' . "\n"
+		. '<div class="gb-element-' . $uid . ' gb-el gb-el-' . $uid . '">'
+		. '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . 'l","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-' . $uid . 'l{margin-bottom:0;font-size:14px;font-weight:600}","className":"gb-t-' . $uid . 'l"} -->' . "\n"
+		. '<div class="gb-text gb-text-' . $uid . 'l gb-t-' . $uid . 'l">' . $label . '</div>' . "\n"
+		. '<!-- /wp:generateblocks/text -->' . "\n"
+		. '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . 'v","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-' . $uid . 'v{margin-bottom:0;font-size:14px}","className":"gb-t-' . $uid . 'v"} -->' . "\n"
+		. '<div class="gb-text gb-text-' . $uid . 'v gb-t-' . $uid . 'v">' . $value . '</div>' . "\n"
+		. '<!-- /wp:generateblocks/text -->' . "\n"
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/element -->';
+}
+
+function _pw_gb_h( string $uid, string $text, string $tag = 'h2' ): string {
+	$fs = $tag === 'h1' ? '28px' : '20px';
+	$fw = $tag === 'h1' ? '700' : '600';
+	return '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . '","tagName":"' . $tag . '","styles":{"marginBottom":"12px","fontSize":"' . $fs . '","fontWeight":"' . $fw . '"},"css":".gb-text-' . $uid . '{margin-bottom:12px;font-size:' . $fs . ';font-weight:' . $fw . '}","className":"gb-t-' . $uid . '"} -->' . "\n"
+		. '<' . $tag . ' class="gb-text gb-text-' . $uid . ' gb-t-' . $uid . '">' . $text . '</' . $tag . '>' . "\n"
+		. '<!-- /wp:generateblocks/text -->';
+}
+
+function _pw_gb_p( string $uid, string $text ): string {
+	return '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . '","tagName":"p","styles":{"marginBottom":"12px","fontSize":"14px"},"css":".gb-text-' . $uid . '{margin-bottom:12px;font-size:14px}","className":"gb-t-' . $uid . '"} -->' . "\n"
+		. '<p class="gb-text gb-text-' . $uid . ' gb-t-' . $uid . '">' . $text . '</p>' . "\n"
+		. '<!-- /wp:generateblocks/text -->';
+}
+
+function _pw_gb_link( string $uid, string $text, string $href ): string {
+	return '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . '","tagName":"a","styles":{"marginBottom":"4px","display":"inline-block","marginRight":"16px"},"css":".gb-text-' . $uid . '{display:inline-block;margin-bottom:4px;margin-right:16px}","htmlAttributes":[{"key":"href","value":"' . $href . '"}],"className":"gb-t-' . $uid . '"} -->' . "\n"
+		. '<a class="gb-text gb-text-' . $uid . ' gb-t-' . $uid . '" href="' . $href . '">' . $text . '</a>' . "\n"
+		. '<!-- /wp:generateblocks/text -->';
+}
+
+function _pw_gb_img( string $uid ): string {
+	return '<!-- wp:generateblocks/image {"uniqueId":"' . $uid . '","styles":{"display":"block","height":"auto","maxWidth":"100%","marginBottom":"24px"},"css":".gb-image-' . $uid . '{display:block;height:auto;max-width:100%;margin-bottom:24px}","dynamicImage":"featured-image","className":"gb-img-' . $uid . '"} -->' . "\n"
+		. '<img class="gb-image gb-image-' . $uid . ' gb-img-' . $uid . '" />' . "\n"
+		. '<!-- /wp:generateblocks/image -->';
+}
+
+function _pw_gb_section( string $uid, string $inner ): string {
+	return '<!-- wp:generateblocks/element {"uniqueId":"' . $uid . '","tagName":"section","styles":{"marginTop":"32px"},"css":".gb-element-' . $uid . '{margin-top:32px}","className":"gb-el gb-el-' . $uid . '"} -->' . "\n"
+		. '<section class="gb-element-' . $uid . ' gb-el gb-el-' . $uid . '">' . "\n"
+		. $inner . "\n"
+		. '</section>' . "\n"
+		. '<!-- /wp:generateblocks/element -->';
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Singular markup dispatcher
+ * ──────────────────────────────────────────────────────────────────────── */
+
+function _pw_get_singular_starter_markup( string $cpt ): string {
+	return match ( $cpt ) {
+		'pw_property'     => _pw_markup_property_singular(),
+		'pw_room_type'    => _pw_markup_room_singular(),
+		'pw_restaurant'   => _pw_markup_restaurant_singular(),
+		'pw_spa'          => _pw_markup_spa_singular(),
+		'pw_meeting_room' => _pw_markup_meeting_singular(),
+		'pw_experience'   => _pw_markup_experience_singular(),
+		'pw_event'        => _pw_markup_event_singular(),
+		'pw_offer'        => _pw_markup_offer_singular(),
+		'pw_nearby'       => _pw_markup_nearby_singular(),
+		default           => '',
+	};
+}
+
+/* ── Property singular ─────────────────────────────────────────────────── */
+
+function _pw_markup_property_singular(): string {
+	$identity = _pw_gb_section( 'prop-idn',
+		_pw_gb_h( 'prop-h1', '{{post_title}}', 'h1' ) . "\n"
+		. _pw_gb_row( 'prop-r0', 'Star rating',      '{{post_meta key:_pw_star_rating}}' )           . "\n"
+		. _pw_gb_row( 'prop-r1', 'Year established',  '{{post_meta key:_pw_year_established}}' )      . "\n"
+		. _pw_gb_row( 'prop-r2', 'Total rooms',       '{{post_meta key:_pw_total_rooms}}' )           . "\n"
+		. _pw_gb_row( 'prop-r3', 'Check-in',          '{{post_meta key:_pw_check_in_time}}' )         . "\n"
+		. _pw_gb_row( 'prop-r4', 'Check-out',         '{{post_meta key:_pw_check_out_time}}' )
+	);
+
+	$address = _pw_gb_section( 'prop-adr',
+		_pw_gb_h( 'prop-ah', 'Address' ) . "\n"
+		. _pw_gb_row( 'prop-a0', 'Address line 1', '{{post_meta key:_pw_address_line_1}}' )  . "\n"
+		. _pw_gb_row( 'prop-a1', 'Address line 2', '{{post_meta key:_pw_address_line_2}}' )  . "\n"
+		. _pw_gb_row( 'prop-a2', 'City / State / Postal',
+			'{{post_meta key:_pw_city}}, {{post_meta key:_pw_state}} {{post_meta key:_pw_postal_code}}' ) . "\n"
+		. _pw_gb_row( 'prop-a3', 'Country', '{{post_meta key:_pw_country}}' )
+	);
+
+	// Benefits — generateblocks/query with queryType post_meta.
+	$benefits = _pw_gb_section( 'prop-bnf',
+		_pw_gb_h( 'prop-bh', 'Direct Booking Benefits' ) . "\n"
+		. '<!-- wp:generateblocks/query {"uniqueId":"prop-bnq","tagName":"div","query":{"post_type":["pw_property"],"queryType":"post_meta","metaKey":"_pw_direct_benefits","posts_per_page":100},"className":"gb-el gb-el-prop-bnq"} -->' . "\n"
+		. '<div class="gb-el gb-el-prop-bnq">'
+		. '<!-- wp:generateblocks/looper {"uniqueId":"prop-bnlp","tagName":"div","className":"gb-loop-prop-bnlp"} -->' . "\n"
+		. '<div class="gb-looper-prop-bnlp gb-loop-prop-bnlp">'
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"prop-bnli","tagName":"div","styles":{"paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-prop-bnli{padding:8px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-prop-bnli"} -->' . "\n"
+		. '<div class="gb-loop-item-prop-bnli gb-li-prop-bnli">'
+		. _pw_gb_p( 'prop-bnt', '{{loop_item key:title}}' ) . "\n"
+		. _pw_gb_p( 'prop-bnd', '{{loop_item key:description}}' )
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/loop-item -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/looper -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/query -->'
+	);
+
+	// Section links — placeholders; replace hrefs with pw_get_section_listing_url().
+	$links = _pw_gb_section( 'prop-slk',
+		_pw_gb_h( 'prop-lh', 'Sections' ) . "\n"
+		. '<!-- Replace href placeholders with pw_get_section_listing_url() -->' . "\n"
+		. _pw_gb_link( 'prop-l0', 'Rooms',       '#rooms' )       . "\n"
+		. _pw_gb_link( 'prop-l1', 'Restaurants',  '#restaurants' ) . "\n"
+		. _pw_gb_link( 'prop-l2', 'Spas',         '#spas' )        . "\n"
+		. _pw_gb_link( 'prop-l3', 'Meetings',     '#meetings' )    . "\n"
+		. _pw_gb_link( 'prop-l4', 'Experiences',  '#experiences' ) . "\n"
+		. _pw_gb_link( 'prop-l5', 'Events',       '#events' )      . "\n"
+		. _pw_gb_link( 'prop-l6', 'Offers',       '#offers' )      . "\n"
+		. _pw_gb_link( 'prop-l7', 'Places Nearby', '#places' )
+	);
+
+	// Contacts — generateblocks/query for pw_contact scoped to property.
+	$contacts = _pw_gb_section( 'prop-ct',
+		_pw_gb_h( 'prop-ch', 'Contacts' ) . "\n"
+		. '<!-- wp:generateblocks/query {"uniqueId":"prop-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":20,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-property"} -->' . "\n"
+		. '<div class="pw-gb-scope-property pw-gb-contact-filter-property">'
+		. '<!-- wp:generateblocks/looper {"uniqueId":"prop-ctlp","tagName":"div","className":"gb-loop-prop-ctlp"} -->' . "\n"
+		. '<div class="gb-looper-prop-ctlp gb-loop-prop-ctlp">'
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"prop-ctli","tagName":"div","styles":{"paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-prop-ctli{padding:12px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-prop-ctli"} -->' . "\n"
+		. '<div class="gb-loop-item-prop-ctli gb-li-prop-ctli">'
+		. _pw_gb_row( 'prop-c0', 'Label',    '{{post_meta key:_pw_label}}' )    . "\n"
+		. _pw_gb_row( 'prop-c1', 'Phone',    '{{post_meta key:_pw_phone}}' )    . "\n"
+		. _pw_gb_row( 'prop-c2', 'Mobile',   '{{post_meta key:_pw_mobile}}' )   . "\n"
+		. _pw_gb_row( 'prop-c3', 'WhatsApp', '{{post_meta key:_pw_whatsapp}}' ) . "\n"
+		. _pw_gb_row( 'prop-c4', 'Email',    '{{post_meta key:_pw_email}}' )
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/loop-item -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/looper -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/query -->'
+	);
+
+	return $identity . "\n" . $address . "\n" . $benefits . "\n" . $links . "\n" . $contacts;
+}
+
+/* ── Room singular ─────────────────────────────────────────────────────── */
+
+function _pw_markup_room_singular(): string {
+	return _pw_gb_img( 'rms-img' ) . "\n"
+		. _pw_gb_h( 'rms-h1', '{{post_title}}', 'h1' ) . "\n"
+		. _pw_gb_p( 'rms-ex', '{{post_excerpt}}' ) . "\n"
+		. _pw_gb_row( 'rms-r0', 'Rate from',         '{{post_meta key:_pw_rate_from}} __PW_PROPERTY_CURRENCY__' ) . "\n"
+		. _pw_gb_row( 'rms-r1', 'Rate to',           '{{post_meta key:_pw_rate_to}} __PW_PROPERTY_CURRENCY__' )   . "\n"
+		. _pw_gb_row( 'rms-r2', 'Max occupancy',     '{{post_meta key:_pw_max_occupancy}}' )   . "\n"
+		. _pw_gb_row( 'rms-r3', 'Max adults',        '{{post_meta key:_pw_max_adults}}' )      . "\n"
+		. _pw_gb_row( 'rms-r4', 'Max children',      '{{post_meta key:_pw_max_children}}' )    . "\n"
+		. _pw_gb_row( 'rms-r5', 'Size (sqm)',        '{{post_meta key:_pw_size_sqm}}' )        . "\n"
+		. _pw_gb_row( 'rms-r6', 'Size (sqft)',       '{{post_meta key:_pw_size_sqft}}' )       . "\n"
+		. _pw_gb_row( 'rms-r7', 'Max extra beds',    '{{post_meta key:_pw_max_extra_beds}}' )  . "\n"
+		. _pw_gb_row( 'rms-r8', 'Bed type',          '{{post_terms taxonomy:pw_bed_type}}' )   . "\n"
+		. _pw_gb_row( 'rms-r9', 'View type',         '{{post_terms taxonomy:pw_view_type}}' )  . "\n"
+		. _pw_gb_p( 'rms-ct', '{{post_content}}' ) . "\n"
+		. _pw_gb_link( 'rms-bk', "\xE2\x86\x90 Back to Rooms", '#rooms' );
+}
+
+/* ── Restaurant singular ───────────────────────────────────────────────── */
+
+function _pw_markup_restaurant_singular(): string {
+	return _pw_gb_img( 'rsts-img' ) . "\n"
+		. _pw_gb_h( 'rsts-h1', '{{post_title}}', 'h1' ) . "\n"
+		. _pw_gb_p( 'rsts-ex', '{{post_excerpt}}' ) . "\n"
+		. _pw_gb_row( 'rsts-r0', 'Cuisine type',      '{{post_meta key:_pw_cuisine_type}}' )      . "\n"
+		. _pw_gb_row( 'rsts-r1', 'Location',          '{{post_meta key:_pw_location}}' )          . "\n"
+		. _pw_gb_row( 'rsts-r2', 'Seating capacity',  '{{post_meta key:_pw_seating_capacity}}' )  . "\n"
+		. _pw_gb_row( 'rsts-r3', 'Reservation URL',   '{{post_meta key:_pw_reservation_url}}' )   . "\n"
+		. _pw_gb_row( 'rsts-r4', 'Menu URL',          '{{post_meta key:_pw_menu_url}}' )          . "\n"
+		. _pw_gb_p( 'rsts-ct', '{{post_content}}' ) . "\n"
+		. _pw_gb_link( 'rsts-bk', "\xE2\x86\x90 Back to Restaurants", '#restaurants' );
+}
+
+/* ── Spa singular ──────────────────────────────────────────────────────── */
+
+function _pw_markup_spa_singular(): string {
+	return _pw_gb_img( 'spas-img' ) . "\n"
+		. _pw_gb_h( 'spas-h1', '{{post_title}}', 'h1' ) . "\n"
+		. _pw_gb_p( 'spas-ex', '{{post_excerpt}}' ) . "\n"
+		. _pw_gb_row( 'spas-r0', 'Minimum age',           '{{post_meta key:_pw_min_age}}' )                    . "\n"
+		. _pw_gb_row( 'spas-r1', 'Treatment rooms',       '{{post_meta key:_pw_number_of_treatment_rooms}}' )  . "\n"
+		. _pw_gb_row( 'spas-r2', 'Booking URL',           '{{post_meta key:_pw_booking_url}}' )                . "\n"
+		. _pw_gb_row( 'spas-r3', 'Menu URL',              '{{post_meta key:_pw_menu_url}}' )                   . "\n"
+		. _pw_gb_p( 'spas-ct', '{{post_content}}' ) . "\n"
+		. _pw_gb_link( 'spas-bk', "\xE2\x86\x90 Back to Spas", '#spas' );
+}
+
+/* ── Meeting room singular ─────────────────────────────────────────────── */
+
+function _pw_markup_meeting_singular(): string {
+	return _pw_gb_img( 'mts-img' ) . "\n"
+		. _pw_gb_h( 'mts-h1', '{{post_title}}', 'h1' ) . "\n"
+		. _pw_gb_p( 'mts-ex', '{{post_excerpt}}' ) . "\n"
+		. _pw_gb_row( 'mts-r0', 'Theatre capacity',   '{{post_meta key:_pw_capacity_theatre}}' )   . "\n"
+		. _pw_gb_row( 'mts-r1', 'Classroom capacity',  '{{post_meta key:_pw_capacity_classroom}}' ) . "\n"
+		. _pw_gb_row( 'mts-r2', 'Boardroom capacity',  '{{post_meta key:_pw_capacity_boardroom}}' ) . "\n"
+		. _pw_gb_row( 'mts-r3', 'U-shape capacity',    '{{post_meta key:_pw_capacity_ushape}}' )    . "\n"
+		. _pw_gb_row( 'mts-r4', 'Area (sqm)',          '{{post_meta key:_pw_area_sqm}}' )           . "\n"
+		. _pw_gb_row( 'mts-r5', 'Area (sqft)',         '{{post_meta key:_pw_area_sqft}}' )          . "\n"
+		. _pw_gb_row( 'mts-r6', 'Natural light',       '{{post_meta key:_pw_natural_light}}' )      . "\n"
+		. _pw_gb_row( 'mts-r7', 'Sales email',         '{{post_meta key:_pw_sales_email}}' )        . "\n"
+		. _pw_gb_row( 'mts-r8', 'Sales phone',         '{{post_meta key:_pw_sales_phone}}' )        . "\n"
+		. _pw_gb_row( 'mts-r9', 'Sales WhatsApp',      '{{post_meta key:_pw_sales_whatsapp}}' )     . "\n"
+		. _pw_gb_p( 'mts-ct', '{{post_content}}' ) . "\n"
+		. _pw_gb_link( 'mts-bk', "\xE2\x86\x90 Back to Meetings", '#meetings' );
+}
+
+/* ── Experience singular ───────────────────────────────────────────────── */
+
+function _pw_markup_experience_singular(): string {
+	return _pw_gb_img( 'exs-img' ) . "\n"
+		. _pw_gb_h( 'exs-h1', '{{post_title}}', 'h1' ) . "\n"
+		. _pw_gb_p( 'exs-ex', '{{post_excerpt}}' ) . "\n"
+		. _pw_gb_row( 'exs-r0', 'Duration (hours)',   '{{post_meta key:_pw_duration_hours}}' )   . "\n"
+		. _pw_gb_row( 'exs-r1', 'Price from',         '{{post_meta key:_pw_price_from}} __PW_PROPERTY_CURRENCY__' ) . "\n"
+		. _pw_gb_row( 'exs-r2', 'Complimentary',      '{{post_meta key:_pw_is_complimentary}}' ) . "\n"
+		. _pw_gb_row( 'exs-r3', 'Booking URL',        '{{post_meta key:_pw_booking_url}}' )      . "\n"
+		. _pw_gb_p( 'exs-ct', '{{post_content}}' ) . "\n"
+		. _pw_gb_link( 'exs-bk', "\xE2\x86\x90 Back to Experiences", '#experiences' );
+}
+
+/* ── Event singular ────────────────────────────────────────────────────── */
+
+function _pw_markup_event_singular(): string {
+	return _pw_gb_img( 'evs-img' ) . "\n"
+		. _pw_gb_h( 'evs-h1', '{{post_title}}', 'h1' ) . "\n"
+		. _pw_gb_p( 'evs-ex', '{{post_excerpt}}' ) . "\n"
+		. _pw_gb_row( 'evs-r0', 'Start',               '{{post_meta key:_pw_start_datetime}}' )        . "\n"
+		. _pw_gb_row( 'evs-r1', 'End',                 '{{post_meta key:_pw_end_datetime}}' )          . "\n"
+		. _pw_gb_row( 'evs-r2', 'Capacity',            '{{post_meta key:_pw_capacity}}' )              . "\n"
+		. _pw_gb_row( 'evs-r3', 'Price from',          '{{post_meta key:_pw_price_from}} __PW_PROPERTY_CURRENCY__' ) . "\n"
+		. _pw_gb_row( 'evs-r4', 'Status',              '{{post_meta key:_pw_event_status}}' )          . "\n"
+		. _pw_gb_row( 'evs-r5', 'Attendance mode',     '{{post_meta key:_pw_event_attendance_mode}}' ) . "\n"
+		. _pw_gb_row( 'evs-r6', 'Booking URL',         '{{post_meta key:_pw_booking_url}}' )           . "\n"
+		. _pw_gb_p( 'evs-ct', '{{post_content}}' ) . "\n"
+		. _pw_gb_link( 'evs-bk', "\xE2\x86\x90 Back to Events", '#events' );
+}
+
+/* ── Offer singular ────────────────────────────────────────────────────── */
+
+function _pw_markup_offer_singular(): string {
+	return _pw_gb_h( 'ofs-h1', '{{post_title}}', 'h1' ) . "\n"
+		. _pw_gb_p( 'ofs-ex', '{{post_excerpt}}' ) . "\n"
+		. _pw_gb_row( 'ofs-r0', 'Offer type',        '{{post_meta key:_pw_offer_type}}' )          . "\n"
+		. _pw_gb_row( 'ofs-r1', 'Valid from',         '{{post_meta key:_pw_valid_from}}' )          . "\n"
+		. _pw_gb_row( 'ofs-r2', 'Valid to',           '{{post_meta key:_pw_valid_to}}' )            . "\n"
+		. _pw_gb_row( 'ofs-r3', 'Discount type',      '{{post_meta key:_pw_discount_type}}' )       . "\n"
+		. _pw_gb_row( 'ofs-r4', 'Discount value',     '{{post_meta key:_pw_discount_value}}' )      . "\n"
+		. _pw_gb_row( 'ofs-r5', 'Min. stay nights',   '{{post_meta key:_pw_minimum_stay_nights}}' ) . "\n"
+		. _pw_gb_row( 'ofs-r6', 'Featured',           '{{post_meta key:_pw_is_featured}}' )         . "\n"
+		. _pw_gb_row( 'ofs-r7', 'Booking URL',        '{{post_meta key:_pw_booking_url}}' )         . "\n"
+		. _pw_gb_p( 'ofs-ct', '{{post_content}}' ) . "\n"
+		. _pw_gb_link( 'ofs-bk', "\xE2\x86\x90 Back to Offers", '#offers' );
+}
+
+/* ── Nearby place singular ─────────────────────────────────────────────── */
+
+function _pw_markup_nearby_singular(): string {
+	return _pw_gb_img( 'pls-img' ) . "\n"
+		. _pw_gb_h( 'pls-h1', '{{post_title}}', 'h1' ) . "\n"
+		. _pw_gb_p( 'pls-ex', '{{post_excerpt}}' ) . "\n"
+		. _pw_gb_row( 'pls-r0', 'Distance (km)',    '{{post_meta key:_pw_distance_km}}' )    . "\n"
+		. _pw_gb_row( 'pls-r1', 'Travel time (min)', '{{post_meta key:_pw_travel_time_min}}' ) . "\n"
+		. _pw_gb_row( 'pls-r2', 'Latitude',          '{{post_meta key:_pw_lat}}' )             . "\n"
+		. _pw_gb_row( 'pls-r3', 'Longitude',         '{{post_meta key:_pw_lng}}' )             . "\n"
+		. _pw_gb_row( 'pls-r4', 'Place URL',         '{{post_meta key:_pw_place_url}}' )       . "\n"
+		. _pw_gb_p( 'pls-ct', '{{post_content}}' ) . "\n"
+		. _pw_gb_link( 'pls-bk', "\xE2\x86\x90 Back to Places Nearby", '#places' );
 }
 
 /**

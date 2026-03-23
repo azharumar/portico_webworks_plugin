@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.31] - 2026-03-23
+
+### Added
+- **GP Elements — singular templates**: installer creates **17** elements — property singular (`pw-property-singular`) plus **archive + singular** pairs for each section CPT (`_pw_element_type` meta: `archive` | `singular`; singulars use `_generate_block_type` `block`, archives remain `loop-template`)
+- **Starter markup** (`pw_get_section_starter_markup( $cpt, $type )`): property singular (identity, address, `_pw_direct_benefits` meta query, section link placeholders, scoped `pw_contact` query) and outlet singular markup per CPT (prefixed uniqueIds `rms-*`, `rsts-*`, …)
+- **`_pw_sales_whatsapp`** registered for `pw_meeting_room`
+- **Sample data**: empty **Fact Sheet** page per sample property with `_pw_property_id`, `_pw_generated`, `_pw_section_cpt`, `_pw_is_sample_data`
+
+### Changed
+- **`pw_build_element_conditions()`**: `is_singular` vs `is_post_type_archive` from element `type`
+- **`pw_find_generated_element( $cpt, $type )`**: distinguishes archive vs singular; legacy archive elements without `_pw_element_type` still match as archive
+- **Permalinks → Site structure**: GP Elements table **Type** column (Archive / Singular)
+
 ## [0.8.30] - 2026-03-23
 
 ### Fixed
