@@ -411,7 +411,16 @@ function pw_render_page_structure_admin_panel() {
 	}
 	echo '</tbody></table>';
 
-	echo '<p class="description" style="margin-top:1.25em;"><strong>' . esc_html__( 'GP Elements', 'portico-webworks' ) . '</strong></p>';
+	$menus_url = admin_url( 'nav-menus.php' );
+	echo '<p class="description" style="margin-top:1.25em;"><strong>' . esc_html__( 'GP Elements', 'portico-webworks' ) . '</strong> ';
+	echo esc_html__( 'Edit header menus under', 'portico-webworks' );
+	echo ' <a href="' . esc_url( $menus_url ) . '">' . esc_html__( 'Appearance → Menus', 'portico-webworks' ) . '</a>';
+	echo ' — ' . esc_html__( 'assign links to', 'portico-webworks' );
+	echo ' <code>' . esc_html( PW_NAV_MENU_PRIMARY ) . '</code> ';
+	echo esc_html__( '(primary) and', 'portico-webworks' );
+	echo ' <code>' . esc_html( PW_NAV_MENU_UTILITY ) . '</code> ';
+	echo esc_html__( '(utility).', 'portico-webworks' );
+	echo '</p>';
 	echo '<table class="widefat striped pw-page-structure-table" style="margin-top:0.5em;"><thead><tr>';
 	echo '<th>' . esc_html__( 'Element title', 'portico-webworks' ) . '</th>';
 	echo '<th>' . esc_html__( 'CPT', 'portico-webworks' ) . '</th>';
@@ -449,6 +458,25 @@ function pw_render_page_structure_admin_panel() {
 		echo '<td>' . esc_html( $type_label ) . '</td>';
 		echo '<td>' . esc_html( (string) $published ) . '</td>';
 		echo '<td>' . wp_kses_post( $status ) . '</td>';
+		echo '</tr>';
+	}
+	if ( $gp_active ) {
+		$sh = function_exists( 'pw_find_generated_site_header_element' ) ? pw_find_generated_site_header_element() : null;
+		$sh_status = $sh instanceof WP_Post
+			? '<span style="color:#007017;">' . esc_html__( 'Exists', 'portico-webworks' ) . '</span>'
+			: '<span style="color:#b32d2e;">' . esc_html__( 'Missing', 'portico-webworks' ) . '</span>';
+		if ( $sh instanceof WP_Post ) {
+			$elink = get_edit_post_link( $sh->ID, 'raw' );
+			if ( is_string( $elink ) && $elink !== '' ) {
+				$sh_status .= ' <a href="' . esc_url( $elink ) . '">' . esc_html__( 'Edit', 'portico-webworks' ) . '</a>';
+			}
+		}
+		echo '<tr>';
+		echo '<td>' . esc_html__( 'Portico Site Header', 'portico-webworks' ) . '</td>';
+		echo '<td><code>—</code></td>';
+		echo '<td>' . esc_html__( 'Site header', 'portico-webworks' ) . '</td>';
+		echo '<td>—</td>';
+		echo '<td>' . wp_kses_post( $sh_status ) . '</td>';
 		echo '</tr>';
 	}
 	echo '</tbody></table>';

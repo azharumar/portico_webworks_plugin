@@ -123,6 +123,57 @@ function pw_get_fact_sheet_starter_markup(): string {
 }
 
 /**
+ * GenerateBlocks starter for GP Premium site header element (utility bar, main row, breadcrumbs).
+ */
+function pw_get_site_header_starter_markup(): string {
+	return <<<'PW_HDR'
+<!-- wp:generateblocks/element {"uniqueId":"pw-h-util","tagName":"div","styles":{"paddingTop":"8px","paddingBottom":"8px","paddingLeft":"20px","paddingRight":"20px","backgroundColor":"#f5f5f5","fontSize":"13px"},"css":".gb-element-pw-h-util{background:#f5f5f5;font-size:13px;padding:8px 20px}","className":"gb-el gb-el-pw-h-util pw-header-utility"} -->
+<div class="gb-element-pw-h-util gb-el gb-el-pw-h-util pw-header-utility">
+<!-- wp:shortcode -->
+[pw_utility_nav]
+<!-- /wp:shortcode -->
+</div>
+<!-- /wp:generateblocks/element -->
+
+<!-- wp:generateblocks/element {"uniqueId":"pw-h-main","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0,1fr) minmax(0,2fr) minmax(0,1fr)","alignItems":"center","columnGap":"24px","rowGap":"12px","paddingTop":"16px","paddingBottom":"16px","paddingLeft":"20px","paddingRight":"20px","maxWidth":"1200px","marginLeft":"auto","marginRight":"auto"},"css":".gb-element-pw-h-main{align-items:center;column-gap:24px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) minmax(0,1fr);margin-left:auto;margin-right:auto;max-width:1200px;padding:16px 20px;row-gap:12px}@media (max-width:782px){.gb-element-pw-h-main{grid-template-columns:1fr}}","className":"gb-el gb-el-pw-h-main pw-header-main"} -->
+<div class="gb-element-pw-h-main gb-el gb-el-pw-h-main pw-header-main">
+<!-- wp:generateblocks/element {"uniqueId":"pw-h-col1","tagName":"div","styles":{},"css":"","className":"gb-el gb-el-pw-h-col1 pw-header-main__brand"} -->
+<div class="gb-element-pw-h-col1 gb-el gb-el-pw-h-col1 pw-header-main__brand">
+<!-- wp:shortcode -->
+[pw_site_branding]
+<!-- /wp:shortcode -->
+</div>
+<!-- /wp:generateblocks/element -->
+
+<!-- wp:generateblocks/element {"uniqueId":"pw-h-col2","tagName":"div","styles":{},"css":"","className":"gb-el gb-el-pw-h-col2 pw-header-main__menu"} -->
+<div class="gb-element-pw-h-col2 gb-el gb-el-pw-h-col2 pw-header-main__menu">
+<!-- wp:shortcode -->
+[pw_primary_nav]
+<!-- /wp:shortcode -->
+</div>
+<!-- /wp:generateblocks/element -->
+
+<!-- wp:generateblocks/element {"uniqueId":"pw-h-col3","tagName":"div","styles":{},"css":"","className":"gb-el gb-el-pw-h-col3 pw-header-main__cta"} -->
+<div class="gb-element-pw-h-col3 gb-el gb-el-pw-h-col3 pw-header-main__cta">
+<!-- wp:shortcode -->
+[pw_book_now_button]
+<!-- /wp:shortcode -->
+</div>
+<!-- /wp:generateblocks/element -->
+</div>
+<!-- /wp:generateblocks/element -->
+
+<!-- wp:generateblocks/element {"uniqueId":"pw-h-bc","tagName":"div","styles":{"paddingLeft":"20px","paddingRight":"20px","paddingBottom":"8px","maxWidth":"1200px","marginLeft":"auto","marginRight":"auto"},"css":".gb-element-pw-h-bc{margin-left:auto;margin-right:auto;max-width:1200px;padding:0 20px 8px}","className":"gb-el gb-el-pw-h-bc pw-header-breadcrumbs"} -->
+<div class="gb-element-pw-h-bc gb-el gb-el-pw-h-bc pw-header-breadcrumbs">
+<!-- wp:shortcode -->
+[pw_portico_breadcrumbs]
+<!-- /wp:shortcode -->
+</div>
+<!-- /wp:generateblocks/element -->
+PW_HDR;
+}
+
+/**
  * @return array<int, array{title: string, cpt: string, slug: string, type: string}>
  */
 function pw_get_required_elements(): array {
@@ -231,6 +282,10 @@ function pw_repair_element_block_types(): void {
 		$id            = (int) $el->ID;
 		$element_type  = (string) get_post_meta( $id, '_pw_element_type', true );
 		$section_cpt   = (string) get_post_meta( $id, '_pw_section_cpt', true );
+
+		if ( (string) get_post_meta( $id, '_generate_block_type', true ) === 'site-header' ) {
+			continue;
+		}
 
 		if ( $element_type === 'singular' ) {
 			$current = get_post_meta( $id, '_generate_block_type', true );
@@ -511,6 +566,114 @@ function pw_install_element( array $element_def ): array {
 }
 
 /**
+ * Installer-managed site header Block Element (slug pw-site-header).
+ */
+function pw_find_generated_site_header_element(): ?WP_Post {
+	if ( ! post_type_exists( 'gp_elements' ) ) {
+		return null;
+	}
+	$slug = 'pw-site-header';
+	$posts = get_posts(
+		[
+			'post_type'        => 'gp_elements',
+			'name'             => $slug,
+			'post_status'      => [ 'publish', 'draft', 'private' ],
+			'posts_per_page'   => 1,
+			'meta_key'         => '_pw_generated',
+			'meta_value'       => '1',
+			'no_found_rows'    => true,
+			'suppress_filters' => true,
+		]
+	);
+	if ( empty( $posts ) || ! $posts[0] instanceof WP_Post ) {
+		return null;
+	}
+
+	return $posts[0];
+}
+
+/**
+ * @return array{action: 'created'|'skipped', post_id: int, message: string}
+ */
+function pw_install_site_header_element(): array {
+	if ( ! post_type_exists( 'gp_elements' ) ) {
+		return [
+			'action'  => 'skipped',
+			'post_id' => 0,
+			'message' => __( 'GeneratePress Elements not found.', 'portico-webworks' ),
+		];
+	}
+
+	$existing = pw_find_generated_site_header_element();
+	if ( $existing ) {
+		return [
+			'action'  => 'skipped',
+			'post_id' => (int) $existing->ID,
+			'message' => __( 'Site header element already exists.', 'portico-webworks' ),
+		];
+	}
+
+	$content = pw_get_site_header_starter_markup();
+	if ( $content === '' ) {
+		return [
+			'action'  => 'skipped',
+			'post_id' => 0,
+			'message' => __( 'Site header starter markup missing.', 'portico-webworks' ),
+		];
+	}
+
+	$post_id = wp_insert_post(
+		wp_slash(
+			[
+				'post_title'   => __( 'Portico Site Header', 'portico-webworks' ),
+				'post_name'    => 'pw-site-header',
+				'post_status'  => 'publish',
+				'post_type'    => 'gp_elements',
+				'post_content' => $content,
+			]
+		),
+		true
+	);
+
+	if ( is_wp_error( $post_id ) ) {
+		return [
+			'action'  => 'skipped',
+			'post_id' => 0,
+			'message' => $post_id->get_error_message(),
+		];
+	}
+
+	$post_id = (int) $post_id;
+	update_post_meta( $post_id, '_generate_element_type', 'block' );
+	update_post_meta( $post_id, '_generate_block_type', 'site-header' );
+	update_post_meta( $post_id, '_pw_generated', '1' );
+	update_post_meta( $post_id, '_pw_section_cpt', '' );
+	update_post_meta( $post_id, '_pw_element_type', 'site_header' );
+	update_post_meta(
+		$post_id,
+		'_generate_element_display_conditions',
+		[
+			[
+				'rule'   => 'general:site',
+				'object' => '',
+			],
+		]
+	);
+	update_post_meta( $post_id, '_generate_element_conditions', [] );
+	update_post_meta( $post_id, '_generate_element_is_content', '' );
+
+	if ( function_exists( 'pw_maybe_seed_portico_nav_menus' ) ) {
+		pw_maybe_seed_portico_nav_menus();
+	}
+
+	return [
+		'action'  => 'created',
+		'post_id' => $post_id,
+		'message' => __( "Created element 'Portico Site Header' (pw-site-header)", 'portico-webworks' ),
+	];
+}
+
+/**
  * @return array<int, array{action: string, post_id: int, message: string}>
  */
 function pw_run_elements_installer(): array {
@@ -526,7 +689,8 @@ function pw_run_elements_installer(): array {
 
 	delete_transient( 'pw_installer_gp_elements_notice' );
 
-	$results = [];
+	$results   = [];
+	$results[] = pw_install_site_header_element();
 	foreach ( pw_get_required_elements() as $def ) {
 		$results[] = pw_install_element( $def );
 	}
@@ -898,8 +1062,8 @@ function pw_get_section_starter_markup( string $cpt, string $type = 'archive' ):
 <!-- wp:generateblocks/loop-item {"uniqueId":"rm-item","tagName":"div","className":"gb-li-rm-item"} -->
 <div class="gb-loop-item gb-loop-item-rm-item gb-li-rm-item">
 <!-- wp:generateblocks/element {"uniqueId":"rtlsp","tagName":"div","styles":{"marginBottom":"32px","paddingBottom":"8px"},"css":".gb-element-rtlsp{margin-bottom:32px;padding-bottom:8px}","className":"gb-el gb-el-rtlsp"} -->
-<div class="gb-element-rtlsp gb-el gb-el-rtlsp"><!-- wp:generateblocks/text {"uniqueId":"rt_t","tagName":"h3","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600"},"css":".gb-text-rt_t{margin-bottom:12px;font-size:18px;font-weight:600}","className":"gb-t-rt_t"} -->
-<h3 class="gb-text gb-text-rt_t gb-t-rt_t">{{post_title}}</h3>
+<div class="gb-element-rtlsp gb-el gb-el-rtlsp"><!-- wp:generateblocks/text {"uniqueId":"rt_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600","display":"inline-block","textDecoration":"none"},"css":".gb-text-rt_t{margin-bottom:12px;font-size:18px;font-weight:600;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-rt_t"} -->
+<a class="gb-text gb-text-rt_t gb-t-rt_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
 <!-- wp:generateblocks/text {"uniqueId":"rt_e","tagName":"p","styles":{"marginBottom":"12px"},"css":".gb-text-rt_e{margin-bottom:12px}","className":"gb-t-rt_e"} -->
 <p class="gb-text gb-text-rt_e gb-t-rt_e">{{post_excerpt}}</p>
@@ -1003,8 +1167,8 @@ PW_ST_ROOM_TYPE,
 <div class="gb-loop-item gb-loop-item-rst-item gb-li-rst-item">
 <!-- wp:generateblocks/element {"uniqueId":"rslsp","tagName":"div","styles":{"marginBottom":"32px","paddingBottom":"8px"},"css":".gb-element-rslsp{margin-bottom:32px;padding-bottom:8px}","className":"gb-el gb-el-rslsp"} -->
 <div class="gb-element-rslsp gb-el gb-el-rslsp"><!-- wp:generateblocks/element {"uniqueId":"rsbd","tagName":"div","styles":{"paddingLeft":"18px","borderLeftWidth":"3px","borderLeftStyle":"solid","borderLeftColor":"#c5c5c5"},"css":".gb-element-rsbd{border-left:3px solid #c5c5c5;padding-left:18px}","className":"gb-el gb-el-rsbd"} -->
-<div class="gb-element-rsbd gb-el gb-el-rsbd"><!-- wp:generateblocks/text {"uniqueId":"rs_t","tagName":"div","styles":{"marginBottom":"6px","fontSize":"17px","fontWeight":"600"},"css":".gb-text-rs_t{margin-bottom:6px;font-size:17px;font-weight:600}","className":"gb-t-rs_t"} -->
-<div class="gb-text gb-text-rs_t gb-t-rs_t">{{post_title}}</div>
+<div class="gb-element-rsbd gb-el gb-el-rsbd"><!-- wp:generateblocks/text {"uniqueId":"rs_t","tagName":"a","styles":{"marginBottom":"6px","fontSize":"17px","fontWeight":"600","display":"inline-block","textDecoration":"none"},"css":".gb-text-rs_t{margin-bottom:6px;font-size:17px;font-weight:600;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-rs_t"} -->
+<a class="gb-text gb-text-rs_t gb-t-rs_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
 <!-- wp:generateblocks/text {"uniqueId":"rs_d","tagName":"div","styles":{"marginBottom":"8px","fontSize":"14px"},"css":".gb-text-rs_d{margin-bottom:8px;font-size:14px}","className":"gb-t-rs_d"} -->
 <div class="gb-text gb-text-rs_d gb-t-rs_d">{{post_meta key:_pw_cuisine_type}} · {{post_meta key:_pw_location}} · {{post_meta key:_pw_seating_capacity}} seats</div>
@@ -1043,8 +1207,8 @@ PW_ST_RESTAURANT,
 <!-- wp:generateblocks/loop-item {"uniqueId":"spa-item","tagName":"div","className":"gb-li-spa-item"} -->
 <div class="gb-loop-item gb-loop-item-spa-item gb-li-spa-item">
 <!-- wp:generateblocks/element {"uniqueId":"splsp","tagName":"div","styles":{"marginBottom":"32px","paddingBottom":"8px"},"css":".gb-element-splsp{margin-bottom:32px;padding-bottom:8px}","className":"gb-el gb-el-splsp"} -->
-<div class="gb-element-splsp gb-el gb-el-splsp"><!-- wp:generateblocks/text {"uniqueId":"sp_t","tagName":"h3","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600"},"css":".gb-text-sp_t{margin-bottom:12px;font-size:18px;font-weight:600}","className":"gb-t-sp_t"} -->
-<h3 class="gb-text gb-text-sp_t gb-t-sp_t">{{post_title}}</h3>
+<div class="gb-element-splsp gb-el gb-el-splsp"><!-- wp:generateblocks/text {"uniqueId":"sp_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600","display":"inline-block","textDecoration":"none"},"css":".gb-text-sp_t{margin-bottom:12px;font-size:18px;font-weight:600;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-sp_t"} -->
+<a class="gb-text gb-text-sp_t gb-t-sp_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
 <!-- wp:generateblocks/text {"uniqueId":"sp_e","tagName":"p","styles":{"marginBottom":"12px"},"css":".gb-text-sp_e{margin-bottom:12px}","className":"gb-t-sp_e"} -->
 <p class="gb-text gb-text-sp_e gb-t-sp_e">{{post_excerpt}}</p>
@@ -1099,8 +1263,8 @@ PW_ST_SPA,
 <!-- wp:generateblocks/loop-item {"uniqueId":"mt-item","tagName":"div","className":"gb-li-mt-item"} -->
 <div class="gb-loop-item gb-loop-item-mt-item gb-li-mt-item">
 <!-- wp:generateblocks/element {"uniqueId":"ch_mrrow","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"repeat(8, minmax(5.5rem, 1fr))","columnGap":"10px","rowGap":"6px","alignItems":"start","paddingTop":"10px","paddingBottom":"10px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-ch_mrrow{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:10px;display:grid;grid-template-columns:repeat(8,minmax(5.5rem,1fr));padding:10px 0;row-gap:6px;width:100%}","className":"gb-el gb-el-ch_mrrow"} -->
-<div class="gb-element-ch_mrrow gb-el gb-el-ch_mrrow"><!-- wp:generateblocks/text {"uniqueId":"ch_mrrowc0","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_mrrowc0{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_mrrowc0"} -->
-<div class="gb-text gb-text-ch_mrrowc0 gb-t-ch_mrrowc0">{{post_title}}</div>
+<div class="gb-element-ch_mrrow gb-el gb-el-ch_mrrow"><!-- wp:generateblocks/text {"uniqueId":"ch_mrrowc0","tagName":"a","styles":{"marginBottom":"0px","fontSize":"14px","display":"inline-block","textDecoration":"none"},"css":".gb-text-ch_mrrowc0{margin-bottom:0;font-size:14px;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-ch_mrrowc0"} -->
+<a class="gb-text gb-text-ch_mrrowc0 gb-t-ch_mrrowc0" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
 <!-- wp:generateblocks/text {"uniqueId":"ch_mrrowc1","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_mrrowc1{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_mrrowc1"} -->
 <div class="gb-text gb-text-ch_mrrowc1 gb-t-ch_mrrowc1">{{post_meta key:_pw_capacity_theatre}} guests</div>
@@ -1164,8 +1328,8 @@ PW_ST_MEETING_ROOM,
 <!-- wp:generateblocks/loop-item {"uniqueId":"ex-item","tagName":"div","className":"gb-li-ex-item"} -->
 <div class="gb-loop-item gb-loop-item-ex-item gb-li-ex-item">
 <!-- wp:generateblocks/element {"uniqueId":"exlsp","tagName":"div","styles":{"marginBottom":"32px","paddingBottom":"8px"},"css":".gb-element-exlsp{margin-bottom:32px;padding-bottom:8px}","className":"gb-el gb-el-exlsp"} -->
-<div class="gb-element-exlsp gb-el gb-el-exlsp"><!-- wp:generateblocks/text {"uniqueId":"ex_t","tagName":"h3","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600"},"css":".gb-text-ex_t{margin-bottom:12px;font-size:18px;font-weight:600}","className":"gb-t-ex_t"} -->
-<h3 class="gb-text gb-text-ex_t gb-t-ex_t">{{post_title}}</h3>
+<div class="gb-element-exlsp gb-el gb-el-exlsp"><!-- wp:generateblocks/text {"uniqueId":"ex_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600","display":"inline-block","textDecoration":"none"},"css":".gb-text-ex_t{margin-bottom:12px;font-size:18px;font-weight:600;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-ex_t"} -->
+<a class="gb-text gb-text-ex_t gb-t-ex_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
 <!-- wp:generateblocks/text {"uniqueId":"ex_d","tagName":"p","styles":{"marginBottom":"12px"},"css":".gb-text-ex_d{margin-bottom:12px}","className":"gb-t-ex_d"} -->
 <p class="gb-text gb-text-ex_d gb-t-ex_d">{{post_meta key:_pw_description}}</p>
@@ -1229,8 +1393,8 @@ PW_ST_EXPERIENCE,
 <!-- wp:generateblocks/loop-item {"uniqueId":"nb-item","tagName":"div","className":"gb-li-nb-item"} -->
 <div class="gb-loop-item gb-loop-item-nb-item gb-li-nb-item">
 <!-- wp:generateblocks/element {"uniqueId":"ch_nrrow","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"repeat(5, minmax(5.5rem, 1fr))","columnGap":"10px","rowGap":"6px","alignItems":"start","paddingTop":"10px","paddingBottom":"10px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-ch_nrrow{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:10px;display:grid;grid-template-columns:repeat(5,minmax(5.5rem,1fr));padding:10px 0;row-gap:6px;width:100%}","className":"gb-el gb-el-ch_nrrow"} -->
-<div class="gb-element-ch_nrrow gb-el gb-el-ch_nrrow"><!-- wp:generateblocks/text {"uniqueId":"ch_nrrowc0","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_nrrowc0{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_nrrowc0"} -->
-<div class="gb-text gb-text-ch_nrrowc0 gb-t-ch_nrrowc0">{{post_title}}</div>
+<div class="gb-element-ch_nrrow gb-el gb-el-ch_nrrow"><!-- wp:generateblocks/text {"uniqueId":"ch_nrrowc0","tagName":"a","styles":{"marginBottom":"0px","fontSize":"14px","display":"inline-block","textDecoration":"none"},"css":".gb-text-ch_nrrowc0{margin-bottom:0;font-size:14px;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-ch_nrrowc0"} -->
+<a class="gb-text gb-text-ch_nrrowc0 gb-t-ch_nrrowc0" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
 <!-- wp:generateblocks/text {"uniqueId":"ch_nrrowc1","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_nrrowc1{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_nrrowc1"} -->
 <div class="gb-text gb-text-ch_nrrowc1 gb-t-ch_nrrowc1">{{post_excerpt}}</div>
@@ -1267,8 +1431,8 @@ PW_ST_NEARBY,
 <!-- wp:generateblocks/loop-item {"uniqueId":"ev-item","tagName":"div","className":"gb-li-ev-item"} -->
 <div class="gb-loop-item gb-loop-item-ev-item gb-li-ev-item">
 <!-- wp:generateblocks/element {"uniqueId":"evlsp","tagName":"div","styles":{"marginBottom":"32px","paddingBottom":"8px"},"css":".gb-element-evlsp{margin-bottom:32px;padding-bottom:8px}","className":"gb-el gb-el-evlsp"} -->
-<div class="gb-element-evlsp gb-el gb-el-evlsp"><!-- wp:generateblocks/text {"uniqueId":"ev_t","tagName":"h3","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600"},"css":".gb-text-ev_t{margin-bottom:12px;font-size:18px;font-weight:600}","className":"gb-t-ev_t"} -->
-<h3 class="gb-text gb-text-ev_t gb-t-ev_t">{{post_title}}</h3>
+<div class="gb-element-evlsp gb-el gb-el-evlsp"><!-- wp:generateblocks/text {"uniqueId":"ev_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600","display":"inline-block","textDecoration":"none"},"css":".gb-text-ev_t{margin-bottom:12px;font-size:18px;font-weight:600;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-ev_t"} -->
+<a class="gb-text gb-text-ev_t gb-t-ev_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
 <!-- wp:generateblocks/text {"uniqueId":"ev_e","tagName":"p","styles":{"marginBottom":"12px"},"css":".gb-text-ev_e{margin-bottom:12px}","className":"gb-t-ev_e"} -->
 <p class="gb-text gb-text-ev_e gb-t-ev_e">{{post_excerpt}}</p>
@@ -1347,8 +1511,8 @@ PW_ST_EVENT,
 <!-- wp:generateblocks/loop-item {"uniqueId":"of-item","tagName":"div","className":"gb-li-of-item"} -->
 <div class="gb-loop-item gb-loop-item-of-item gb-li-of-item">
 <!-- wp:generateblocks/element {"uniqueId":"oflsp","tagName":"div","styles":{"marginBottom":"32px","paddingBottom":"8px"},"css":".gb-element-oflsp{margin-bottom:32px;padding-bottom:8px}","className":"gb-el gb-el-oflsp"} -->
-<div class="gb-element-oflsp gb-el gb-el-oflsp"><!-- wp:generateblocks/text {"uniqueId":"of_t","tagName":"h3","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600"},"css":".gb-text-of_t{margin-bottom:12px;font-size:18px;font-weight:600}","className":"gb-t-of_t"} -->
-<h3 class="gb-text gb-text-of_t gb-t-of_t">{{post_title}}</h3>
+<div class="gb-element-oflsp gb-el gb-el-oflsp"><!-- wp:generateblocks/text {"uniqueId":"of_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600","display":"inline-block","textDecoration":"none"},"css":".gb-text-of_t{margin-bottom:12px;font-size:18px;font-weight:600;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-of_t"} -->
+<a class="gb-text gb-text-of_t gb-t-of_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
 <!-- wp:generateblocks/text {"uniqueId":"of_e","tagName":"p","styles":{"marginBottom":"12px"},"css":".gb-text-of_e{margin-bottom:12px}","className":"gb-t-of_e"} -->
 <p class="gb-text gb-text-of_e gb-t-of_e">{{post_excerpt}}</p>
@@ -1434,7 +1598,7 @@ PW_ST_OFFER,
 		return '';
 	}
 
-	return _pw_gb_main_nav_block() . "\n" . $body;
+	return $body;
 }
 
 /* ────────────────────────────────────────────────────────────────────────
@@ -1472,24 +1636,6 @@ function _pw_gb_link( string $uid, string $text, string $href ): string {
 	return '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . '","tagName":"a","styles":{"marginBottom":"4px","display":"inline-block","marginRight":"16px"},"css":".gb-text-' . $uid . '{display:inline-block;margin-bottom:4px;margin-right:16px}","htmlAttributes":[{"key":"href","value":"' . $href . '"}],"className":"gb-t-' . $uid . '"} -->' . "\n"
 		. '<a class="gb-text gb-text-' . $uid . ' gb-t-' . $uid . '" href="' . $href . '">' . $text . '</a>' . "\n"
 		. '<!-- /wp:generateblocks/text -->';
-}
-
-function _pw_gb_main_nav_block(): string {
-	$inner = '';
-	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'multi' ) {
-		$inner .= _pw_gb_link( 'pw-nv-h', 'Hotels', '{{pw_home_url}}' );
-	}
-	$inner .= _pw_gb_link( 'pw-nv-x', 'Experiences', '{{pw_section_url:pw_experience}}' );
-	$inner .= _pw_gb_link( 'pw-nv-o', 'Offers', '{{pw_section_url:pw_offer}}' );
-	$inner .= _pw_gb_link( 'pw-nv-d', 'Dining', '{{pw_section_url:pw_restaurant}}' );
-	$inner .= _pw_gb_link( 'pw-nv-me', 'Meetings & Events', '{{pw_section_url:pw_meeting_room}}' );
-	$inner .= _pw_gb_link( 'pw-nv-s', 'Spa', '{{pw_section_url:pw_spa}}' );
-
-	return '<!-- wp:generateblocks/element {"uniqueId":"pw-site-nav","tagName":"nav","styles":{"display":"flex","flexWrap":"wrap","columnGap":"12px","rowGap":"8px","alignItems":"center","marginBottom":"24px","paddingBottom":"16px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-element-pw-site-nav{align-items:center;border-bottom:1px solid #e0e0e0;column-gap:12px;display:flex;flex-wrap:wrap;margin-bottom:24px;padding-bottom:16px;row-gap:8px}","className":"gb-el gb-el-pw-site-nav pw-site-nav"} -->' . "\n"
-		. '<nav class="gb-element-pw-site-nav gb-el gb-el-pw-site-nav pw-site-nav" aria-label="Main">' . "\n"
-		. $inner
-		. '</nav>' . "\n"
-		. '<!-- /wp:generateblocks/element -->';
 }
 
 function _pw_gb_img( string $uid ): string {

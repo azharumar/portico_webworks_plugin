@@ -1,15 +1,28 @@
 # Changelog
 
+## [0.8.38] - 2026-03-25
+
+### Added
+- **Nav menus + site header implementation**: `includes/nav-menus.php` and bootstrap `require_once`; `pw-site-header` GP Element install/starter markup (`includes/page-installer.php`); structure admin Menus link and **Portico Site Header** row (`includes/admin-page.php`)
+- **`CURSOR-PROJECT-NOTES.txt`**
+
+### Changed
+- **Sample demo media SEO**: each sideloaded `assets/sample-media/` attachment gets `post_title`, `_wp_attachment_image_alt`, `post_content` (description), and `post_excerpt` (caption) via `includes/sample-demo-media-seo.php`
+
 ## [0.8.37] - 2026-03-25
 
 ### Added
-- **GP Elements starter nav**: main menu block (`pw-site-nav`) prepended to generated archive and singular templates — Hotels (`{{pw_home_url}}` in multi-property mode only), Experiences, Offers, Dining, Meetings & Events, Spa (`{{pw_section_url:…}}`)
+- **`CURSOR-PROJECT-NOTES.txt`**: staging site URL and note that production migrations are not required yet
+- **Native nav menus** (`includes/nav-menus.php`): `pw_primary` / `pw_utility` locations; shortcodes `[pw_primary_nav]`, `[pw_utility_nav]`, `[pw_site_branding]`, `[pw_book_now_button]`, `[pw_portico_breadcrumbs]`; optional seed menu **Portico Primary** on structure install
+- **GP Element `pw-site-header`**: `_generate_block_type = site-header`, Location `general:site` — utility bar, 3-column row (branding / primary menu / book now), breadcrumbs
+- **Archive loop titles**: clickable links via `{{post_permalink}}` on all section archive starters
 - **Gallery metadata**: `_pw_gallery_meta` (JSON string per attachment: `category`, `caption`) on `pw_property` and all outlet CPTs with `_pw_gallery`; `pw_get_gallery_categories()` and `pw_sanitize_pw_gallery_meta_json()` in `includes/gallery-categories.php`; **Gallery details** custom metabox (`includes/gallery-meta-metabox.php`)
 - **Property gallery**: CMB2 `file_list` `_pw_gallery` on `pw_property`; `_pw_pools` repeatable group optional **Photo** (`attachment_id`); `pw_property` **`_pw_og_image`** (attachment ID) in `register_post_meta`
 - **Sample data media**: sideload `assets/sample-media/` (`includes/sample-data-demo-media.php`), featured images, galleries + `_pw_gallery_meta`, `_pw_og_image`, pool images; generic assets reused across demo posts where appropriate
 
 ### Changed
-- **Section listing URL tokens**: outlet singular “Back to …” links and installer repair use `{{pw_current_section_listing_url}}` (resolved via `pw_get_section_listing_url`) instead of `{{post_type_archive_link}}`, which does not match Portico virtual archives; added `{{pw_home_url}}` for the Hotels item
+- **Section listing URL tokens**: outlet singular “Back to …” links and installer repair use `{{pw_current_section_listing_url}}` instead of `{{post_type_archive_link}}`; `{{pw_home_url}}` remains for optional use in blocks
+- **Permalinks admin**: link to **Appearance → Menus** and GP Elements table row for **Portico Site Header**
 - **DATA-STRUCTURE.md**: documents `_pw_gallery_meta`, property gallery, `_pw_pools.attachment_id`, `_pw_og_image`
 
 ### Removed

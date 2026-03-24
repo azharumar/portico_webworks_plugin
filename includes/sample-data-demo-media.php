@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/sample-demo-media-seo.php';
+
 /**
  * @param string $slug      Post slug.
  * @param string $post_type Post type.
@@ -109,6 +111,7 @@ function pw_sample_sideload_sample_media_file( $abs_path ) {
 	}
 	$id = (int) $id;
 	pw_sample_flag_post( $id );
+	pw_sample_apply_demo_media_attachment_seo( $id, basename( $abs_path ) );
 	$cache[ $abs_path ] = $id;
 	return $id;
 }

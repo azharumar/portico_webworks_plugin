@@ -1,0 +1,13 @@
+Portico Webworks Plugin — Cursor / agent notes
+==============================================
+
+Staging / QA site (reference)
+-----------------------------
+Root URL: https://dimgrey-viper-783899.hostingersite.com
+
+Migrations
+----------
+The plugin is not deployed to production yet. Do not add backward-compatibility
+migrations, data upgrade routines, or repair paths solely for legacy installs
+unless the user explicitly asks. Prefer straightforward changes over versioned
+upgrade steps.

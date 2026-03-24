@@ -1,0 +1,281 @@
+<?php
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+define( 'PW_NAV_MENU_PRIMARY', 'pw_primary' );
+define( 'PW_NAV_MENU_UTILITY', 'pw_utility' );
+
+add_action( 'after_setup_theme', 'pw_register_nav_menus', 20 );
+
+function pw_register_nav_menus(): void {
+	register_nav_menus(
+		[
+			PW_NAV_MENU_PRIMARY  => __( 'Portico primary (header)', 'portico-webworks' ),
+			PW_NAV_MENU_UTILITY => __( 'Portico utility (header bar)', 'portico-webworks' ),
+		]
+	);
+}
+
+add_shortcode( 'pw_primary_nav', 'pw_shortcode_primary_nav' );
+add_shortcode( 'pw_utility_nav', 'pw_shortcode_utility_nav' );
+add_shortcode( 'pw_site_branding', 'pw_shortcode_site_branding' );
+add_shortcode( 'pw_book_now_button', 'pw_shortcode_book_now_button' );
+add_shortcode( 'pw_portico_breadcrumbs', 'pw_shortcode_portico_breadcrumbs' );
+
+function pw_shortcode_primary_nav(): string {
+	ob_start();
+	wp_nav_menu(
+		[
+			'theme_location'  => PW_NAV_MENU_PRIMARY,
+			'container'       => 'nav',
+			'container_class' => 'pw-primary-nav',
+			'container_aria_label' => __( 'Primary', 'portico-webworks' ),
+			'menu_class'      => 'pw-primary-nav__list',
+			'fallback_cb'     => false,
+			'depth'           => 3,
+		]
+	);
+
+	return (string) ob_get_clean();
+}
+
+function pw_shortcode_utility_nav(): string {
+	ob_start();
+	wp_nav_menu(
+		[
+			'theme_location'  => PW_NAV_MENU_UTILITY,
+			'container'       => 'nav',
+			'container_class' => 'pw-utility-nav',
+			'container_aria_label' => __( 'Utility', 'portico-webworks' ),
+			'menu_class'      => 'pw-utility-nav__list',
+			'fallback_cb'     => false,
+			'depth'           => 1,
+		]
+	);
+
+	return (string) ob_get_clean();
+}
+
+function pw_shortcode_site_branding(): string {
+	$home = esc_url( untrailingslashit( home_url( '/' ) ) );
+	if ( function_exists( 'the_custom_logo' ) && has_custom_logo() ) {
+		ob_start();
+		echo '<a class="pw-site-branding" href="' . esc_url( $home ) . '" rel="home">';
+		the_custom_logo();
+		echo '</a>';
+
+		return (string) ob_get_clean();
+	}
+
+	return sprintf(
+		'<a class="pw-site-branding pw-site-branding--text" href="%1$s" rel="home"><span class="pw-site-branding__title">%2$s</span></a>',
+		esc_url( $home ),
+		esc_html( get_bloginfo( 'name', 'display' ) )
+	);
+}
+
+function pw_shortcode_book_now_button(): string {
+	$url = pw_get_setting( 'pw_book_now_url', '' );
+	$url = is_string( $url ) && $url !== '' ? $url : '#';
+	$url = esc_url( $url );
+
+	return sprintf(
+		'<a class="pw-book-now-button" href="%1$s">%2$s</a>',
+		$url,
+		esc_html__( 'Book now', 'portico-webworks' )
+	);
+}
+
+function pw_shortcode_portico_breadcrumbs(): string {
+	return pw_get_breadcrumbs_html();
+}
+
+function pw_get_breadcrumbs_html(): string {
+	$items = [];
+
+	$items[] = [
+		'url'   => untrailingslashit( home_url( '/' ) ),
+		'label' => __( 'Home', 'portico-webworks' ),
+		'current' => false,
+	];
+
+	$pid = (int) pw_get_current_property_id();
+	if ( $pid > 0 ) {
+		$purl  = pw_get_property_url( $pid );
+		$ptitle = get_the_title( $pid );
+		if ( $purl !== '' && is_string( $ptitle ) && $ptitle !== '' ) {
+			$items[] = [
+				'url'     => $purl,
+				'label'   => $ptitle,
+				'current' => false,
+			];
+		}
+	}
+
+	$cpt    = sanitize_key( (string) get_query_var( 'pw_section_cpt', '' ) );
+	$outlet = (string) get_query_var( 'pw_outlet_slug', '' );
+
+	if ( $cpt !== '' && in_array( $cpt, pw_url_section_cpts(), true ) && $pid > 0 ) {
+		$list_url = pw_get_section_listing_url( $pid, $cpt );
+		$slabel   = pw_get_section_breadcrumb_label( $cpt );
+		$is_singular = $outlet !== '';
+		if ( $list_url !== '' && $slabel !== '' ) {
+			$items[] = [
+				'url'     => $is_singular ? $list_url : '',
+				'label'   => $slabel,
+				'current' => ! $is_singular,
+			];
+		}
+		if ( $is_singular ) {
+			$oid = (int) get_queried_object_id();
+			$t   = $oid > 0 ? get_the_title( $oid ) : '';
+			if ( is_string( $t ) && $t !== '' ) {
+				$items[] = [
+					'url'     => '',
+					'label'   => $t,
+					'current' => true,
+				];
+			}
+		}
+	} elseif ( is_singular( 'pw_property' ) ) {
+		$items[] = [
+			'url'     => '',
+			'label'   => get_the_title(),
+			'current' => true,
+		];
+	}
+
+	if ( count( $items ) <= 1 ) {
+		return '';
+	}
+
+	$parts = [];
+	foreach ( $items as $i ) {
+		$label = isset( $i['label'] ) ? (string) $i['label'] : '';
+		if ( $label === '' ) {
+			continue;
+		}
+		if ( ! empty( $i['current'] ) || empty( $i['url'] ) ) {
+			$parts[] = '<span class="pw-breadcrumbs__current" aria-current="page">' . esc_html( $label ) . '</span>';
+		} else {
+			$parts[] = '<a class="pw-breadcrumbs__link" href="' . esc_url( (string) $i['url'] ) . '">' . esc_html( $label ) . '</a>';
+		}
+	}
+
+	if ( count( $parts ) <= 1 ) {
+		return '';
+	}
+
+	return '<nav class="pw-breadcrumbs" aria-label="' . esc_attr__( 'Breadcrumb', 'portico-webworks' ) . '"><div class="pw-breadcrumbs__inner">' . implode( ' <span class="pw-breadcrumbs__sep">/</span> ', $parts ) . '</div></nav>';
+}
+
+function pw_get_section_breadcrumb_label( string $cpt ): string {
+	$map = [
+		'pw_room_type'    => __( 'Rooms', 'portico-webworks' ),
+		'pw_restaurant'   => __( 'Dining', 'portico-webworks' ),
+		'pw_spa'          => __( 'Spa', 'portico-webworks' ),
+		'pw_meeting_room' => __( 'Meetings', 'portico-webworks' ),
+		'pw_experience'   => __( 'Experiences', 'portico-webworks' ),
+		'pw_event'        => __( 'Events', 'portico-webworks' ),
+		'pw_offer'        => __( 'Offers', 'portico-webworks' ),
+		'pw_nearby'       => __( 'Places', 'portico-webworks' ),
+	];
+
+	return $map[ $cpt ] ?? '';
+}
+
+function pw_maybe_seed_portico_nav_menus(): void {
+	if ( ! current_user_can( 'edit_theme_options' ) ) {
+		return;
+	}
+
+	$locations = get_theme_mod( 'nav_menu_locations', [] );
+	if ( ! is_array( $locations ) ) {
+		$locations = [];
+	}
+	$existing_id = isset( $locations[ PW_NAV_MENU_PRIMARY ] ) ? (int) $locations[ PW_NAV_MENU_PRIMARY ] : 0;
+	if ( $existing_id > 0 && is_nav_menu( $existing_id ) ) {
+		return;
+	}
+
+	$menu_name = __( 'Portico Primary', 'portico-webworks' );
+	$menu      = wp_get_nav_menu_object( $menu_name );
+	$menu_id   = $menu ? (int) $menu->term_id : (int) wp_create_nav_menu( $menu_name );
+	if ( $menu_id <= 0 || is_wp_error( $menu_id ) ) {
+		return;
+	}
+
+	$pid = (int) pw_get_setting( 'pw_default_property_id', 0 );
+	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'multi' && $pid <= 0 ) {
+		$first = get_posts(
+			[
+				'post_type'      => 'pw_property',
+				'post_status'    => 'publish',
+				'posts_per_page' => 1,
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+				'fields'         => 'ids',
+			]
+		);
+		$pid = isset( $first[0] ) ? (int) $first[0] : 0;
+	}
+
+	$order = 0;
+	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'multi' ) {
+		wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			[
+				'menu-item-title'  => __( 'Hotels', 'portico-webworks' ),
+				'menu-item-url'    => esc_url_raw( untrailingslashit( home_url( '/' ) ) ),
+				'menu-item-status' => 'publish',
+				'menu-item-position' => ++$order,
+			]
+		);
+	}
+
+	$links = [
+		__( 'Experiences', 'portico-webworks' ) => 'pw_experience',
+		__( 'Offers', 'portico-webworks' )       => 'pw_offer',
+		__( 'Dining', 'portico-webworks' )       => 'pw_restaurant',
+		__( 'Meetings', 'portico-webworks' )     => 'pw_meeting_room',
+		__( 'Events', 'portico-webworks' )       => 'pw_event',
+		__( 'Spa', 'portico-webworks' )          => 'pw_spa',
+	];
+
+	foreach ( $links as $title => $section_cpt ) {
+		$url = pw_get_section_listing_url( $pid, $section_cpt );
+		if ( $url === '' ) {
+			continue;
+		}
+		wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			[
+				'menu-item-title'    => $title,
+				'menu-item-url'      => esc_url_raw( $url ),
+				'menu-item-status'   => 'publish',
+				'menu-item-position' => ++$order,
+			]
+		);
+	}
+
+	$locations[ PW_NAV_MENU_PRIMARY ] = $menu_id;
+	set_theme_mod( 'nav_menu_locations', $locations );
+}
+
+add_action(
+	'wp_enqueue_scripts',
+	static function () {
+		if ( is_admin() ) {
+			return;
+		}
+		$css = '.pw-primary-nav__list,.pw-utility-nav__list{display:flex;flex-wrap:wrap;gap:1rem;list-style:none;margin:0;padding:0;align-items:center}.pw-utility-nav__list{justify-content:flex-end;font-size:13px}.pw-primary-nav{justify-content:center;width:100%}.pw-header-main__menu{display:flex;justify-content:center;width:100%}.pw-header-main__cta{display:flex;justify-content:flex-end;align-items:center}.pw-book-now-button{display:inline-block;padding:.5rem 1.25rem;background:#c90;text-decoration:none;color:#fff;border-radius:4px;font-weight:600}.pw-book-now-button:hover{opacity:.92;color:#fff}.pw-breadcrumbs{font-size:13px;padding:10px 20px;max-width:1200px;margin:0 auto;color:#555}.pw-site-branding{display:inline-block}.pw-site-branding img{max-height:48px;width:auto}';
+		wp_register_style( 'pw-nav-menus', false, [], defined( 'PW_VERSION' ) ? PW_VERSION : '0' );
+		wp_enqueue_style( 'pw-nav-menus' );
+		wp_add_inline_style( 'pw-nav-menus', $css );
+	},
+	20
+);
