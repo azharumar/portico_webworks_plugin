@@ -291,6 +291,8 @@ These functions must be used in all validation hooks — never hardcode the slug
 No sub-path mapping table. No developer registration per page type.
 
 The plugin registers one wildcard rewrite at the property level, **after all section and outlet rules.**
+Root catch-alls intentionally **do not** match reserved single segments (`*-sitemap.xml`, Rank Math / Yoast-style; `wp-sitemap*.xml`; `sitemap_index.xml`; `sitemap.xml`; `robots.txt`) so SEO sitemaps and crawlers are not routed to the static-page or property resolver (`pw_url_reserved_root_segment_pattern()` in `property-rewrites.php`).
+
 When a URL segment after the property slug does not match any known plural or singular base,
 the plugin resolves the segment as a static page using a **property-scoped page lookup** —
 not a global `get_page_by_path()` call.

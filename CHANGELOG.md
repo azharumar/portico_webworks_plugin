@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.36] - 2026-03-24
+
+### Fixed
+- **SEO sitemap 404s**: Portico root catch-all rewrites no longer match `*-sitemap.xml`, WordPress `wp-sitemap*.xml`, `sitemap_index.xml`, `sitemap.xml`, or `robots.txt` (single- and multi-property modes); `pw_rewrite_rules_version` flush runs in both modes so updates pick up new rules
+
 ## [0.8.35] - 2026-03-25
 
 ### Added

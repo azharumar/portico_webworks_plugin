@@ -137,6 +137,16 @@ function pw_redirect_with_qs( $url, $status = 301 ) {
 }
 
 /**
+ * Single path segments that must not hit Portico catch-alls (sitemaps, robots).
+ * For use inside a negative lookahead: ^(?!PATTERN$)([^/]+)/?$
+ *
+ * @return string Regex alternation body (no delimiters / modifiers).
+ */
+function pw_url_reserved_root_segment_pattern(): string {
+	return '(?:.+-sitemap(?:[0-9]+)?\.xml|wp-sitemap.*\.xml|sitemap_index\.xml|sitemap\.xml|robots\.txt)';
+}
+
+/**
  * Register rewrite rules: Priority 1–3 top (register P3→P2→P1 so P1 is tried first),
  * Priority 4–6 bottom (register P4→P5→P6 so wildcard is last).
  *
@@ -154,6 +164,8 @@ function pw_register_all_rewrite_rules() {
 			$child_bases[ $cpt ] = $bases[ $cpt ];
 		}
 	}
+
+	$reserved_seg = pw_url_reserved_root_segment_pattern();
 
 	if ( $mode === 'single' ) {
 		foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
@@ -181,7 +193,11 @@ function pw_register_all_rewrite_rules() {
 				'top'
 			);
 		}
-		add_rewrite_rule( '^([^/]+)/?$', 'index.php?pw_static_page_slug=$matches[1]', 'bottom' );
+		add_rewrite_rule(
+			'^(?!' . $reserved_seg . '$)([^/]+)/?$',
+			'index.php?pw_static_page_slug=$matches[1]',
+			'bottom'
+		);
 	} else {
 		foreach ( array_reverse( $child_bases, true ) as $cpt => $pair ) {
 			$sing = preg_quote( $pair['singular'], '#' );
@@ -208,20 +224,21 @@ function pw_register_all_rewrite_rules() {
 			);
 		}
 		add_rewrite_rule(
-			'^([^/]+)/([^/]+)/?$',
+			'^([^/]+)/(?!' . $reserved_seg . '$)([^/]+)/?$',
 			'index.php?pw_property_slug=$matches[1]&pw_static_page_slug=$matches[2]',
 			'bottom'
 		);
 		add_rewrite_rule(
-			'^([^/]+)/?$',
+			'^(?!' . $reserved_seg . '$)([^/]+)/?$',
 			'index.php?pw_property_slug=$matches[1]',
 			'top'
 		);
-		$rules_ver = defined( 'PW_VERSION' ) ? (string) PW_VERSION : '0';
-		if ( get_option( 'pw_rewrite_rules_version', '' ) !== $rules_ver ) {
-			update_option( 'pw_rewrite_rules_version', $rules_ver );
-			set_transient( 'pw_flush_rewrites', 1, 120 );
-		}
+	}
+
+	$rules_ver = defined( 'PW_VERSION' ) ? (string) PW_VERSION : '0';
+	if ( get_option( 'pw_rewrite_rules_version', '' ) !== $rules_ver ) {
+		update_option( 'pw_rewrite_rules_version', $rules_ver );
+		set_transient( 'pw_flush_rewrites', 1, 120 );
 	}
 
 	// ASSERTION: if you are adding any rule after this point, you are breaking the wildcard-last guarantee.
@@ -229,12 +246,17 @@ function pw_register_all_rewrite_rules() {
 	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 		$rw   = $GLOBALS['wp_rewrite'] ?? null;
 		$keys = ( $rw && isset( $rw->rules ) && is_array( $rw->rules ) ) ? array_keys( $rw->rules ) : [];
-		if ( $keys !== [] ) {
-			$wildcard = '^([^/]+)/?$';
-			$pos      = array_search( $wildcard, $keys, true );
-			if ( $pos !== false && $pos < 20 && $mode === 'single' ) {
+		if ( $keys !== [] && $mode === 'single' ) {
+			$static_rule_key = null;
+			foreach ( $keys as $idx => $rule ) {
+				if ( is_string( $rule ) && str_contains( $rule, 'pw_static_page_slug=$matches[1]' ) ) {
+					$static_rule_key = $idx;
+					break;
+				}
+			}
+			if ( $static_rule_key !== null && $static_rule_key < 20 ) {
 				trigger_error(
-					'PW URL: static wildcard is at position ' . (int) $pos . ' — it must be registered last. Check pw_register_all_rewrite_rules().',
+					'PW URL: static wildcard is at position ' . (int) $static_rule_key . ' — it must be registered last. Check pw_register_all_rewrite_rules().',
 					E_USER_WARNING
 				);
 			}
