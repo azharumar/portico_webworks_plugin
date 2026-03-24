@@ -177,10 +177,11 @@ function pw_register_section_cpt_permastructs(): void {
 		if ( $singular === '' ) {
 			continue;
 		}
+		$slug_tag = '%' . $cpt . '%';
 		if ( $mode === 'single' ) {
-			$struct = '/' . $singular . '/%postname%';
+			$struct = '/' . $singular . '/' . $slug_tag;
 		} else {
-			$struct = '/%pw_property_slug%/' . $singular . '/%postname%';
+			$struct = '/%pw_property_slug%/' . $singular . '/' . $slug_tag;
 		}
 		add_permastruct(
 			$cpt,
@@ -514,13 +515,6 @@ function pw_register_child_post_meta() {
 		'default'      => '',
 	] );
 	register_post_meta( 'pw_meeting_room', '_pw_sales_phone', [
-		'type'         => 'string',
-		'single'       => true,
-		'show_in_rest' => true,
-		'default'      => '',
-	] );
-
-	register_post_meta( 'pw_meeting_room', '_pw_sales_whatsapp', [
 		'type'         => 'string',
 		'single'       => true,
 		'show_in_rest' => true,

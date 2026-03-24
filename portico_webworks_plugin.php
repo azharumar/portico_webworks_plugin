@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Portico Webworks Hotel Website Manager
  * Description: Portico Webworks plugin.
- * Version: 0.8.33
+ * Version: 0.8.34
  * Requires at least: 6.9.4
  * Requires PHP: 8.3
  * Author: Portico Webworks
@@ -24,7 +24,7 @@ if ( is_readable( $pw_fatal_log ) ) {
 }
 
 define('PW_PLUGIN_FILE', __FILE__);
-define('PW_VERSION', '0.8.33');
+define('PW_VERSION', '0.8.34');
 
 function pw_apply_install_defaults() {
 	if (get_option('pw_install_defaults_applied', 0)) {
@@ -83,10 +83,12 @@ add_action( 'transition_post_status', 'pw_on_property_published', 10, 3 );
 require_once __DIR__ . '/includes/currency-data.php';
 require_once __DIR__ . '/includes/property-post-type.php';
 require_once __DIR__ . '/includes/property-rewrites.php';
+require_once __DIR__ . '/includes/gp-elements-compat.php';
 require_once __DIR__ . '/includes/property-facet-definitions.php';
 require_once __DIR__ . '/includes/child-post-types.php';
 require_once __DIR__ . '/includes/contact-resolver.php';
 require_once __DIR__ . '/includes/contact-post-type.php';
+require_once __DIR__ . '/includes/admin-list-columns.php';
 require_once __DIR__ . '/includes/contact-metabox.php';
 require_once __DIR__ . '/includes/taxonomy-seeds.php';
 require_once __DIR__ . '/includes/child-post-type-metaboxes.php';

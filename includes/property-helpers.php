@@ -296,16 +296,17 @@ function pw_rest_outlet_permalink_preview( $response, $post, $request ) {
 		return $response;
 	}
 
+	$slug_tag = '%' . $post->post_type . '%';
 	if ( $mode === 'single' ) {
 		$url      = untrailingslashit( home_url( '/' . $singular . '/' . $slug ) );
-		$template = untrailingslashit( home_url( '/' . $singular . '/%postname%' ) );
+		$template = untrailingslashit( home_url( '/' . $singular . '/' . $slug_tag ) );
 	} else {
 		$prop_seg = sanitize_title( (string) $property->post_name );
 		if ( $prop_seg === '' ) {
 			return $response;
 		}
 		$url      = untrailingslashit( home_url( '/' . $prop_seg . '/' . $singular . '/' . $slug ) );
-		$template = untrailingslashit( home_url( '/' . $prop_seg . '/' . $singular . '/%postname%' ) );
+		$template = untrailingslashit( home_url( '/' . $prop_seg . '/' . $singular . '/' . $slug_tag ) );
 	}
 
 	$data = $response->get_data();

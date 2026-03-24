@@ -180,7 +180,7 @@ function pw_register_page_property_scope_meta() {
 function pw_register_property_permastruct(): void {
 	add_permastruct(
 		'pw_property',
-		'/%postname%',
+		'/%pw_property%',
 		[
 			'with_front' => false,
 			'ep_mask'    => EP_NONE,
@@ -233,7 +233,7 @@ function pw_property_get_sample_permalink( $permalink, $post_id, $title, $name, 
 	if ( ! is_array( $permalink ) || ! isset( $permalink[0] ) ) {
 		return $permalink;
 	}
-	$permalink[0] = untrailingslashit( home_url( '/%postname%' ) );
+	$permalink[0] = untrailingslashit( home_url( '/%pw_property%' ) );
 	return $permalink;
 }
 

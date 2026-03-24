@@ -101,8 +101,9 @@ function pw_outlet_get_sample_permalink( $permalink, $post_id, $title, $name, $p
 	}
 
 	$mode = pw_get_setting( 'pw_property_mode', 'single' );
+	$slug_tag = '%' . $post->post_type . '%';
 	if ( $mode === 'single' ) {
-		$permalink[0] = untrailingslashit( home_url( '/' . $singular . '/%postname%' ) );
+		$permalink[0] = untrailingslashit( home_url( '/' . $singular . '/' . $slug_tag ) );
 		return $permalink;
 	}
 
@@ -115,7 +116,7 @@ function pw_outlet_get_sample_permalink( $permalink, $post_id, $title, $name, $p
 			? sanitize_title( $prop->post_name )
 			: '__property__';
 	}
-	$permalink[0] = untrailingslashit( home_url( '/' . $placeholder . '/' . $singular . '/%postname%' ) );
+	$permalink[0] = untrailingslashit( home_url( '/' . $placeholder . '/' . $singular . '/' . $slug_tag ) );
 	return $permalink;
 }
 
