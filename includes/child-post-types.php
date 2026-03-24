@@ -351,6 +351,16 @@ function pw_register_child_post_meta() {
 		],
 	] );
 
+	register_post_meta( 'pw_room_type', '_pw_gallery_meta', [
+		'type'              => 'string',
+		'single'            => true,
+		'default'           => '{}',
+		'show_in_rest'      => true,
+		'sanitize_callback' => static function ( $value ) {
+			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_room_type' );
+		},
+	] );
+
 	register_post_meta( 'pw_room_type', '_pw_features', [
 		'type'         => 'array',
 		'single'       => true,
@@ -396,6 +406,16 @@ function pw_register_child_post_meta() {
 				'items' => [ 'type' => 'integer' ],
 			],
 		],
+	] );
+
+	register_post_meta( 'pw_restaurant', '_pw_gallery_meta', [
+		'type'              => 'string',
+		'single'            => true,
+		'default'           => '{}',
+		'show_in_rest'      => true,
+		'sanitize_callback' => static function ( $value ) {
+			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_restaurant' );
+		},
 	] );
 
 	$hours_schema = [
@@ -464,6 +484,16 @@ function pw_register_child_post_meta() {
 				'items' => [ 'type' => 'integer' ],
 			],
 		],
+	] );
+
+	register_post_meta( 'pw_spa', '_pw_gallery_meta', [
+		'type'              => 'string',
+		'single'            => true,
+		'default'           => '{}',
+		'show_in_rest'      => true,
+		'sanitize_callback' => static function ( $value ) {
+			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_spa' );
+		},
 	] );
 
 	foreach ( [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ] as $day ) {
@@ -537,6 +567,16 @@ function pw_register_child_post_meta() {
 				'items' => [ 'type' => 'integer' ],
 			],
 		],
+	] );
+
+	register_post_meta( 'pw_meeting_room', '_pw_gallery_meta', [
+		'type'              => 'string',
+		'single'            => true,
+		'default'           => '{}',
+		'show_in_rest'      => true,
+		'sanitize_callback' => static function ( $value ) {
+			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_meeting_room' );
+		},
 	] );
 
 	// --- pw_amenity ---
@@ -698,6 +738,29 @@ function pw_register_child_post_meta() {
 		],
 	] );
 
+	// --- pw_property: gallery ---
+
+	register_post_meta( 'pw_property', '_pw_gallery', [
+		'type'         => 'array',
+		'single'       => true,
+		'show_in_rest' => [
+			'schema' => [
+				'type'  => 'array',
+				'items' => [ 'type' => 'integer' ],
+			],
+		],
+	] );
+
+	register_post_meta( 'pw_property', '_pw_gallery_meta', [
+		'type'              => 'string',
+		'single'            => true,
+		'default'           => '{}',
+		'show_in_rest'      => true,
+		'sanitize_callback' => static function ( $value ) {
+			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_property' );
+		},
+	] );
+
 	// --- pw_property: pools ---
 
 	register_post_meta( 'pw_property', '_pw_pools', [
@@ -719,6 +782,7 @@ function pw_register_child_post_meta() {
 						'is_kids'     => [ 'type' => 'boolean' ],
 						'is_indoor'   => [ 'type' => 'boolean' ],
 						'is_infinity' => [ 'type' => 'boolean' ],
+						'attachment_id' => [ 'type' => 'integer' ],
 					],
 				],
 			],
@@ -882,6 +946,15 @@ function pw_register_child_post_meta() {
 			],
 		],
 	] );
+	register_post_meta( 'pw_experience', '_pw_gallery_meta', [
+		'type'              => 'string',
+		'single'            => true,
+		'default'           => '{}',
+		'show_in_rest'      => true,
+		'sanitize_callback' => static function ( $value ) {
+			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_experience' );
+		},
+	] );
 	register_post_meta( 'pw_experience', '_pw_display_order', [
 		'type' => 'integer', 'single' => true, 'show_in_rest' => true, 'default' => 0,
 	] );
@@ -922,6 +995,15 @@ function pw_register_child_post_meta() {
 			],
 		],
 	] );
+	register_post_meta( 'pw_event', '_pw_gallery_meta', [
+		'type'              => 'string',
+		'single'            => true,
+		'default'           => '{}',
+		'show_in_rest'      => true,
+		'sanitize_callback' => static function ( $value ) {
+			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_event' );
+		},
+	] );
 	register_post_meta( 'pw_event', '_pw_recurrence_rule', [
 		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
 	] );
@@ -936,22 +1018,6 @@ function pw_register_child_post_meta() {
 add_action( 'init', 'pw_register_child_taxonomies', 5 );
 add_action( 'init', 'pw_register_child_post_types' );
 add_action( 'init', 'pw_register_child_post_meta' );
-add_action( 'init', 'pw_register_seo_meta', 20 );
-
-function pw_register_seo_meta() {
-	$seo_cpts = [
-		'pw_room_type', 'pw_restaurant', 'pw_spa', 'pw_meeting_room',
-		'pw_experience', 'pw_event', 'pw_offer', 'pw_nearby',
-	];
-	foreach ( $seo_cpts as $cpt ) {
-		register_post_meta( $cpt, '_pw_meta_title', [
-			'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
-		] );
-		register_post_meta( $cpt, '_pw_meta_description', [
-			'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
-		] );
-	}
-}
 
 add_action( 'init', function() {
 	register_term_meta( 'pw_event_organiser', 'organiser_url', [

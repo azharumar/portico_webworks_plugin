@@ -10,8 +10,6 @@ Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** fo
 
 **`pw_property` viewability:** In single-property mode the post type is not publicly queryable, but an `is_post_type_viewable` filter (`includes/property-post-type.php`) still returns true so the block editor and builders (e.g. GenerateBlocks) can resolve the type.
 
-**Front-end SEO overrides:** `includes/seo-compatibility.php` hooks Rank Math so singular templates use `_pw_meta_title` and `_pw_meta_description` when set.
-
 **Installer-managed Fact Sheet page:** `pw_get_required_pages()` in `includes/page-installer.php` requires one WordPress **page** per scope: requested slug `PW_FACT_SHEET_PAGE_SLUG` (`fact-sheet`), `_pw_generated` = `1`, `_pw_static_url_segment` = `fact-sheet` (URL segment for `property-rewrites.php` when WordPress uniquifies `post_name`), `_pw_property_id` = `0` in **single** mode or the property ID in **multi** mode. On first create only, `post_content` is filled from `gb-pro-markup-samples.html` (`pw_get_fact_sheet_starter_markup()`); existing pages are never overwritten. **Install Missing Structure** / publishing a property runs `pw_run_page_installer()` idempotently.
 
 ### Sample data marker (internal)
@@ -32,7 +30,7 @@ Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** fo
 
 ### Meta Fields
 
-Scalar profile fields below are registered in `includes/property-post-type.php`. Repeatable / structured groups for `pw_property` (`_pw_pools`, `_pw_direct_benefits`, `_pw_certifications`, sustainability and accessibility facet arrays) are registered in `pw_register_child_post_meta()` in `includes/child-post-types.php`.
+Scalar profile fields below are registered in `includes/property-post-type.php`. Repeatable / structured groups for `pw_property` (`_pw_gallery`, `_pw_gallery_meta`, `_pw_pools`, `_pw_direct_benefits`, `_pw_certifications`, sustainability and accessibility facet arrays) are registered in `pw_register_child_post_meta()` in `includes/child-post-types.php`.
 
 #### General
 
@@ -46,6 +44,7 @@ Scalar profile fields below are registered in `includes/property-post-type.php`.
 | `_pw_check_out_time`   | string  | `''`    | e.g. `11:00`               | Custom metabox                              |
 | `_pw_year_established` | integer | `0`     | schema.org LodgingBusiness | Custom metabox                              |
 | `_pw_total_rooms`      | integer | `0`     | Total inventory count      | Custom metabox                              |
+| `_pw_og_image`         | integer | `0`     | Open Graph image attachment ID (optional) | `register_post_meta` in `property-post-type.php` |
 | `_pw_url_slug`         | string  | `''`    | Optional segment when Permalinks uses custom slug mode (`pw_get_permalink_slug_source()`). `sanitize_title`; unique among published properties. Field appears in General only when that mode is on. | Custom metabox (`property-profile.php`) |
 
 
@@ -93,14 +92,12 @@ Contact rows are **not** stored on the property. Use the `pw_contact` CPT and `p
 | `_pw_social_tripadvisor` | string | `''`    | Custom metabox                             |
 
 
-#### SEO & Social Sharing
+#### Gallery (`_pw_gallery` / `_pw_gallery_meta`)
 
-
-| Meta Key               | Type    | Default | Notes                        | CMB2                    |
-| ---------------------- | ------- | ------- | ---------------------------- | ----------------------- |
-| `_pw_meta_title`       | string  | `''`    | Overrides post title         | CMB2: `pw_property_seo` |
-| `_pw_meta_description` | string  | `''`    | Overrides excerpt            | CMB2                    |
-| `_pw_og_image`         | integer | `0`     | Attachment ID for Open Graph | CMB2 (file)             |
+| Meta Key          | Type   | Default | Notes                                                                 | Admin / UI                                      |
+| ----------------- | ------ | ------- | --------------------------------------------------------------------- | ----------------------------------------------- |
+| `_pw_gallery`     | array  | —       | Attachment IDs (CMB2 `file_list` may store `attachment_id => url`)   | CMB2: `pw_property_gallery`                     |
+| `_pw_gallery_meta` | string | `'{}'`  | JSON object: keys = attachment ID strings, values = `{ "category", "caption" }` (categories from `pw_get_gallery_categories( 'pw_property' )`) | Custom metabox: Gallery details (`gallery-meta-metabox.php`) |
 
 
 #### Pools (`_pw_pools`) — repeatable group
@@ -118,6 +115,7 @@ Contact rows are **not** stored on the property. Use the `pw_contact` CPT and `p
 | `is_kids`     | boolean |                           | checkbox                  |
 | `is_indoor`   | boolean |                           | checkbox                  |
 | `is_infinity` | boolean |                           | checkbox                  |
+| `attachment_id` | integer | `0`                     | Optional pool image (media library) | CMB2 `file` in `pw_property_pools` |
 
 
 #### Direct Booking Benefits (`_pw_direct_benefits`) — repeatable group
@@ -206,6 +204,7 @@ Same shape and normalization behavior as sustainability. CMB2: `pw_property_acce
 | `_pw_display_order`  | integer      | `0`     |                                           | text_small                            |
 | `_pw_features`       | arrayinteger | —       | Array of `pw_feature` post IDs            | multicheck                            |
 | `_pw_gallery`        | arrayinteger | —       | Attachment IDs                            | file_list                             |
+| `_pw_gallery_meta`   | string       | `'{}'`  | JSON map per attachment ID → category + caption (`includes/gallery-categories.php`) | Custom metabox: Gallery details |
 
 
 **Validation:** Admin UI enforces `max_adults + max_children ≤ max_occupancy` on save.
@@ -227,6 +226,7 @@ Same shape and normalization behavior as sustainability. CMB2: `pw_property_acce
 | `_pw_reservation_url`  | string       | `''`    |                                | text_url                               |
 | `_pw_menu_url`         | string       | `''`    |                                | text_url                               |
 | `_pw_gallery`          | arrayinteger | —       |                                | file_list                              |
+| `_pw_gallery_meta`     | string       | `'{}'`  | JSON gallery metadata (`pw_get_gallery_categories( 'pw_restaurant' )`) | Custom metabox: Gallery details |
 
 
 #### Operating Hours — per-day meta keys `_pw_hours_{day}` (e.g. `_pw_hours_monday`)
@@ -256,6 +256,7 @@ Each day is stored as an **associative array** (map) with keys `is_closed` (bool
 | `_pw_min_age`                   | integer      | `0`     | text_small                      |
 | `_pw_number_of_treatment_rooms` | integer      | `0`     | text_small                      |
 | `_pw_gallery`                   | arrayinteger | —       | file_list                       |
+| `_pw_gallery_meta`              | string       | `'{}'`  | JSON gallery metadata (`pw_get_gallery_categories( 'pw_spa' )`) | Custom metabox: Gallery details |
 
 
 #### Operating Hours — per-day `_pw_hours_{day}`
@@ -284,6 +285,7 @@ Same storage and REST registration pattern as restaurant. CMB2: `pw_spa_operatin
 | `_pw_natural_light`         | boolean      | `false` |                      | checkbox                                 |
 | `_pw_floor_plan`            | integer      | `0`     | Attachment ID        | file                                     |
 | `_pw_gallery`               | arrayinteger | —       |                      | file_list                                |
+| `_pw_gallery_meta`          | string       | `'{}'`  | JSON gallery metadata (`pw_get_gallery_categories( 'pw_meeting_room' )`) | Custom metabox: Gallery details |
 
 
 ---
@@ -435,6 +437,7 @@ For property-level experience archives, query `_pw_property_id`. `pw_get_experie
 | `_pw_booking_url`      | string       | `''`    |                                                                 | text_url                              |
 | `_pw_is_complimentary` | boolean      | `false` |                                                                 | checkbox                              |
 | `_pw_gallery`          | arrayinteger | —       |                                                                 | file_list                             |
+| `_pw_gallery_meta`     | string       | `'{}'`  | JSON gallery metadata (`pw_get_gallery_categories( 'pw_experience' )`) | Custom metabox: Gallery details |
 | `_pw_display_order`    | integer      | `0`     |                                                                 | text_small                            |
 
 
@@ -460,6 +463,7 @@ For property-level experience archives, query `_pw_property_id`. `pw_get_experie
 | `_pw_event_status`          | string       | `'EventScheduled'`             | schema.org: EventScheduled | EventCancelled | EventPostponed | EventRescheduled   | select                            |
 | `_pw_event_attendance_mode` | string       | `'OfflineEventAttendanceMode'` | OfflineEventAttendanceMode | OnlineEventAttendanceMode | MixedEventAttendanceMode | select                            |
 | `_pw_gallery`               | arrayinteger | —                              |                                                                                   | file_list                         |
+| `_pw_gallery_meta`          | string       | `'{}'`                         | JSON gallery metadata (`pw_get_gallery_categories( 'pw_event' )`)                | Custom metabox: Gallery details   |
 
 
 **Organiser:** Use taxonomy `pw_event_organiser` (term name = organiser name). Term meta `organiser_url` stores the URL. Used for schema.org Event markup.
@@ -561,22 +565,6 @@ The **Sample Data** installer (`includes/sample-data-multi-install.php`) merges 
 
 - **`pw_get_merged_pw_settings()`** (`includes/admin-page.php`): merges `get_option( 'pw_settings' )` with defaults for the keys above, normalizes `pw_permalink_base_fixed` / `pw_property_base`, and **omits** `pw_permalink_slug_source` from the **returned** array (the value remains in the option row). Use **`pw_get_permalink_slug_source()`** for the slug mode.
 - **`pw_get_setting( $key, $default )`** returns a key from the merged array if present, else **`get_option( $key, $default )`** (so `pw_permalink_slug_source` still resolves after merge).
-
----
-
-## SEO Meta Box (shared)
-
-**CMB2 box:** `pw_seo_metabox` (`includes/child-post-type-metaboxes.php`)  
-**Applies to:** `pw_room_type`, `pw_restaurant`, `pw_spa`, `pw_meeting_room`, `pw_experience`, `pw_event`, `pw_offer`, `pw_nearby`  
-**Fields:** `_pw_meta_title`, `_pw_meta_description` only (no Open Graph file field on these types).
-
-`pw_property` uses **`pw_property_seo`** with the same two meta keys **plus** `_pw_og_image` (attachment ID). `register_post_meta` for `_pw_meta_title` / `_pw_meta_description` on `pw_property` is in `includes/property-post-type.php`; `_pw_og_image` is registered there as integer. Child CPT SEO meta is registered in `pw_register_seo_meta()` in `includes/child-post-types.php`. On the front end, Rank Math title/description are overridden from post meta where set (`includes/seo-compatibility.php`).
-
-| Meta Key               | Type   | CMB2                           |
-| ---------------------- | ------ | ------------------------------ |
-| `_pw_meta_title`       | string | text (max 60 chars)            |
-| `_pw_meta_description` | string | textarea_small (max 160 chars) |
-
 
 ---
 

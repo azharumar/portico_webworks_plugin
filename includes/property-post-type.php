@@ -69,8 +69,6 @@ function pw_register_property_post_meta() {
 		'_pw_social_youtube',
 		'_pw_google_place_id',
 		'_pw_timezone',
-		'_pw_meta_title',
-		'_pw_meta_description',
 	];
 
 	foreach ( $string_keys as $key ) {
@@ -138,18 +136,18 @@ function pw_register_property_post_meta() {
 		'default'      => 0,
 	] );
 
-	register_post_meta( 'pw_property', '_pw_og_image', [
-		'type'         => 'integer',
-		'single'       => true,
-		'show_in_rest' => true,
-		'default'      => 0,
-	] );
-
 	register_post_meta( 'pw_property', '_pw_enabled_sections', [
 		'type'         => 'array',
 		'single'       => true,
 		'show_in_rest' => true,
 		'default'      => [],
+	] );
+
+	register_post_meta( 'pw_property', '_pw_og_image', [
+		'type'         => 'integer',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => 0,
 	] );
 }
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.37] - 2026-03-25
+
+### Added
+- **GP Elements starter nav**: main menu block (`pw-site-nav`) prepended to generated archive and singular templates — Hotels (`{{pw_home_url}}` in multi-property mode only), Experiences, Offers, Dining, Meetings & Events, Spa (`{{pw_section_url:…}}`)
+- **Gallery metadata**: `_pw_gallery_meta` (JSON string per attachment: `category`, `caption`) on `pw_property` and all outlet CPTs with `_pw_gallery`; `pw_get_gallery_categories()` and `pw_sanitize_pw_gallery_meta_json()` in `includes/gallery-categories.php`; **Gallery details** custom metabox (`includes/gallery-meta-metabox.php`)
+- **Property gallery**: CMB2 `file_list` `_pw_gallery` on `pw_property`; `_pw_pools` repeatable group optional **Photo** (`attachment_id`); `pw_property` **`_pw_og_image`** (attachment ID) in `register_post_meta`
+- **Sample data media**: sideload `assets/sample-media/` (`includes/sample-data-demo-media.php`), featured images, galleries + `_pw_gallery_meta`, `_pw_og_image`, pool images; generic assets reused across demo posts where appropriate
+
+### Changed
+- **Section listing URL tokens**: outlet singular “Back to …” links and installer repair use `{{pw_current_section_listing_url}}` (resolved via `pw_get_section_listing_url`) instead of `{{post_type_archive_link}}`, which does not match Portico virtual archives; added `{{pw_home_url}}` for the Hotels item
+- **DATA-STRUCTURE.md**: documents `_pw_gallery_meta`, property gallery, `_pw_pools.attachment_id`, `_pw_og_image`
+
+### Removed
+- **Custom SEO fields on plugin CPTs**: meta title and meta description (`_pw_meta_title`, `_pw_meta_description`) — CMB2 metaboxes, REST registration, and Rank Math title/description overrides (`seo-compatibility.php` removed); rely on Rank Math (or similar) per post type instead
+
 ## [0.8.36] - 2026-03-24
 
 ### Fixed

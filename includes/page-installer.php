@@ -275,10 +275,15 @@ function pw_repair_element_block_types(): void {
 			foreach ( $section_hashes as $hash ) {
 				$quoted = '"' . $hash . '"';
 				if ( strpos( $new_content, $quoted ) !== false ) {
-					$new_content = str_replace( $quoted, '"{{post_type_archive_link}}"', $new_content );
+					$new_content = str_replace( $quoted, '"{{pw_current_section_listing_url}}"', $new_content );
 					$needs_update = true;
 				}
 			}
+		}
+
+		if ( strpos( $new_content, '{{post_type_archive_link}}' ) !== false ) {
+			$new_content = str_replace( '{{post_type_archive_link}}', '{{pw_current_section_listing_url}}', $new_content );
+			$needs_update = true;
 		}
 
 		if ( $needs_update ) {
@@ -884,7 +889,7 @@ function pw_get_section_starter_markup( string $cpt, string $type = 'archive' ):
 		return '';
 	}
 
-	return match ( $cpt ) {
+	$body = match ( $cpt ) {
 		'pw_room_type' => <<<'PW_ST_ROOM_TYPE'
 <!-- wp:generateblocks/query {"uniqueId":"rmq","tagName":"div","query":{"post_type":["pw_room_type"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
@@ -1425,6 +1430,11 @@ PW_ST_EVENT,
 PW_ST_OFFER,
 		default => '',
 	};
+	if ( $body === '' ) {
+		return '';
+	}
+
+	return _pw_gb_main_nav_block() . "\n" . $body;
 }
 
 /* ────────────────────────────────────────────────────────────────────────
@@ -1462,6 +1472,24 @@ function _pw_gb_link( string $uid, string $text, string $href ): string {
 	return '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . '","tagName":"a","styles":{"marginBottom":"4px","display":"inline-block","marginRight":"16px"},"css":".gb-text-' . $uid . '{display:inline-block;margin-bottom:4px;margin-right:16px}","htmlAttributes":[{"key":"href","value":"' . $href . '"}],"className":"gb-t-' . $uid . '"} -->' . "\n"
 		. '<a class="gb-text gb-text-' . $uid . ' gb-t-' . $uid . '" href="' . $href . '">' . $text . '</a>' . "\n"
 		. '<!-- /wp:generateblocks/text -->';
+}
+
+function _pw_gb_main_nav_block(): string {
+	$inner = '';
+	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'multi' ) {
+		$inner .= _pw_gb_link( 'pw-nv-h', 'Hotels', '{{pw_home_url}}' );
+	}
+	$inner .= _pw_gb_link( 'pw-nv-x', 'Experiences', '{{pw_section_url:pw_experience}}' );
+	$inner .= _pw_gb_link( 'pw-nv-o', 'Offers', '{{pw_section_url:pw_offer}}' );
+	$inner .= _pw_gb_link( 'pw-nv-d', 'Dining', '{{pw_section_url:pw_restaurant}}' );
+	$inner .= _pw_gb_link( 'pw-nv-me', 'Meetings & Events', '{{pw_section_url:pw_meeting_room}}' );
+	$inner .= _pw_gb_link( 'pw-nv-s', 'Spa', '{{pw_section_url:pw_spa}}' );
+
+	return '<!-- wp:generateblocks/element {"uniqueId":"pw-site-nav","tagName":"nav","styles":{"display":"flex","flexWrap":"wrap","columnGap":"12px","rowGap":"8px","alignItems":"center","marginBottom":"24px","paddingBottom":"16px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-element-pw-site-nav{align-items:center;border-bottom:1px solid #e0e0e0;column-gap:12px;display:flex;flex-wrap:wrap;margin-bottom:24px;padding-bottom:16px;row-gap:8px}","className":"gb-el gb-el-pw-site-nav pw-site-nav"} -->' . "\n"
+		. '<nav class="gb-element-pw-site-nav gb-el gb-el-pw-site-nav pw-site-nav" aria-label="Main">' . "\n"
+		. $inner
+		. '</nav>' . "\n"
+		. '<!-- /wp:generateblocks/element -->';
 }
 
 function _pw_gb_img( string $uid ): string {
@@ -1591,7 +1619,7 @@ function _pw_markup_room_singular(): string {
 		. _pw_gb_row( 'rms-r8', 'Bed type',          '{{post_terms taxonomy:pw_bed_type}}' )   . "\n"
 		. _pw_gb_row( 'rms-r9', 'View type',         '{{post_terms taxonomy:pw_view_type}}' )  . "\n"
 		. _pw_gb_p( 'rms-ct', '{{post_content}}' ) . "\n"
-		. _pw_gb_link( 'rms-bk', "\xE2\x86\x90 Back to Rooms", '{{post_type_archive_link}}' );
+		. _pw_gb_link( 'rms-bk', "\xE2\x86\x90 Back to Rooms", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Restaurant singular ───────────────────────────────────────────────── */
@@ -1606,7 +1634,7 @@ function _pw_markup_restaurant_singular(): string {
 		. _pw_gb_row( 'rsts-r3', 'Reservation URL',   '{{post_meta key:_pw_reservation_url}}' )   . "\n"
 		. _pw_gb_row( 'rsts-r4', 'Menu URL',          '{{post_meta key:_pw_menu_url}}' )          . "\n"
 		. _pw_gb_p( 'rsts-ct', '{{post_content}}' ) . "\n"
-		. _pw_gb_link( 'rsts-bk', "\xE2\x86\x90 Back to Restaurants", '{{post_type_archive_link}}' );
+		. _pw_gb_link( 'rsts-bk', "\xE2\x86\x90 Back to Restaurants", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Spa singular ──────────────────────────────────────────────────────── */
@@ -1620,7 +1648,7 @@ function _pw_markup_spa_singular(): string {
 		. _pw_gb_row( 'spas-r2', 'Booking URL',           '{{post_meta key:_pw_booking_url}}' )                . "\n"
 		. _pw_gb_row( 'spas-r3', 'Menu URL',              '{{post_meta key:_pw_menu_url}}' )                   . "\n"
 		. _pw_gb_p( 'spas-ct', '{{post_content}}' ) . "\n"
-		. _pw_gb_link( 'spas-bk', "\xE2\x86\x90 Back to Spas", '{{post_type_archive_link}}' );
+		. _pw_gb_link( 'spas-bk', "\xE2\x86\x90 Back to Spas", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Meeting room singular ─────────────────────────────────────────────── */
@@ -1639,7 +1667,7 @@ function _pw_markup_meeting_singular(): string {
 		. _pw_gb_row( 'mts-r7', 'Sales email',         '{{post_meta key:_pw_sales_email}}' )        . "\n"
 		. _pw_gb_row( 'mts-r8', 'Sales phone',         '{{post_meta key:_pw_sales_phone}}' )        . "\n"
 		. _pw_gb_p( 'mts-ct', '{{post_content}}' ) . "\n"
-		. _pw_gb_link( 'mts-bk', "\xE2\x86\x90 Back to Meetings", '{{post_type_archive_link}}' );
+		. _pw_gb_link( 'mts-bk', "\xE2\x86\x90 Back to Meetings", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Experience singular ───────────────────────────────────────────────── */
@@ -1653,7 +1681,7 @@ function _pw_markup_experience_singular(): string {
 		. _pw_gb_row( 'exs-r2', 'Complimentary',      '{{post_meta key:_pw_is_complimentary}}' ) . "\n"
 		. _pw_gb_row( 'exs-r3', 'Booking URL',        '{{post_meta key:_pw_booking_url}}' )      . "\n"
 		. _pw_gb_p( 'exs-ct', '{{post_content}}' ) . "\n"
-		. _pw_gb_link( 'exs-bk', "\xE2\x86\x90 Back to Experiences", '{{post_type_archive_link}}' );
+		. _pw_gb_link( 'exs-bk', "\xE2\x86\x90 Back to Experiences", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Event singular ────────────────────────────────────────────────────── */
@@ -1670,7 +1698,7 @@ function _pw_markup_event_singular(): string {
 		. _pw_gb_row( 'evs-r5', 'Attendance mode',     '{{post_meta key:_pw_event_attendance_mode}}' ) . "\n"
 		. _pw_gb_row( 'evs-r6', 'Booking URL',         '{{post_meta key:_pw_booking_url}}' )           . "\n"
 		. _pw_gb_p( 'evs-ct', '{{post_content}}' ) . "\n"
-		. _pw_gb_link( 'evs-bk', "\xE2\x86\x90 Back to Events", '#events' );
+		. _pw_gb_link( 'evs-bk', "\xE2\x86\x90 Back to Events", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Offer singular ────────────────────────────────────────────────────── */
@@ -1687,7 +1715,7 @@ function _pw_markup_offer_singular(): string {
 		. _pw_gb_row( 'ofs-r6', 'Featured',           '{{post_meta key:_pw_is_featured}}' )         . "\n"
 		. _pw_gb_row( 'ofs-r7', 'Booking URL',        '{{post_meta key:_pw_booking_url}}' )         . "\n"
 		. _pw_gb_p( 'ofs-ct', '{{post_content}}' ) . "\n"
-		. _pw_gb_link( 'ofs-bk', "\xE2\x86\x90 Back to Offers", '{{post_type_archive_link}}' );
+		. _pw_gb_link( 'ofs-bk', "\xE2\x86\x90 Back to Offers", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Nearby place singular ─────────────────────────────────────────────── */
@@ -1702,7 +1730,7 @@ function _pw_markup_nearby_singular(): string {
 		. _pw_gb_row( 'pls-r3', 'Longitude',         '{{post_meta key:_pw_lng}}' )             . "\n"
 		. _pw_gb_row( 'pls-r4', 'Place URL',         '{{post_meta key:_pw_place_url}}' )       . "\n"
 		. _pw_gb_p( 'pls-ct', '{{post_content}}' ) . "\n"
-		. _pw_gb_link( 'pls-bk', "\xE2\x86\x90 Back to Places Nearby", '{{post_type_archive_link}}' );
+		. _pw_gb_link( 'pls-bk', "\xE2\x86\x90 Back to Places Nearby", '{{pw_current_section_listing_url}}' );
 }
 
 /**

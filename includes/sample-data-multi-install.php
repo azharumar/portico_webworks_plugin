@@ -4,6 +4,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/sample-data-demo-media.php';
+
 /**
  * Create demo pw_contact rows for a property (uses sample insert + meta).
  *
@@ -138,8 +140,6 @@ function pw_install_sample_dataset_multi() {
 		'_pw_country_code'       => 'IN',
 		'_pw_timezone'           => 'Asia/Kolkata',
 		'_pw_google_place_id'    => 'ChIJ2dGMjBYUrjsRKcmOxuH7Z8A',
-		'_pw_meta_title'         => 'The Leela Residency Bengaluru — 5-Star Business Hotel on Vittal Mallya Road',
-		'_pw_meta_description'   => 'Experience luxury business travel at The Leela Residency Bengaluru. 184 rooms, rooftop dining, executive spa, and meeting facilities in the heart of Bengaluru.',
 		'_pw_social_facebook'    => 'https://facebook.com/leelaresidencybengaluru',
 		'_pw_social_instagram'   => 'https://instagram.com/leela_residency_blr',
 		'_pw_social_twitter'     => 'https://twitter.com/LeelaResidency',
@@ -155,7 +155,6 @@ function pw_install_sample_dataset_multi() {
 	update_post_meta( $p1, '_pw_total_rooms', 184 );
 	update_post_meta( $p1, '_pw_lat', 12.97194 );
 	update_post_meta( $p1, '_pw_lng', 77.59553 );
-	update_post_meta( $p1, '_pw_og_image', 0 );
 	pw_sample_install_pw_contact_rows(
 		$p1,
 		[
@@ -262,8 +261,6 @@ function pw_install_sample_dataset_multi() {
 		'_pw_country_code'       => 'IN',
 		'_pw_timezone'           => 'Asia/Kolkata',
 		'_pw_google_place_id'    => 'ChIJf7kQv8FFvzsRvkmPjBL4YEk',
-		'_pw_meta_title'         => 'Seawind Resort Goa — Beachside 4-Star Hotel in Calangute',
-		'_pw_meta_description'   => 'Stay at Seawind Resort Goa — a 4-star beach resort in Calangute with infinity pool, Goan seafood restaurant, and water sports. Book direct for best rates.',
 		'_pw_social_facebook'    => 'https://facebook.com/seawindgoa',
 		'_pw_social_instagram'   => 'https://instagram.com/seawind_goa',
 		'_pw_social_tripadvisor' => 'https://tripadvisor.com/hotel-seawind-resort-goa',
@@ -279,7 +276,6 @@ function pw_install_sample_dataset_multi() {
 	update_post_meta( $p2, '_pw_total_rooms', 76 );
 	update_post_meta( $p2, '_pw_lat', 15.54382 );
 	update_post_meta( $p2, '_pw_lng', 73.75219 );
-	update_post_meta( $p2, '_pw_og_image', 0 );
 
 	$p1_prop_type = pw_sample_ensure_term( 'Hotel', 'pw_property_type' );
 	$p2_prop_type = pw_sample_ensure_term( 'Resort', 'pw_property_type' );
@@ -757,6 +753,8 @@ function pw_install_sample_dataset_multi() {
 		$cubbon,
 		$organiser_id
 	);
+
+	pw_sample_multi_install_apply_demo_media( $p1, $p2 );
 }
 
 function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_events(
@@ -933,12 +931,6 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 		update_post_meta( $id, '_pw_minimum_stay_nights', (int) ( $args['min_stay'] ?? 0 ) );
 		update_post_meta( $id, '_pw_display_order', (int) ( $args['order'] ?? 0 ) );
 		update_post_meta( $id, '_pw_room_types', array_map( 'intval', $args['room_types'] ?? [] ) );
-		if ( ! empty( $args['meta_title'] ) ) {
-			update_post_meta( $id, '_pw_meta_title', $args['meta_title'] );
-		}
-		if ( ! empty( $args['meta_desc'] ) ) {
-			update_post_meta( $id, '_pw_meta_description', $args['meta_desc'] );
-		}
 	};
 
 	$offer_insert(

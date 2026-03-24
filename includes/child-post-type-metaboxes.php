@@ -1096,6 +1096,29 @@ function pw_register_property_accessibility_metabox() {
 }
 
 // ---------------------------------------------------------------------------
+// pw_property: Gallery (file list)
+// ---------------------------------------------------------------------------
+
+add_action( 'cmb2_admin_init', 'pw_register_property_gallery_metabox' );
+
+function pw_register_property_gallery_metabox() {
+	$cmb = new_cmb2_box( [
+		'id'                 => 'pw_property_gallery',
+		'title'              => 'Property gallery',
+		'object_types'       => [ 'pw_property' ],
+		'context'            => 'normal',
+		'priority'           => 'default',
+		'mb_callback_args'   => [ '__block_editor_compatible_meta_box' => true ],
+	] );
+
+	$cmb->add_field( [
+		'name' => 'Gallery',
+		'id'   => '_pw_gallery',
+		'type' => 'file_list',
+	] );
+}
+
+// ---------------------------------------------------------------------------
 // pw_property: Pools meta box
 // ---------------------------------------------------------------------------
 
@@ -1123,6 +1146,12 @@ function pw_register_property_pools_metabox() {
 		],
 		'fields' => [
 			[ 'name' => 'Pool name',    'id' => 'name',        'type' => 'text_small', 'desc' => 'e.g. Main Pool, Kids Pool, Infinity Pool' ],
+			[
+				'name' => 'Photo',
+				'id'   => 'attachment_id',
+				'type' => 'file',
+				'desc' => 'Optional image for this pool.',
+			],
 			[ 'name' => 'Length (m)',   'id' => 'length_m',    'type' => 'text_small' ],
 			[ 'name' => 'Width (m)',    'id' => 'width_m',     'type' => 'text_small' ],
 			[ 'name' => 'Depth (m)',    'id' => 'depth_m',     'type' => 'text_small' ],
@@ -1167,76 +1196,6 @@ function pw_register_property_direct_benefits_metabox() {
 			[ 'name' => 'Description', 'id' => 'description', 'type' => 'textarea_small' ],
 			[ 'name' => 'Icon',        'id' => 'icon',        'type' => 'text_small', 'desc' => 'Icon slug or SVG' ],
 		],
-	] );
-}
-
-// ---------------------------------------------------------------------------
-// pw_property: SEO & Social Sharing meta box
-// ---------------------------------------------------------------------------
-
-add_action( 'cmb2_admin_init', 'pw_register_property_seo_metabox' );
-
-function pw_register_property_seo_metabox() {
-	$cmb = new_cmb2_box( [
-		'id'                 => 'pw_property_seo',
-		'title'              => 'SEO & Social Sharing',
-		'object_types'       => [ 'pw_property' ],
-		'context'            => 'normal',
-		'priority'           => 'default',
-		'mb_callback_args'   => [ '__block_editor_compatible_meta_box' => true ],
-	] );
-
-	$cmb->add_field( [
-		'name' => 'Meta title',
-		'desc' => 'Leave empty to use the post title. Recommended: under 60 characters.',
-		'id'   => '_pw_meta_title',
-		'type' => 'text',
-		'attributes' => [ 'maxlength' => '60' ],
-	] );
-	$cmb->add_field( [
-		'name' => 'Meta description',
-		'desc' => 'Leave empty to use the excerpt. Recommended: under 160 characters.',
-		'id'   => '_pw_meta_description',
-		'type' => 'textarea_small',
-		'attributes' => [ 'maxlength' => '160', 'rows' => '3' ],
-	] );
-	$cmb->add_field( [
-		'name' => 'Open Graph Image',
-		'desc' => 'Custom Open Graph image. Overrides WordPress default on social shares.',
-		'id'   => '_pw_og_image',
-		'type' => 'file',
-	] );
-}
-
-add_action( 'cmb2_admin_init', 'pw_register_seo_metabox' );
-
-function pw_register_seo_metabox() {
-	$seo_cpts = [
-		'pw_room_type', 'pw_restaurant', 'pw_spa', 'pw_meeting_room',
-		'pw_experience', 'pw_event', 'pw_offer', 'pw_nearby',
-	];
-
-	$cmb = new_cmb2_box( [
-		'id'           => 'pw_seo_metabox',
-		'title'        => 'SEO',
-		'object_types' => $seo_cpts,
-		'context'      => 'normal',
-		'priority'     => 'low',
-	] );
-
-	$cmb->add_field( [
-		'name' => 'Meta title',
-		'desc' => 'Leave empty to use the post title. Recommended: under 60 characters.',
-		'id'   => '_pw_meta_title',
-		'type' => 'text',
-		'attributes' => [ 'maxlength' => '60' ],
-	] );
-	$cmb->add_field( [
-		'name' => 'Meta description',
-		'desc' => 'Leave empty to use the excerpt. Recommended: under 160 characters.',
-		'id'   => '_pw_meta_description',
-		'type' => 'textarea_small',
-		'attributes' => [ 'maxlength' => '160', 'rows' => '3' ],
 	] );
 }
 
