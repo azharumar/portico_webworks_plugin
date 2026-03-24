@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.35] - 2026-03-25
+
+### Added
+- **Fact Sheet page installer**: `pw_get_required_pages()` creates idempotent generated pages (`fact-sheet`, `_pw_generated`) per property scope; starter block markup from `gb-pro-markup-samples.html` on first insert only (`PW_FACT_SHEET_PAGE_SLUG`, `pw_get_fact_sheet_starter_markup()`)
+
+### Fixed
+- **GenerateBlocks `pw_property` query + `pw-gb-scope-property`**: `pw_filter_generateblocks_query_loop_property_scope()` scopes `pw_property` loops with `post__in` on the front end; skips mutating the query in admin/REST so the block editor is not broken by a bogus `_pw_property_id` meta clause. Root Fact Sheet query block includes `className` `pw-gb-scope-property` in `gb-pro-markup-samples.html` / `tools/generate-gb-fact-sheet-markup.py`
+- **Multi-property Fact Sheet URLs vs unique page slugs**: page meta `_pw_static_url_segment` + static-page resolver and `pw_find_generated_page()` fallback so each property keeps URL `/{property}/fact-sheet` even when WordPress stores uniquified `post_name` (e.g. `fact-sheet-2`)
+
+### Changed
+- **Sample data**: Fact Sheet pages come from the page installer (`transition_post_status` on `pw_property`); sample data only tags `_pw_is_sample_data` on existing generated Fact Sheets (single vs multi scope-aware)
+- **`pw_policy`**: removed block editor support; body text remains `_pw_content` in CMB2 only
+- **`pw_feature`**: added `_pw_content` meta and Content field in admin
+- **`pw_amenity`**: renamed Description to Content (`_pw_description` → `_pw_content`); one-time migration on first `admin_init` copies legacy meta
+
 ## [0.8.34] - 2026-03-24
 
 ### Fixed

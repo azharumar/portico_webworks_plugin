@@ -7,6 +7,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! defined( 'PW_FACT_SHEET_PAGE_SLUG' ) ) {
+	define( 'PW_FACT_SHEET_PAGE_SLUG', 'fact-sheet' );
+}
 
 add_action( 'init', 'pw_register_page_installer_meta', 8 );
 
@@ -56,15 +59,67 @@ function pw_register_page_installer_meta() {
 			]
 		);
 	}
+
+	if ( ! $registered( '_pw_static_url_segment' ) ) {
+		register_post_meta(
+			'page',
+			'_pw_static_url_segment',
+			[
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => '',
+			]
+		);
+	}
 }
 
 /**
- * @return array<int, array{title: string, slug: string, property_id: int, cpt: string, type: string}>
+ * @return array<int, array{title: string, slug: string, property_id: int, cpt: string, type: string, kind?: string}>
  */
 function pw_get_required_pages( int $property_id = 0 ): array {
-	unset( $property_id );
+	$mode = pw_get_setting( 'pw_property_mode', 'single' );
+	$slug = PW_FACT_SHEET_PAGE_SLUG;
+	$def  = [
+		'title'       => __( 'Fact Sheet', 'portico-webworks' ),
+		'slug'        => $slug,
+		'property_id' => 0,
+		'cpt'         => '',
+		'type'        => '',
+		'kind'        => 'fact_sheet',
+	];
 
-	return [];
+	if ( $mode === 'single' ) {
+		if ( $property_id !== 0 ) {
+			return [];
+		}
+		$def['property_id'] = 0;
+
+		return [ $def ];
+	}
+
+	if ( $property_id <= 0 ) {
+		return [];
+	}
+	$def['property_id'] = $property_id;
+
+	return [ $def ];
+}
+
+/**
+ * @return string Block markup for a new Fact Sheet page; empty if the sample file is missing (installer still creates the page).
+ */
+function pw_get_fact_sheet_starter_markup(): string {
+	$path = plugin_dir_path( PW_PLUGIN_FILE ) . 'gb-pro-markup-samples.html';
+	if ( ! is_readable( $path ) ) {
+		return '';
+	}
+	$raw = file_get_contents( $path );
+	if ( ! is_string( $raw ) || $raw === '' ) {
+		return '';
+	}
+
+	return $raw;
 }
 
 /**
@@ -519,6 +574,7 @@ function pw_get_page_structure_display_rows(): array {
 
 /**
  * Installer page: published/draft/private, slug match, _pw_generated === '1', _pw_property_id match.
+ * Fact Sheet: if `post_name` was uniquified (multi-property), falls back to `_pw_static_url_segment` + same metas.
  * Room-type starter omits pw_bed_type / pw_view_type (no stock GB Pro term-list tag in query loops).
  * Meeting-room starter uses _pw_sales_email / _pw_sales_phone (registered on pw_meeting_room).
  */
@@ -548,6 +604,32 @@ function pw_find_generated_page( string $slug, int $property_id ): ?WP_Post {
 			'suppress_filters' => true,
 		]
 	);
+
+	if ( empty( $posts ) && defined( 'PW_FACT_SHEET_PAGE_SLUG' ) && $slug === PW_FACT_SHEET_PAGE_SLUG ) {
+		$posts = get_posts(
+			[
+				'post_type'        => 'page',
+				'post_status'      => [ 'publish', 'draft', 'private' ],
+				'meta_query'       => [
+					[
+						'key'   => '_pw_generated',
+						'value' => '1',
+					],
+					[
+						'key'   => '_pw_property_id',
+						'value' => (int) $property_id,
+					],
+					[
+						'key'   => '_pw_static_url_segment',
+						'value' => $slug,
+					],
+				],
+				'posts_per_page'   => 1,
+				'no_found_rows'    => true,
+				'suppress_filters' => true,
+			]
+		);
+	}
 
 	if ( empty( $posts ) ) {
 		return null;
@@ -594,9 +676,14 @@ function pw_install_page( array $page_def ): array {
 			];
 		}
 
-		$content = $cpt !== '' && in_array( $cpt, pw_url_section_cpts(), true )
-			? pw_get_section_starter_markup( $cpt )
-			: '';
+		$kind = (string) ( $page_def['kind'] ?? '' );
+		if ( $kind === 'fact_sheet' ) {
+			$content = pw_get_fact_sheet_starter_markup();
+		} elseif ( $cpt !== '' && in_array( $cpt, pw_url_section_cpts(), true ) ) {
+			$content = pw_get_section_starter_markup( $cpt );
+		} else {
+			$content = '';
+		}
 
 		$post_id = wp_insert_post(
 			wp_slash(
@@ -623,6 +710,9 @@ function pw_install_page( array $page_def ): array {
 		update_post_meta( $post_id, '_pw_property_id', $prop_id );
 		update_post_meta( $post_id, '_pw_generated', '1' );
 		update_post_meta( $post_id, '_pw_section_cpt', $cpt );
+		if ( $kind === 'fact_sheet' ) {
+			update_post_meta( $post_id, '_pw_static_url_segment', PW_FACT_SHEET_PAGE_SLUG );
+		}
 
 		return [
 			'action'  => 'created',

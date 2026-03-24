@@ -360,7 +360,7 @@ add_action('admin_post_pw_save_settings', 'pw_handle_settings_save');
  */
 function pw_render_page_structure_admin_panel() {
 	echo '<div class="pw-subsection-title" style="margin-top:1.25em;">' . esc_html__( 'Site structure', 'portico-webworks' ) . '</div>';
-	echo '<p class="description">' . esc_html__( 'Installer-managed static pages (if any) and GeneratePress Elements for section archives. Section listings use Elements, not Pages. Starter block markup is inserted only when an element or page is first created.', 'portico-webworks' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Installer-managed static pages (Fact Sheet per property scope) and GeneratePress Elements for section archives. Section listings use Elements, not Pages. Starter block markup is inserted only when an element or page is first created.', 'portico-webworks' ) . '</p>';
 	echo '<details class="pw-page-structure"><summary style="cursor:pointer;font-weight:600;margin-top:0.5em;">' . esc_html__( 'Required pages and section archive elements', 'portico-webworks' ) . '</summary>';
 
 	$pages_list_url = admin_url( 'edit.php?post_type=page' );

@@ -112,23 +112,15 @@ function pw_install_sample_dataset_multi() {
 	$p1 = (int) $p1_ins;
 	$p2 = (int) $p2_ins;
 
+	$mode_multi = pw_get_setting( 'pw_property_mode', 'single' ) === 'multi';
 	foreach ( [ $p1, $p2 ] as $_pid ) {
-		$_fs = pw_sample_wp_insert_post(
-			[
-				'post_title'   => 'Fact Sheet',
-				'post_name'    => 'fact-sheet',
-				'post_status'  => 'publish',
-				'post_type'    => 'page',
-				'post_content' => '',
-			],
-			true
-		);
-		if ( $_fs && ! is_wp_error( $_fs ) ) {
-			$_fs = (int) $_fs;
-			update_post_meta( $_fs, '_pw_property_id', $_pid );
-			update_post_meta( $_fs, '_pw_generated', '1' );
-			update_post_meta( $_fs, '_pw_section_cpt', '' );
-			update_post_meta( $_fs, '_pw_is_sample_data', '1' );
+		$scope = $mode_multi ? $_pid : 0;
+		$_fs   = pw_find_generated_page( PW_FACT_SHEET_PAGE_SLUG, $scope );
+		if ( $_fs instanceof WP_Post ) {
+			update_post_meta( (int) $_fs->ID, '_pw_is_sample_data', '1' );
+		}
+		if ( ! $mode_multi ) {
+			break;
 		}
 	}
 
@@ -805,7 +797,7 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 		update_post_meta( $aid, '_pw_type', $ad['type'] );
 		update_post_meta( $aid, '_pw_category', $ad['cat'] );
 		update_post_meta( $aid, '_pw_icon', $ad['icon'] );
-		update_post_meta( $aid, '_pw_description', $ad['desc'] );
+		update_post_meta( $aid, '_pw_content', $ad['desc'] );
 		update_post_meta( $aid, '_pw_is_complimentary', (bool) $ad['compl'] );
 		update_post_meta( $aid, '_pw_display_order', (int) $ad['order'] );
 	}
@@ -829,7 +821,7 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 		update_post_meta( $aid, '_pw_type', $ad['type'] );
 		update_post_meta( $aid, '_pw_category', $ad['cat'] );
 		update_post_meta( $aid, '_pw_icon', $ad['icon'] );
-		update_post_meta( $aid, '_pw_description', $ad['desc'] );
+		update_post_meta( $aid, '_pw_content', $ad['desc'] );
 		update_post_meta( $aid, '_pw_is_complimentary', (bool) $ad['compl'] );
 		update_post_meta( $aid, '_pw_display_order', (int) $ad['order'] );
 	}

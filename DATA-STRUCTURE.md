@@ -12,6 +12,8 @@ Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** fo
 
 **Front-end SEO overrides:** `includes/seo-compatibility.php` hooks Rank Math so singular templates use `_pw_meta_title` and `_pw_meta_description` when set.
 
+**Installer-managed Fact Sheet page:** `pw_get_required_pages()` in `includes/page-installer.php` requires one WordPress **page** per scope: requested slug `PW_FACT_SHEET_PAGE_SLUG` (`fact-sheet`), `_pw_generated` = `1`, `_pw_static_url_segment` = `fact-sheet` (URL segment for `property-rewrites.php` when WordPress uniquifies `post_name`), `_pw_property_id` = `0` in **single** mode or the property ID in **multi** mode. On first create only, `post_content` is filled from `gb-pro-markup-samples.html` (`pw_get_fact_sheet_starter_markup()`); existing pages are never overwritten. **Install Missing Structure** / publishing a property runs `pw_run_page_installer()` idempotently.
+
 ### Sample data marker (internal)
 
 | Key                    | Scope        | Notes                                                                 |
@@ -175,9 +177,10 @@ Same shape and normalization behavior as sustainability. CMB2: `pw_property_acce
 **Taxonomies:** `pw_feature_group`
 
 
-| Meta Key   | Type   | Default | CMB2                                                                  |
-| ---------- | ------ | ------- | --------------------------------------------------------------------- |
-| `_pw_icon` | string | `''`    | CMB2: `pw_feature_metabox` (textarea_small) — SVG string or icon slug |
+| Meta Key      | Type   | Default | CMB2                                                                  |
+| ------------- | ------ | ------- | --------------------------------------------------------------------- |
+| `_pw_icon`    | string | `''`    | CMB2: `pw_feature_metabox` (textarea_small) — SVG string or icon slug |
+| `_pw_content` | string | `''`    | textarea                                                              |
 
 
 ---
@@ -296,7 +299,7 @@ Same storage and REST registration pattern as restaurant. CMB2: `pw_spa_operatin
 | `_pw_type`             | string  | `''`    | `amenity` | `service` | `facility` | select                              |
 | `_pw_category`         | string  | `''`    |                                    | text                                |
 | `_pw_icon`             | string  | `''`    |                                    | textarea_small                      |
-| `_pw_description`      | string  | `''`    |                                    | textarea_small                      |
+| `_pw_content`          | string  | `''`    |                                    | textarea_small                      |
 | `_pw_is_complimentary` | boolean | `false` |                                    | checkbox                            |
 | `_pw_display_order`    | integer | `0`     |                                    | text_small                          |
 
@@ -328,7 +331,7 @@ Scoped contact cards for a property: outlet-specific, group-level per CPT, or pr
 
 ## Post Type: `pw_policy`
 
-**Supports:** `title`, `editor`, `custom-fields`  
+**Supports:** `title`, `custom-fields`  
 **Taxonomies:** `pw_policy_type` (checkin, checkout, cancellation, pet, child, payment, smoking, custom)
 
 

@@ -106,7 +106,7 @@ function pw_register_child_post_types() {
 		'labels'     => pw_cpt_labels( 'Policy', 'Policies' ),
 		'menu_icon'  => 'dashicons-media-text',
 		'taxonomies' => [ 'pw_policy_type' ],
-		'supports'   => [ 'title', 'editor', 'custom-fields' ],
+		'supports'   => [ 'title', 'custom-fields' ],
 	] ) );
 
 	register_post_type( 'pw_faq', array_merge( $defaults, [
@@ -548,7 +548,7 @@ function pw_register_child_post_meta() {
 		'default'      => 0,
 	] );
 
-	foreach ( [ '_pw_type', '_pw_icon', '_pw_category', '_pw_description' ] as $key ) {
+	foreach ( [ '_pw_type', '_pw_icon', '_pw_category', '_pw_content' ] as $key ) {
 		register_post_meta( 'pw_amenity', $key, [
 			'type'         => 'string',
 			'single'       => true,

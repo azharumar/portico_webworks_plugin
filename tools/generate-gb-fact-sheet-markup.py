@@ -747,13 +747,13 @@ amenities_table = nested_query_table_section(
     "pw_amenity",
     "lop_am",
     "lit_am",
-    ["Name", "Type", "Category", "Complimentary", "Description"],
+    ["Name", "Type", "Category", "Complimentary", "Content"],
     [
         "{{post_title}}",
         "{{post_meta key:_pw_type}}",
         "{{post_meta key:_pw_category}}",
         "{{post_meta key:_pw_is_complimentary}}",
-        "{{post_meta key:_pw_description}}",
+        "{{post_meta key:_pw_content}}",
     ],
     no_msg="No amenities.",
 )
@@ -879,7 +879,7 @@ loop_item = (
 )
 
 out = (
-    f'<!-- wp:generateblocks/query {{"uniqueId":"{_OQ}","tagName":"div","query":{{"post_type":["pw_property"],"posts_per_page":1,"orderby":"date","order":"desc"}}}} -->\n'
+    f'<!-- wp:generateblocks/query {{"uniqueId":"{_OQ}","tagName":"div","query":{{"post_type":["pw_property"],"posts_per_page":1,"orderby":"date","order":"desc"}},"className":"pw-gb-scope-property"}} -->\n'
     "<div>\n"
     f'<!-- wp:generateblocks/looper {{"uniqueId":"{_OL}","tagName":"div","className":{json.dumps(_lp_attr)}}} -->\n'
     f'<div class="{_lp_html}">\n'

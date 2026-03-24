@@ -627,6 +627,27 @@ function pw_filter_generateblocks_query_loop_property_scope( $query_args, $attri
 		return $query_args;
 	}
 
+	$pt = $query_args['post_type'] ?? '';
+	if ( is_array( $pt ) ) {
+		$pt = count( $pt ) === 1 ? (string) reset( $pt ) : '';
+	} else {
+		$pt = (string) $pt;
+	}
+
+	// pw_property posts are not filtered by _pw_property_id; scope by post ID on the front end only (admin/REST leave the query unchanged so the block editor does not get an empty loop from a bogus meta clause).
+	if ( $pt === 'pw_property' ) {
+		$is_editor_or_rest = ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_admin();
+		if ( ! $is_editor_or_rest ) {
+			$query_args['post__in']       = array( (int) $property_id );
+			$query_args['posts_per_page'] = 1;
+			$query_args['orderby']        = 'post__in';
+			if ( isset( $query_args['meta_query'] ) ) {
+				unset( $query_args['meta_query'] );
+			}
+		}
+		return $query_args;
+	}
+
 	$clause = array(
 		'key'     => '_pw_property_id',
 		'value'   => (int) $property_id,

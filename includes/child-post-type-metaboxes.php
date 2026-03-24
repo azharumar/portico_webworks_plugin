@@ -338,6 +338,12 @@ function pw_register_child_metaboxes() {
 		'type' => 'textarea_small',
 	] );
 
+	$cmb->add_field( [
+		'name' => 'Content',
+		'id'   => '_pw_content',
+		'type' => 'textarea',
+	] );
+
 	// --- pw_room_type ---
 
 	$cmb = new_cmb2_box( [
@@ -583,7 +589,7 @@ function pw_register_spa_operating_hours_metabox() {
 
 	$cmb->add_field( [ 'name' => 'Category',      'id' => '_pw_category',      'type' => 'text' ] );
 	$cmb->add_field( [ 'name' => 'Icon',          'id' => '_pw_icon',          'type' => 'textarea_small' ] );
-	$cmb->add_field( [ 'name' => 'Description',   'id' => '_pw_description',   'type' => 'textarea_small' ] );
+	$cmb->add_field( [ 'name' => 'Content',       'id' => '_pw_content',       'type' => 'textarea_small' ] );
 	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
 
 	$cmb->add_field( [
