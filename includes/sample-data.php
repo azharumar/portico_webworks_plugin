@@ -65,7 +65,7 @@ function pw_render_data_tab() {
 	$flagged       = pw_count_sample_flagged_items();
 
 	pw_data_accordion_item_begin( 'Sample content' );
-	echo '<p>Install two sample hotel properties (Bengaluru business hotel and Goa beach resort) with room types, dining, spas, meeting rooms, property contacts (<code>pw_contact</code>), amenities, policies, FAQs, offers, and related content. Creates every name from the plugin&rsquo;s default taxonomy seed lists (<code>includes/taxonomy-seeds.php</code>) and adds extra demo-only terms where the story needs them. Use on a fresh site for testing or demonstration.</p>';
+	echo '<p>Install two fictional sample properties — <strong>Meridian Grand Hotel Bengaluru</strong> (business / MICE) and <strong>Azure Bay Beach Resort</strong> (North Goa leisure) — with room types, dining, spas, meeting rooms, property contacts (<code>pw_contact</code>), amenities, policies, FAQs, offers, and related content. Creates every name from the plugin&rsquo;s default taxonomy seed lists (<code>includes/taxonomy-seeds.php</code>) and adds extra demo-only terms where the story needs them. Use on a fresh site for testing or demonstration.</p>';
 
 	if ( ! empty( $has_properties ) ) {
 		echo '<p><strong>Sample data can only be installed when no properties exist.</strong> Delete existing properties first if you want to reinstall.</p>';
@@ -262,56 +262,18 @@ function pw_sample_ensure_term( $name, $taxonomy ) {
 	return $tid;
 }
 
-function pw_sample_operating_day( $sessions ) {
-	return [
-		'is_closed' => false,
-		'sessions'  => $sessions,
-	];
-}
-
-function pw_sample_weekday_lunch_dinner() {
-	return pw_sample_operating_day(
-		[
-			[ 'label' => 'Lunch', 'open_time' => '12:00', 'close_time' => '15:00' ],
-			[ 'label' => 'Dinner', 'open_time' => '18:00', 'close_time' => '22:00' ],
-		]
-	);
-}
-
-function pw_sample_weekend_all_day() {
-	return pw_sample_operating_day(
-		[
-			[ 'label' => 'All day', 'open_time' => '11:00', 'close_time' => '23:00' ],
-		]
-	);
-}
-
-function pw_sample_spa_weekday() {
-	return pw_sample_operating_day(
-		[
-			[ 'label' => 'Treatments', 'open_time' => '09:00', 'close_time' => '20:00' ],
-		]
-	);
-}
-
-function pw_sample_restaurant_set_hours( $post_id, $hours_by_day ) {
+function pw_sample_set_operating_hours( $post_id, $sessions ) {
 	$post_id = (int) $post_id;
-	if ( $post_id <= 0 || ! is_array( $hours_by_day ) ) {
+	if ( $post_id <= 0 || ! is_array( $sessions ) ) {
 		return;
 	}
-	foreach ( $hours_by_day as $day => $val ) {
-		update_post_meta( $post_id, '_pw_hours_' . sanitize_key( (string) $day ), $val );
-	}
+	update_post_meta( $post_id, '_pw_operating_hours', array_values( $sessions ) );
 }
 
-function pw_sample_spa_all_days_same( $open, $close ) {
-	$block = pw_sample_operating_day(
-		[ [ 'label' => 'Treatments', 'open_time' => $open, 'close_time' => $close ] ]
-	);
-	return array_fill_keys(
-		[ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ],
-		$block
-	);
+function pw_sample_spa_treatment_hours( $open, $close ) {
+	return [
+		[ 'label' => 'Treatments', 'open_time' => $open, 'close_time' => $close ],
+	];
 }
 
 require_once __DIR__ . '/sample-data-multi-install.php';

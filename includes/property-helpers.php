@@ -527,15 +527,8 @@ function pw_get_faqs_for( $post_type, $post_id ) {
 }
 
 function pw_get_operating_hours( $post_id ) {
-	$days  = [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ];
-	$hours = [];
-	foreach ( $days as $day ) {
-		$hours[ $day ] = get_post_meta( (int) $post_id, '_pw_hours_' . $day, true ) ?: [
-			'is_closed' => false,
-			'sessions'  => [],
-		];
-	}
-	return $hours;
+	$raw = get_post_meta( (int) $post_id, '_pw_operating_hours', true );
+	return is_array( $raw ) ? $raw : [];
 }
 
 function pw_get_property_currency( $property_id = null ) {
@@ -826,6 +819,78 @@ function pw_filter_generateblocks_query_pw_contact_property_scope( $query_args, 
 add_filter( 'generateblocks_query_loop_args', 'pw_filter_generateblocks_query_pw_contact_property_scope', 12, 2 );
 
 /**
+ * Singular outlet templates: limit pw_contact to rows scoped to the current post (restaurant, spa, meeting room, experience).
+ */
+function pw_filter_generateblocks_query_pw_contact_outlet_scope( $query_args, $attributes ) {
+	if ( ! is_array( $query_args ) || ! is_array( $attributes ) ) {
+		return $query_args;
+	}
+	if ( ! pw_gb_query_should_scope_to_property( $attributes ) ) {
+		return $query_args;
+	}
+	$cn = isset( $attributes['className'] ) ? (string) $attributes['className'] : '';
+	if ( strpos( $cn, 'pw-gb-contact-filter-outlet' ) === false ) {
+		return $query_args;
+	}
+	$pt = $query_args['post_type'] ?? '';
+	if ( is_array( $pt ) ) {
+		$pt = count( $pt ) === 1 ? (string) reset( $pt ) : '';
+	} else {
+		$pt = (string) $pt;
+	}
+	if ( $pt !== 'pw_contact' ) {
+		return $query_args;
+	}
+	$map = [
+		'pw_restaurant'   => 'restaurant',
+		'pw_spa'          => 'spa',
+		'pw_meeting_room' => 'meeting_room',
+		'pw_experience'   => 'experience',
+	];
+	$scope_key = '';
+	foreach ( $map as $cpt => $key ) {
+		if ( is_singular( $cpt ) ) {
+			$scope_key = $key;
+			break;
+		}
+	}
+	if ( $scope_key === '' ) {
+		return $query_args;
+	}
+	$object_id = (int) get_queried_object_id();
+	if ( $object_id <= 0 ) {
+		return $query_args;
+	}
+	$existing = isset( $query_args['meta_query'] ) && is_array( $query_args['meta_query'] ) ? $query_args['meta_query'] : [];
+	$merged   = [ 'relation' => 'AND' ];
+	if ( ! empty( $existing ) ) {
+		if ( isset( $existing['relation'] ) ) {
+			$merged[] = $existing;
+		} else {
+			foreach ( $existing as $piece ) {
+				if ( is_array( $piece ) && isset( $piece['key'] ) ) {
+					$merged[] = $piece;
+				}
+			}
+		}
+	}
+	$merged[] = [
+		'key'     => '_pw_scope_cpt',
+		'value'   => $scope_key,
+		'compare' => '=',
+	];
+	$merged[] = [
+		'key'     => '_pw_scope_id',
+		'value'   => (string) $object_id,
+		'compare' => '=',
+	];
+	$query_args['meta_query'] = $merged;
+	return $query_args;
+}
+
+add_filter( 'generateblocks_query_loop_args', 'pw_filter_generateblocks_query_pw_contact_outlet_scope', 13, 2 );
+
+/**
  * IANA timezone for interpreting pw_event local datetimes (linked property, else WP timezone).
  */
 function pw_event_timezone_for_property( $property_id ) {
@@ -858,49 +923,4 @@ function pw_event_local_datetime_to_iso8601( $local_ymd_his, $property_id ) {
 	}
 	return $dt->format( 'c' );
 }
-
-add_action( 'rest_api_init', function () {
-	register_rest_field(
-		'pw_event',
-		'pw_start_datetime_iso8601',
-		[
-			'get_callback' => function ( $obj ) {
-				$post_id = isset( $obj['id'] ) ? (int) $obj['id'] : 0;
-				if ( ! $post_id ) {
-					return '';
-				}
-				$prop = (int) get_post_meta( $post_id, '_pw_property_id', true );
-				$raw  = get_post_meta( $post_id, '_pw_start_datetime', true );
-				return pw_event_local_datetime_to_iso8601( $raw, $prop );
-			},
-			'schema'       => [
-				'description' => 'startDate: ISO 8601 with offset; _pw_start_datetime interpreted in linked property _pw_timezone.',
-				'type'        => 'string',
-				'context'     => [ 'view', 'edit', 'embed' ],
-				'readonly'    => true,
-			],
-		]
-	);
-	register_rest_field(
-		'pw_event',
-		'pw_end_datetime_iso8601',
-		[
-			'get_callback' => function ( $obj ) {
-				$post_id = isset( $obj['id'] ) ? (int) $obj['id'] : 0;
-				if ( ! $post_id ) {
-					return '';
-				}
-				$prop = (int) get_post_meta( $post_id, '_pw_property_id', true );
-				$raw  = get_post_meta( $post_id, '_pw_end_datetime', true );
-				return pw_event_local_datetime_to_iso8601( $raw, $prop );
-			},
-			'schema'       => [
-				'description' => 'endDate: ISO 8601 with offset; _pw_end_datetime interpreted in linked property _pw_timezone.',
-				'type'        => 'string',
-				'context'     => [ 'view', 'edit', 'embed' ],
-				'readonly'    => true,
-			],
-		]
-	);
-} );
 

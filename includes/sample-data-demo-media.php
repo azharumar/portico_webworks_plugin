@@ -119,7 +119,7 @@ function pw_sample_sideload_sample_media_file( $abs_path ) {
 /**
  * @param int    $post_id   Post ID.
  * @param string $post_type Post type.
- * @param array  $items     List of [ 'file' =>, 'category' =>, 'caption' => ] in order.
+ * @param array  $items     List of [ 'file' => ... ] in order.
  * @param array  $map       Filename => attachment ID.
  */
 function pw_sample_set_gallery_with_meta( $post_id, $post_type, array $items, array $map ) {
@@ -128,7 +128,6 @@ function pw_sample_set_gallery_with_meta( $post_id, $post_type, array $items, ar
 		return;
 	}
 	$gallery = [];
-	$meta    = [];
 	foreach ( $items as $it ) {
 		$fn = isset( $it['file'] ) ? (string) $it['file'] : '';
 		if ( $fn === '' || empty( $map[ $fn ] ) ) {
@@ -140,16 +139,11 @@ function pw_sample_set_gallery_with_meta( $post_id, $post_type, array $items, ar
 			continue;
 		}
 		$gallery[ $aid ] = $url;
-		$meta[ (string) $aid ] = [
-			'category' => isset( $it['category'] ) ? (string) $it['category'] : '',
-			'caption'  => isset( $it['caption'] ) ? (string) $it['caption'] : '',
-		];
 	}
 	if ( $gallery === [] ) {
 		return;
 	}
 	update_post_meta( $post_id, '_pw_gallery', $gallery );
-	update_post_meta( $post_id, '_pw_gallery_meta', pw_sanitize_pw_gallery_meta_json( wp_json_encode( $meta ), $post_type ) );
 }
 
 /**
@@ -189,7 +183,7 @@ function pw_sample_merge_pool_attachment_ids( $property_id, array $map ) {
 			$pools[ $i ]['attachment_id'] = 0;
 		}
 	}
-	if ( $slug === 'leela-residency-bengaluru' ) {
+	if ( $slug === 'meridian-grand-bengaluru' ) {
 		if ( isset( $pools[0] ) && is_array( $pools[0] ) && ! empty( $map['indoor-pool.jpeg'] ) ) {
 			$pools[0]['attachment_id'] = (int) $map['indoor-pool.jpeg'];
 			$updated                   = true;
@@ -198,7 +192,7 @@ function pw_sample_merge_pool_attachment_ids( $property_id, array $map ) {
 			$pools[1]['attachment_id'] = (int) $map['indoor-pool.jpeg'];
 			$updated                   = true;
 		}
-	} elseif ( $slug === 'seawind-resort-goa' ) {
+	} elseif ( $slug === 'azure-bay-beach-resort' ) {
 		if ( isset( $pools[0] ) && is_array( $pools[0] ) && ! empty( $map['nearby-beach.jpeg'] ) ) {
 			$pools[0]['attachment_id'] = (int) $map['nearby-beach.jpeg'];
 			$updated                   = true;
@@ -331,20 +325,20 @@ function pw_sample_multi_install_apply_demo_media( $p1, $p2 ) {
 		);
 	}
 
-	$kid = pw_sample_get_post_id_by_slug( 'karavali-rooftop', 'pw_restaurant' );
+	$kid = pw_sample_get_post_id_by_slug( 'skyline-kitchen-rooftop', 'pw_restaurant' );
 	if ( $kid ) {
 		pw_sample_set_featured_if_file( $kid, 'restaurant-roof-top.jpeg', $map );
 		pw_sample_set_gallery_with_meta(
 			$kid,
 			'pw_restaurant',
 			[
-				[ 'file' => 'restaurant-roof-top.jpeg', 'category' => 'dining_area', 'caption' => 'Rooftop dining with city views at Karavali.' ],
+				[ 'file' => 'restaurant-roof-top.jpeg', 'category' => 'dining_area', 'caption' => 'Rooftop dining with city views at Skyline Kitchen.' ],
 				[ 'file' => 'restaurant-bar.jpeg', 'category' => 'bar', 'caption' => 'Bar and lounge area for cocktails and small plates.' ],
 			],
 			$map
 		);
 	}
-	$kid = pw_sample_get_post_id_by_slug( 'spice-verandah-all-day-dining', 'pw_restaurant' );
+	$kid = pw_sample_get_post_id_by_slug( 'merchants-hall', 'pw_restaurant' );
 	if ( $kid ) {
 		pw_sample_set_featured_if_file( $kid, 'restaurant-all-day-dining.jpeg', $map );
 		pw_sample_set_gallery_with_meta(
@@ -359,7 +353,7 @@ function pw_sample_multi_install_apply_demo_media( $p1, $p2 ) {
 			$map
 		);
 	}
-	$kid = pw_sample_get_post_id_by_slug( 'the-tides-beach-bar-restaurant', 'pw_restaurant' );
+	$kid = pw_sample_get_post_id_by_slug( 'azure-shore-grill', 'pw_restaurant' );
 	if ( $kid ) {
 		pw_sample_set_featured_if_file( $kid, 'restaurant-bar.jpeg', $map );
 		pw_sample_set_gallery_with_meta(
@@ -373,7 +367,7 @@ function pw_sample_multi_install_apply_demo_media( $p1, $p2 ) {
 		);
 	}
 
-	$sid = pw_sample_get_post_id_by_slug( 'nirvana-spa-wellness', 'pw_spa' );
+	$sid = pw_sample_get_post_id_by_slug( 'stillwater-spa-bengaluru', 'pw_spa' );
 	if ( $sid ) {
 		pw_sample_set_featured_if_file( $sid, 'spa-treatment-room.jpeg', $map );
 		pw_sample_set_gallery_with_meta(
@@ -388,7 +382,7 @@ function pw_sample_multi_install_apply_demo_media( $p1, $p2 ) {
 			$map
 		);
 	}
-	$sid = pw_sample_get_post_id_by_slug( 'seawind-wellness-hut', 'pw_spa' );
+	$sid = pw_sample_get_post_id_by_slug( 'tidepool-garden-spa', 'pw_spa' );
 	if ( $sid ) {
 		pw_sample_set_featured_if_file( $sid, 'spa-treatment-room.jpeg', $map );
 		pw_sample_set_gallery_with_meta(
@@ -402,7 +396,7 @@ function pw_sample_multi_install_apply_demo_media( $p1, $p2 ) {
 		);
 	}
 
-	$mid = pw_sample_get_post_id_by_slug( 'deccan-ballroom', 'pw_meeting_room' );
+	$mid = pw_sample_get_post_id_by_slug( 'meridian-grand-ballroom', 'pw_meeting_room' );
 	if ( $mid ) {
 		pw_sample_set_featured_if_file( $mid, 'meeting-gala-dinner.jpeg', $map );
 		pw_sample_set_gallery_with_meta(
@@ -417,7 +411,7 @@ function pw_sample_multi_install_apply_demo_media( $p1, $p2 ) {
 			$map
 		);
 	}
-	$mid = pw_sample_get_post_id_by_slug( 'cubbon-boardroom', 'pw_meeting_room' );
+	$mid = pw_sample_get_post_id_by_slug( 'horizon-boardroom', 'pw_meeting_room' );
 	if ( $mid ) {
 		pw_sample_set_featured_if_file( $mid, 'meeting-board-room.jpeg', $map );
 		pw_sample_set_gallery_with_meta(
@@ -435,7 +429,7 @@ function pw_sample_multi_install_apply_demo_media( $p1, $p2 ) {
 		'craft-beer-bengaluru-food-walk'    => [ [ 'file' => 'experience-craft-beer-food-walk-bengaluru.jpeg', 'category' => 'general', 'caption' => 'Evening food walk with craft beer and local bites.' ] ],
 		'yoga-meditation-sunrise'           => [ [ 'file' => 'experience-morning-yoga-session.jpeg', 'category' => 'general', 'caption' => 'Morning yoga and meditation on the rooftop lawn.' ] ],
 		'bengaluru-heritage-city-tour'      => [ [ 'file' => 'experience-bengaluru-heritage-city-tour.jpeg', 'category' => 'general', 'caption' => 'Heritage routing through Bengaluru landmarks.' ] ],
-		'whisky-masterclass-spice-verandah' => [ [ 'file' => 'experience-whisky-masterclass-spice-verandah.jpeg', 'category' => 'general', 'caption' => 'Guided whisky tasting at Spice Verandah.' ] ],
+		'whisky-masterclass-merchants-hall' => [ [ 'file' => 'experience-whisky-masterclass-spice-verandah.jpeg', 'category' => 'general', 'caption' => 'Guided whisky tasting at Merchant\'s Hall.' ] ],
 		'sunrise-kayaking'                  => [ [ 'file' => 'experience-sunrise-kayaking-goa.jpeg', 'category' => 'general', 'caption' => 'Sunrise kayaking along the coast.' ] ],
 		'goan-cooking-masterclass'          => [ [ 'file' => 'experience-cooking-class-by-chef.jpeg', 'category' => 'general', 'caption' => 'Hands-on Goan cooking with our chef.' ] ],
 		'spice-plantation-half-day-tour'    => [ [ 'file' => 'experience-spice-plantation-half-day-tour.jpeg', 'category' => 'general', 'caption' => 'Spice plantation walk and tasting.' ] ],
@@ -453,8 +447,8 @@ function pw_sample_multi_install_apply_demo_media( $p1, $p2 ) {
 	}
 
 	$evt_slugs = [
-		'diwali-gala-dinner-karavali'         => [
-			[ 'file' => 'event-diwali-gala-rooftop-restaurant.jpeg', 'category' => 'general', 'caption' => 'Diwali gala dinner on the rooftop with skyline views.' ],
+		'festival-gala-dinner-skyline'       => [
+			[ 'file' => 'event-diwali-gala-rooftop-restaurant.jpeg', 'category' => 'general', 'caption' => 'Festival gala dinner on the rooftop with skyline views.' ],
 		],
 		'corporate-leadership-summit'          => [
 			[ 'file' => 'meeting-classroom-style-seating.jpeg', 'category' => 'general', 'caption' => 'Summit sessions in the ballroom.' ],
@@ -465,7 +459,7 @@ function pw_sample_multi_install_apply_demo_media( $p1, $p2 ) {
 		'full-moon-beach-party-goa'          => [
 			[ 'file' => 'event-new-years-eve-beach-party-goa-night.jpeg', 'category' => 'general', 'caption' => 'Beach party under the stars.' ],
 		],
-		'goa-christmas-brunch'               => [
+		'azure-bay-christmas-brunch'         => [
 			[ 'file' => 'restaurant-breakfast-buffet.jpeg', 'category' => 'general', 'caption' => 'Festive brunch spread with seasonal favourites.' ],
 		],
 		'new-years-eve-beach-bash-goa'       => [

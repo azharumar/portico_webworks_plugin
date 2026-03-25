@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.8.39] - 2026-03-25
+
+### Removed
+- **`_pw_gallery_meta` and Gallery details metabox**: per-image category/caption JSON, `includes/gallery-categories.php`, and `includes/gallery-meta-metabox.php`; sample demo galleries now only set `_pw_gallery`. Use Media Library caption/alt on attachments instead.
+- **Data tab “Clean up orphaned data”** (`pw_cleanup_gallery_meta` in `includes/sample-data.php`): dropped; no legacy `_pw_gallery_meta` rows to migrate.
+
+### Added
+- **`pw_room_type` `_pw_booking_url`**: optional per-room-type booking deep link (`register_post_meta` in `includes/child-post-types.php`, CMB2 **Booking URL** in `includes/child-post-type-metaboxes.php`)
+- **`pw_event` ISO 8601 meta**: `_pw_start_datetime_iso8601` and `_pw_end_datetime_iso8601` (`register_post_meta`, `show_in_rest`); `save_post_pw_event` (priority 20) fills them from `_pw_start_datetime` / `_pw_end_datetime` via `pw_event_local_datetime_to_iso8601()` and the linked property’s `_pw_timezone`; removed virtual REST fields `pw_start_datetime_iso8601` / `pw_end_datetime_iso8601` from `includes/property-helpers.php` so GenerateBlocks `{{post_meta}}` can bind directly
+- **`pw-gb-contact-filter-outlet`**: `generateblocks_query_loop_args` filter (priority 13) scopes `pw_contact` queries on singular `pw_restaurant`, `pw_spa`, `pw_meeting_room`, and `pw_experience` templates by `_pw_scope_cpt` / `_pw_scope_id` when the Query block includes `pw-gb-scope-property` and `pw-gb-contact-filter-outlet` (`includes/property-helpers.php`)
+
+### Changed
+- **`DATA-STRUCTURE.md`**: gallery documented as `_pw_gallery` only; per-image text fields live on Media Library attachments; `pw_event` table documents synced `_pw_*_datetime_iso8601` meta rows
+- **Multi-property sample dataset** (`includes/sample-data-multi-install.php`): fictional **Meridian Grand Hotel Bengaluru** (`meridian-grand-bengaluru`) and **Azure Bay Beach Resort** (`azure-bay-beach-resort`); renamed outlets (e.g. Skyline Kitchen, Merchant’s Hall, Azure Shore Grill, Stillwater Spa, Tidepool Garden Spa, Meridian Grand Ballroom, Horizon Boardroom); per-room `_pw_booking_url`; install-relative offer/event dates; richer amenities, experiences (`_pw_description`, body copy), events (`_pw_description`, booking URLs, `pw_sync_pw_event_iso8601_meta` after insert), nearby `post_content`, Goa child policy; demo organiser term **Meridian & Azure Demo Events**
+- **Sample demo media** (`includes/sample-data-demo-media.php`): property and outlet slugs aligned with the renamed sample posts
+- **GP starter markup** (`includes/page-installer.php`): rooms archive featured image; room singular rate-plan and gallery meta queries, booking link, property contacts; restaurant/spa `_pw_operating_hours` meta loops and outlet-scoped contacts; meeting and experience outlet-scoped contacts; event archive/singular use `_pw_*_datetime_iso8601` plus description and property contacts; `gb-pro-markup-samples.html` fact-sheet SEO rows use `{{post_title}}` / `{{post_excerpt}}` instead of removed `_pw_meta_*` keys
+
 ## [0.8.38] - 2026-03-25
 
 ### Added
@@ -16,14 +33,13 @@
 - **Native nav menus** (`includes/nav-menus.php`): `pw_primary` / `pw_utility` locations; shortcodes `[pw_primary_nav]`, `[pw_utility_nav]`, `[pw_site_branding]`, `[pw_book_now_button]`, `[pw_portico_breadcrumbs]`; optional seed menu **Portico Primary** on structure install
 - **GP Element `pw-site-header`**: `_generate_block_type = site-header`, Location `general:site` — utility bar, 3-column row (branding / primary menu / book now), breadcrumbs
 - **Archive loop titles**: clickable links via `{{post_permalink}}` on all section archive starters
-- **Gallery metadata**: `_pw_gallery_meta` (JSON string per attachment: `category`, `caption`) on `pw_property` and all outlet CPTs with `_pw_gallery`; `pw_get_gallery_categories()` and `pw_sanitize_pw_gallery_meta_json()` in `includes/gallery-categories.php`; **Gallery details** custom metabox (`includes/gallery-meta-metabox.php`)
 - **Property gallery**: CMB2 `file_list` `_pw_gallery` on `pw_property`; `_pw_pools` repeatable group optional **Photo** (`attachment_id`); `pw_property` **`_pw_og_image`** (attachment ID) in `register_post_meta`
-- **Sample data media**: sideload `assets/sample-media/` (`includes/sample-data-demo-media.php`), featured images, galleries + `_pw_gallery_meta`, `_pw_og_image`, pool images; generic assets reused across demo posts where appropriate
+- **Sample data media**: sideload `assets/sample-media/` (`includes/sample-data-demo-media.php`), featured images, galleries (`_pw_gallery`), `_pw_og_image`, pool images; generic assets reused across demo posts where appropriate
 
 ### Changed
 - **Section listing URL tokens**: outlet singular “Back to …” links and installer repair use `{{pw_current_section_listing_url}}` instead of `{{post_type_archive_link}}`; `{{pw_home_url}}` remains for optional use in blocks
 - **Permalinks admin**: link to **Appearance → Menus** and GP Elements table row for **Portico Site Header**
-- **DATA-STRUCTURE.md**: documents `_pw_gallery_meta`, property gallery, `_pw_pools.attachment_id`, `_pw_og_image`
+- **DATA-STRUCTURE.md**: documents property gallery (`_pw_gallery`), `_pw_pools.attachment_id`, `_pw_og_image`
 
 ### Removed
 - **Custom SEO fields on plugin CPTs**: meta title and meta description (`_pw_meta_title`, `_pw_meta_description`) — CMB2 metaboxes, REST registration, and Rank Math title/description overrides (`seo-compatibility.php` removed); rely on Rank Math (or similar) per post type instead
@@ -58,7 +74,7 @@
 - **Admin list tables**: CPT list column hooks live in `includes/admin-list-columns.php`
 
 ### Removed
-- **`pw_meeting_room` `_pw_sales_whatsapp`**: dropped `register_post_meta` for this field
+- **`pw_meeting_room`**: dropped legacy WhatsApp sales meta `register_post_meta`
 
 ## [0.8.33] - 2026-03-24
 
@@ -229,7 +245,7 @@
 - **Fact sheet markup** (`tools/generate-gb-fact-sheet-markup.py`, `gb-pro-markup-samples.html`): Contacts section queries `pw_contact` with scoped classes and `_pw_label` / channel meta
 
 ### Removed
-- **Meeting rooms**: `_pw_sales_phone`, `_pw_sales_mobile`, `_pw_sales_whatsapp`, `_pw_sales_email` (CMB2, REST registration, sample data, GB samples / generator)
+- **Meeting rooms**: removed per-outlet sales phone, mobile, WhatsApp, and email meta (CMB2, REST registration, sample data, GB samples / generator)
 
 ## [0.8.14] - 2026-03-22
 

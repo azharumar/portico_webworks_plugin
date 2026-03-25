@@ -340,6 +340,14 @@ function pw_register_child_post_meta() {
 		] );
 	}
 
+	register_post_meta( 'pw_room_type', '_pw_booking_url', [
+		'type'              => 'string',
+		'single'            => true,
+		'default'           => '',
+		'sanitize_callback' => 'esc_url_raw',
+		'show_in_rest'      => true,
+	] );
+
 	register_post_meta( 'pw_room_type', '_pw_gallery', [
 		'type'         => 'array',
 		'single'       => true,
@@ -349,16 +357,6 @@ function pw_register_child_post_meta() {
 				'items' => [ 'type' => 'integer' ],
 			],
 		],
-	] );
-
-	register_post_meta( 'pw_room_type', '_pw_gallery_meta', [
-		'type'              => 'string',
-		'single'            => true,
-		'default'           => '{}',
-		'show_in_rest'      => true,
-		'sanitize_callback' => static function ( $value ) {
-			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_room_type' );
-		},
 	] );
 
 	register_post_meta( 'pw_room_type', '_pw_features', [
@@ -408,21 +406,12 @@ function pw_register_child_post_meta() {
 		],
 	] );
 
-	register_post_meta( 'pw_restaurant', '_pw_gallery_meta', [
-		'type'              => 'string',
+	register_post_meta( 'pw_restaurant', '_pw_operating_hours', [
+		'type'              => 'array',
 		'single'            => true,
-		'default'           => '{}',
-		'show_in_rest'      => true,
-		'sanitize_callback' => static function ( $value ) {
-			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_restaurant' );
-		},
-	] );
-
-	$hours_schema = [
-		'type'       => 'object',
-		'properties' => [
-			'is_closed' => [ 'type' => 'boolean' ],
-			'sessions'  => [
+		'default'           => [],
+		'show_in_rest'      => [
+			'schema' => [
 				'type'  => 'array',
 				'items' => [
 					'type'       => 'object',
@@ -434,14 +423,10 @@ function pw_register_child_post_meta() {
 				],
 			],
 		],
-	];
-	foreach ( [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ] as $day ) {
-		register_post_meta( 'pw_restaurant', '_pw_hours_' . $day, [
-			'type'         => 'array',
-			'single'       => true,
-			'show_in_rest' => [ 'schema' => $hours_schema ],
-		] );
-	}
+		'auth_callback'     => function () {
+			return current_user_can( 'edit_posts' );
+		},
+	] );
 
 	// --- pw_spa ---
 
@@ -486,23 +471,27 @@ function pw_register_child_post_meta() {
 		],
 	] );
 
-	register_post_meta( 'pw_spa', '_pw_gallery_meta', [
-		'type'              => 'string',
+	register_post_meta( 'pw_spa', '_pw_operating_hours', [
+		'type'              => 'array',
 		'single'            => true,
-		'default'           => '{}',
-		'show_in_rest'      => true,
-		'sanitize_callback' => static function ( $value ) {
-			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_spa' );
+		'default'           => [],
+		'show_in_rest'      => [
+			'schema' => [
+				'type'  => 'array',
+				'items' => [
+					'type'       => 'object',
+					'properties' => [
+						'label'      => [ 'type' => 'string' ],
+						'open_time'  => [ 'type' => 'string' ],
+						'close_time' => [ 'type' => 'string' ],
+					],
+				],
+			],
+		],
+		'auth_callback'     => function () {
+			return current_user_can( 'edit_posts' );
 		},
 	] );
-
-	foreach ( [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ] as $day ) {
-		register_post_meta( 'pw_spa', '_pw_hours_' . $day, [
-			'type'         => 'array',
-			'single'       => true,
-			'show_in_rest' => [ 'schema' => $hours_schema ],
-		] );
-	}
 
 	// --- pw_meeting_room ---
 
@@ -538,19 +527,6 @@ function pw_register_child_post_meta() {
 		'default'      => false,
 	] );
 
-	register_post_meta( 'pw_meeting_room', '_pw_sales_email', [
-		'type'         => 'string',
-		'single'       => true,
-		'show_in_rest' => true,
-		'default'      => '',
-	] );
-	register_post_meta( 'pw_meeting_room', '_pw_sales_phone', [
-		'type'         => 'string',
-		'single'       => true,
-		'show_in_rest' => true,
-		'default'      => '',
-	] );
-
 	register_post_meta( 'pw_meeting_room', '_pw_floor_plan', [
 		'type'         => 'integer',
 		'single'       => true,
@@ -567,16 +543,6 @@ function pw_register_child_post_meta() {
 				'items' => [ 'type' => 'integer' ],
 			],
 		],
-	] );
-
-	register_post_meta( 'pw_meeting_room', '_pw_gallery_meta', [
-		'type'              => 'string',
-		'single'            => true,
-		'default'           => '{}',
-		'show_in_rest'      => true,
-		'sanitize_callback' => static function ( $value ) {
-			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_meeting_room' );
-		},
 	] );
 
 	// --- pw_amenity ---
@@ -749,16 +715,6 @@ function pw_register_child_post_meta() {
 				'items' => [ 'type' => 'integer' ],
 			],
 		],
-	] );
-
-	register_post_meta( 'pw_property', '_pw_gallery_meta', [
-		'type'              => 'string',
-		'single'            => true,
-		'default'           => '{}',
-		'show_in_rest'      => true,
-		'sanitize_callback' => static function ( $value ) {
-			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_property' );
-		},
 	] );
 
 	// --- pw_property: pools ---
@@ -946,15 +902,6 @@ function pw_register_child_post_meta() {
 			],
 		],
 	] );
-	register_post_meta( 'pw_experience', '_pw_gallery_meta', [
-		'type'              => 'string',
-		'single'            => true,
-		'default'           => '{}',
-		'show_in_rest'      => true,
-		'sanitize_callback' => static function ( $value ) {
-			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_experience' );
-		},
-	] );
 	register_post_meta( 'pw_experience', '_pw_display_order', [
 		'type' => 'integer', 'single' => true, 'show_in_rest' => true, 'default' => 0,
 	] );
@@ -976,6 +923,12 @@ function pw_register_child_post_meta() {
 	register_post_meta( 'pw_event', '_pw_end_datetime', [
 		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
 	] );
+	register_post_meta( 'pw_event', '_pw_start_datetime_iso8601', [
+		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
+	] );
+	register_post_meta( 'pw_event', '_pw_end_datetime_iso8601', [
+		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
+	] );
 	register_post_meta( 'pw_event', '_pw_capacity', [
 		'type' => 'integer', 'single' => true, 'show_in_rest' => true, 'default' => 0,
 	] );
@@ -995,15 +948,6 @@ function pw_register_child_post_meta() {
 			],
 		],
 	] );
-	register_post_meta( 'pw_event', '_pw_gallery_meta', [
-		'type'              => 'string',
-		'single'            => true,
-		'default'           => '{}',
-		'show_in_rest'      => true,
-		'sanitize_callback' => static function ( $value ) {
-			return pw_sanitize_pw_gallery_meta_json( $value, 'pw_event' );
-		},
-	] );
 	register_post_meta( 'pw_event', '_pw_recurrence_rule', [
 		'type' => 'string', 'single' => true, 'show_in_rest' => true, 'default' => '',
 	] );
@@ -1018,6 +962,36 @@ function pw_register_child_post_meta() {
 add_action( 'init', 'pw_register_child_taxonomies', 5 );
 add_action( 'init', 'pw_register_child_post_types' );
 add_action( 'init', 'pw_register_child_post_meta' );
+
+function pw_sync_pw_event_iso8601_meta( $post_id, $post, $update ) {
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( wp_is_post_revision( $post_id ) ) {
+		return;
+	}
+	if ( ! $post || $post->post_type !== 'pw_event' ) {
+		return;
+	}
+	$post_id  = (int) $post_id;
+	$prop_id  = (int) get_post_meta( $post_id, '_pw_property_id', true );
+	$start_raw = get_post_meta( $post_id, '_pw_start_datetime', true );
+	$end_raw   = get_post_meta( $post_id, '_pw_end_datetime', true );
+
+	$start_iso = '';
+	if ( is_string( $start_raw ) && trim( $start_raw ) !== '' ) {
+		$start_iso = pw_event_local_datetime_to_iso8601( $start_raw, $prop_id );
+	}
+	$end_iso = '';
+	if ( is_string( $end_raw ) && trim( $end_raw ) !== '' ) {
+		$end_iso = pw_event_local_datetime_to_iso8601( $end_raw, $prop_id );
+	}
+
+	update_post_meta( $post_id, '_pw_start_datetime_iso8601', $start_iso );
+	update_post_meta( $post_id, '_pw_end_datetime_iso8601', $end_iso );
+}
+
+add_action( 'save_post_pw_event', 'pw_sync_pw_event_iso8601_meta', 20, 3 );
 
 add_action( 'init', function() {
 	register_term_meta( 'pw_event_organiser', 'organiser_url', [

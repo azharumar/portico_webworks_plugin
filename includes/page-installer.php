@@ -745,7 +745,6 @@ function pw_get_page_structure_display_rows(): array {
  * Installer page: published/draft/private, slug match, _pw_generated === '1', _pw_property_id match.
  * Fact Sheet: if `post_name` was uniquified (multi-property), falls back to `_pw_static_url_segment` + same metas.
  * Room-type starter omits pw_bed_type / pw_view_type (no stock GB Pro term-list tag in query loops).
- * Meeting-room starter uses _pw_sales_email / _pw_sales_phone (registered on pw_meeting_room).
  */
 function pw_find_generated_page( string $slug, int $property_id ): ?WP_Post {
 	$slug = sanitize_title( $slug );
@@ -1061,6 +1060,9 @@ function pw_get_section_starter_markup( string $cpt, string $type = 'archive' ):
 <div class="gb-looper-rm-loop gb-loop-rm-loop">
 <!-- wp:generateblocks/loop-item {"uniqueId":"rm-item","tagName":"div","className":"gb-li-rm-item"} -->
 <div class="gb-loop-item gb-loop-item-rm-item gb-li-rm-item">
+<!-- wp:generateblocks/image {"uniqueId":"rm-fi","styles":{"display":"block","height":"auto","maxWidth":"100%","marginBottom":"16px"},"css":".gb-image-rm-fi{display:block;height:auto;max-width:100%;margin-bottom:16px}","dynamicImage":"featured-image","className":"gb-img-rm-fi"} -->
+<img class="gb-image gb-image-rm-fi gb-img-rm-fi" />
+<!-- /wp:generateblocks/image -->
 <!-- wp:generateblocks/element {"uniqueId":"rtlsp","tagName":"div","styles":{"marginBottom":"32px","paddingBottom":"8px"},"css":".gb-element-rtlsp{margin-bottom:32px;padding-bottom:8px}","className":"gb-el gb-el-rtlsp"} -->
 <div class="gb-element-rtlsp gb-el gb-el-rtlsp"><!-- wp:generateblocks/text {"uniqueId":"rt_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600","display":"inline-block","textDecoration":"none"},"css":".gb-text-rt_t{margin-bottom:12px;font-size:18px;font-weight:600;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-rt_t"} -->
 <a class="gb-text gb-text-rt_t gb-t-rt_t" href="{{post_permalink}}">{{post_title}}</a>
@@ -1287,24 +1289,6 @@ PW_ST_SPA,
 <!-- wp:generateblocks/text {"uniqueId":"ch_mrrowc7","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_mrrowc7{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_mrrowc7"} -->
 <div class="gb-text gb-text-ch_mrrowc7 gb-t-ch_mrrowc7">{{post_meta key:_pw_natural_light}}</div>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/element {"uniqueId":"mt-srw0","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-mt-srw0{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-mt-srw0{grid-template-columns:1fr}}","className":"gb-el gb-el-mt-srw0"} -->
-<div class="gb-element-mt-srw0 gb-el gb-el-mt-srw0"><!-- wp:generateblocks/text {"uniqueId":"mt-slk0","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-mt-slk0{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-mt-slk0"} -->
-<div class="gb-text gb-text-mt-slk0 gb-t-mt-slk0">Sales email</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"mt-svk0","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-mt-svk0{margin-bottom:0px;font-size:14px}","className":"gb-t-mt-svk0"} -->
-<div class="gb-text gb-text-mt-svk0 gb-t-mt-svk0">{{post_meta key:_pw_sales_email}}</div>
-<!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"mt-srw1","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-mt-srw1{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-mt-srw1{grid-template-columns:1fr}}","className":"gb-el gb-el-mt-srw1"} -->
-<div class="gb-element-mt-srw1 gb-el gb-el-mt-srw1"><!-- wp:generateblocks/text {"uniqueId":"mt-slk1","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-mt-slk1{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-mt-slk1"} -->
-<div class="gb-text gb-text-mt-slk1 gb-t-mt-slk1">Sales phone</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"mt-svk1","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-mt-svk1{margin-bottom:0px;font-size:14px}","className":"gb-t-mt-svk1"} -->
-<div class="gb-text gb-text-mt-svk1 gb-t-mt-svk1">{{post_meta key:_pw_sales_phone}}</div>
-<!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
 </div>
 <!-- /wp:generateblocks/element -->
 </div>
@@ -1440,19 +1424,19 @@ PW_ST_NEARBY,
 <!-- wp:generateblocks/element {"uniqueId":"evgr","tagName":"div","styles":{"display":"flex","flexDirection":"column","width":"100%"},"css":".gb-element-evgr{display:flex;flex-direction:column;width:100%}","className":"gb-el gb-el-evgr"} -->
 <div class="gb-element-evgr gb-el gb-el-evgr"><!-- wp:generateblocks/element {"uniqueId":"evrw0","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-evrw0{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-evrw0{grid-template-columns:1fr}}","className":"gb-el gb-el-evrw0"} -->
 <div class="gb-element-evrw0 gb-el gb-el-evrw0"><!-- wp:generateblocks/text {"uniqueId":"evlk0","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-evlk0{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-evlk0"} -->
-<div class="gb-text gb-text-evlk0 gb-t-evlk0">Start (local)</div>
+<div class="gb-text gb-text-evlk0 gb-t-evlk0">Start (ISO 8601)</div>
 <!-- /wp:generateblocks/text -->
 <!-- wp:generateblocks/text {"uniqueId":"evvk0","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-evvk0{margin-bottom:0px;font-size:14px}","className":"gb-t-evvk0"} -->
-<div class="gb-text gb-text-evvk0 gb-t-evvk0">{{post_meta key:_pw_start_datetime}}</div>
+<div class="gb-text gb-text-evvk0 gb-t-evvk0">{{post_meta key:_pw_start_datetime_iso8601}}</div>
 <!-- /wp:generateblocks/text -->
 </div>
 <!-- /wp:generateblocks/element -->
 <!-- wp:generateblocks/element {"uniqueId":"evrw1","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-evrw1{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-evrw1{grid-template-columns:1fr}}","className":"gb-el gb-el-evrw1"} -->
 <div class="gb-element-evrw1 gb-el gb-el-evrw1"><!-- wp:generateblocks/text {"uniqueId":"evlk1","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-evlk1{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-evlk1"} -->
-<div class="gb-text gb-text-evlk1 gb-t-evlk1">End (local)</div>
+<div class="gb-text gb-text-evlk1 gb-t-evlk1">End (ISO 8601)</div>
 <!-- /wp:generateblocks/text -->
 <!-- wp:generateblocks/text {"uniqueId":"evvk1","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-evvk1{margin-bottom:0px;font-size:14px}","className":"gb-t-evvk1"} -->
-<div class="gb-text gb-text-evvk1 gb-t-evvk1">{{post_meta key:_pw_end_datetime}}</div>
+<div class="gb-text gb-text-evvk1 gb-t-evvk1">{{post_meta key:_pw_end_datetime_iso8601}}</div>
 <!-- /wp:generateblocks/text -->
 </div>
 <!-- /wp:generateblocks/element -->
@@ -1751,49 +1735,185 @@ function _pw_markup_property_singular(): string {
 /* ── Room singular ─────────────────────────────────────────────────────── */
 
 function _pw_markup_room_singular(): string {
+	$rates = _pw_gb_section(
+		'rms-rates',
+		_pw_gb_h( 'rms-rh', 'Rate plans', 'h2' ) . "\n"
+		. '<!-- wp:generateblocks/query {"uniqueId":"rms-rtq","tagName":"div","query":{"post_type":["pw_room_type"],"queryType":"post_meta","metaKey":"_pw_rates","posts_per_page":100},"className":"gb-el gb-el-rms-rtq"} -->' . "\n"
+		. '<div class="gb-el gb-el-rms-rtq">'
+		. '<!-- wp:generateblocks/looper {"uniqueId":"rms-rtlp","tagName":"div","className":"gb-loop-rms-rtlp"} -->' . "\n"
+		. '<div class="gb-looper-rms-rtlp gb-loop-rms-rtlp">'
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"rms-rtli","tagName":"div","styles":{"paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-rms-rtli{padding:8px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-rms-rtli"} -->' . "\n"
+		. '<div class="gb-loop-item gb-loop-item-rms-rtli gb-li-rms-rtli">'
+		. _pw_gb_row( 'rms-rl', 'Label', '{{loop_item key:rate_label}}' ) . "\n"
+		. _pw_gb_row( 'rms-rtp', 'Type', '{{loop_item key:rate_type}}' ) . "\n"
+		. _pw_gb_row( 'rms-rp', 'Price', '{{loop_item key:price}} __PW_PROPERTY_CURRENCY__' ) . "\n"
+		. _pw_gb_row( 'rms-rvf', 'Valid from', '{{loop_item key:valid_from}}' ) . "\n"
+		. _pw_gb_row( 'rms-rvt', 'Valid to', '{{loop_item key:valid_to}}' )
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/loop-item -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/looper -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/query -->'
+	);
+	$gallery = _pw_gb_section(
+		'rms-gal',
+		_pw_gb_h( 'rms-gh', 'Gallery', 'h2' ) . "\n"
+		. '<!-- wp:generateblocks/query {"uniqueId":"rms-gq","tagName":"div","query":{"post_type":["pw_room_type"],"queryType":"post_meta","metaKey":"_pw_gallery","posts_per_page":100},"className":"gb-el gb-el-rms-gq"} -->' . "\n"
+		. '<div class="gb-el gb-el-rms-gq">'
+		. '<!-- wp:generateblocks/looper {"uniqueId":"rms-glp","tagName":"div","className":"gb-loop-rms-glp"} -->' . "\n"
+		. '<div class="gb-looper-rms-glp gb-loop-rms-glp">'
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"rms-gli","tagName":"div","styles":{"marginBottom":"12px"},"css":".gb-loop-item-rms-gli{margin-bottom:12px}","className":"gb-li-rms-gli"} -->' . "\n"
+		. '<div class="gb-loop-item gb-loop-item-rms-gli gb-li-rms-gli">'
+		. '<!-- wp:generateblocks/text {"uniqueId":"rms-gid","tagName":"p","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-rms-gid{margin-bottom:0;font-size:14px}","className":"gb-t-rms-gid"} -->' . "\n"
+		. '<p class="gb-text gb-text-rms-gid gb-t-rms-gid">Attachment ID: {{loop_item}}</p>' . "\n"
+		. '<!-- /wp:generateblocks/text -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/loop-item -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/looper -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/query -->'
+	);
+	$contacts = _pw_gb_section(
+		'rms-ct',
+		_pw_gb_h( 'rms-ch', 'Property contacts', 'h2' ) . "\n"
+		. '<!-- wp:generateblocks/query {"uniqueId":"rms-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":20,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-property"} -->' . "\n"
+		. '<div class="pw-gb-scope-property pw-gb-contact-filter-property">'
+		. '<!-- wp:generateblocks/looper {"uniqueId":"rms-ctlp","tagName":"div","className":"gb-loop-rms-ctlp"} -->' . "\n"
+		. '<div class="gb-looper-rms-ctlp gb-loop-rms-ctlp">'
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"rms-ctli","tagName":"div","styles":{"paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-rms-ctli{padding:12px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-rms-ctli"} -->' . "\n"
+		. '<div class="gb-loop-item gb-loop-item-rms-ctli gb-li-rms-ctli">'
+		. _pw_gb_row( 'rms-c0', 'Label', '{{post_meta key:_pw_label}}' ) . "\n"
+		. _pw_gb_row( 'rms-c1', 'Phone', '{{post_meta key:_pw_phone}}' ) . "\n"
+		. _pw_gb_row( 'rms-c2', 'Email', '{{post_meta key:_pw_email}}' )
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/loop-item -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/looper -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/query -->'
+	);
+
 	return _pw_gb_img( 'rms-img' ) . "\n"
 		. _pw_gb_h( 'rms-h1', '{{post_title}}', 'h1' ) . "\n"
 		. _pw_gb_p( 'rms-ex', '{{post_excerpt}}' ) . "\n"
-		. _pw_gb_row( 'rms-r0', 'Rate from',         '{{post_meta key:_pw_rate_from}} __PW_PROPERTY_CURRENCY__' ) . "\n"
-		. _pw_gb_row( 'rms-r1', 'Rate to',           '{{post_meta key:_pw_rate_to}} __PW_PROPERTY_CURRENCY__' )   . "\n"
-		. _pw_gb_row( 'rms-r2', 'Max occupancy',     '{{post_meta key:_pw_max_occupancy}}' )   . "\n"
-		. _pw_gb_row( 'rms-r3', 'Max adults',        '{{post_meta key:_pw_max_adults}}' )      . "\n"
-		. _pw_gb_row( 'rms-r4', 'Max children',      '{{post_meta key:_pw_max_children}}' )    . "\n"
-		. _pw_gb_row( 'rms-r5', 'Size (sqm)',        '{{post_meta key:_pw_size_sqm}}' )        . "\n"
-		. _pw_gb_row( 'rms-r6', 'Size (sqft)',       '{{post_meta key:_pw_size_sqft}}' )       . "\n"
-		. _pw_gb_row( 'rms-r7', 'Max extra beds',    '{{post_meta key:_pw_max_extra_beds}}' )  . "\n"
-		. _pw_gb_row( 'rms-r8', 'Bed type',          '{{post_terms taxonomy:pw_bed_type}}' )   . "\n"
-		. _pw_gb_row( 'rms-r9', 'View type',         '{{post_terms taxonomy:pw_view_type}}' )  . "\n"
+		. _pw_gb_link( 'rms-bkurl', 'Book this room', '{{post_meta key:_pw_booking_url}}' ) . "\n"
+		. _pw_gb_row( 'rms-r0', 'Rate from', '{{post_meta key:_pw_rate_from}} __PW_PROPERTY_CURRENCY__' ) . "\n"
+		. _pw_gb_row( 'rms-r1', 'Rate to', '{{post_meta key:_pw_rate_to}} __PW_PROPERTY_CURRENCY__' ) . "\n"
+		. _pw_gb_row( 'rms-r2', 'Max occupancy', '{{post_meta key:_pw_max_occupancy}}' ) . "\n"
+		. _pw_gb_row( 'rms-r3', 'Max adults', '{{post_meta key:_pw_max_adults}}' ) . "\n"
+		. _pw_gb_row( 'rms-r4', 'Max children', '{{post_meta key:_pw_max_children}}' ) . "\n"
+		. _pw_gb_row( 'rms-r5', 'Size (sqm)', '{{post_meta key:_pw_size_sqm}}' ) . "\n"
+		. _pw_gb_row( 'rms-r6', 'Size (sqft)', '{{post_meta key:_pw_size_sqft}}' ) . "\n"
+		. _pw_gb_row( 'rms-r7', 'Max extra beds', '{{post_meta key:_pw_max_extra_beds}}' ) . "\n"
+		. _pw_gb_row( 'rms-r8', 'Bed type', '{{post_terms taxonomy:pw_bed_type}}' ) . "\n"
+		. _pw_gb_row( 'rms-r9', 'View type', '{{post_terms taxonomy:pw_view_type}}' ) . "\n"
+		. $rates . "\n"
 		. _pw_gb_p( 'rms-ct', '{{post_content}}' ) . "\n"
+		. $gallery . "\n"
+		. $contacts . "\n"
 		. _pw_gb_link( 'rms-bk', "\xE2\x86\x90 Back to Rooms", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Restaurant singular ───────────────────────────────────────────────── */
 
 function _pw_markup_restaurant_singular(): string {
+	$hours = _pw_gb_section(
+		'rsts-hrs',
+		_pw_gb_h( 'rsts-hh', 'Hours', 'h2' ) . "\n"
+		. '<!-- wp:generateblocks/query {"uniqueId":"rsts-hrsq","tagName":"div","query":{"post_type":["pw_restaurant"],"queryType":"post_meta","metaKey":"_pw_operating_hours","posts_per_page":100},"className":"gb-el gb-el-rsts-hrsq"} -->' . "\n"
+		. '<div class="gb-el gb-el-rsts-hrsq">'
+		. '<!-- wp:generateblocks/looper {"uniqueId":"rsts-hrlp","tagName":"div","className":"gb-loop-rsts-hrlp"} -->' . "\n"
+		. '<div class="gb-looper-rsts-hrlp gb-loop-rsts-hrlp">'
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"rsts-hrli","tagName":"div","styles":{"paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-rsts-hrli{padding:8px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-rsts-hrli"} -->' . "\n"
+		. '<div class="gb-loop-item gb-loop-item-rsts-hrli gb-li-rsts-hrli">'
+		. _pw_gb_row( 'rsts-hl', 'Session', '{{loop_item key:label}}' ) . "\n"
+		. _pw_gb_row( 'rsts-ho', 'Open', '{{loop_item key:open_time}}' ) . "\n"
+		. _pw_gb_row( 'rsts-hc', 'Close', '{{loop_item key:close_time}}' )
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/loop-item -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/looper -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/query -->'
+	);
+
 	return _pw_gb_img( 'rsts-img' ) . "\n"
 		. _pw_gb_h( 'rsts-h1', '{{post_title}}', 'h1' ) . "\n"
 		. _pw_gb_p( 'rsts-ex', '{{post_excerpt}}' ) . "\n"
-		. _pw_gb_row( 'rsts-r0', 'Cuisine type',      '{{post_meta key:_pw_cuisine_type}}' )      . "\n"
-		. _pw_gb_row( 'rsts-r1', 'Location',          '{{post_meta key:_pw_location}}' )          . "\n"
-		. _pw_gb_row( 'rsts-r2', 'Seating capacity',  '{{post_meta key:_pw_seating_capacity}}' )  . "\n"
-		. _pw_gb_row( 'rsts-r3', 'Reservation URL',   '{{post_meta key:_pw_reservation_url}}' )   . "\n"
-		. _pw_gb_row( 'rsts-r4', 'Menu URL',          '{{post_meta key:_pw_menu_url}}' )          . "\n"
+		. _pw_gb_link( 'rsts-res', 'Reserve a table', '{{post_meta key:_pw_reservation_url}}' ) . "\n"
+		. _pw_gb_row( 'rsts-r0', 'Cuisine type', '{{post_meta key:_pw_cuisine_type}}' ) . "\n"
+		. _pw_gb_row( 'rsts-r1', 'Location', '{{post_meta key:_pw_location}}' ) . "\n"
+		. _pw_gb_row( 'rsts-r2', 'Seating capacity', '{{post_meta key:_pw_seating_capacity}}' ) . "\n"
+		. _pw_gb_row( 'rsts-r4', 'Menu URL', '{{post_meta key:_pw_menu_url}}' ) . "\n"
+		. $hours . "\n"
 		. _pw_gb_p( 'rsts-ct', '{{post_content}}' ) . "\n"
+		. '<!-- wp:generateblocks/query {"uniqueId":"rsts-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-outlet"} -->' . "\n"
+		. '<div class="pw-gb-scope-property pw-gb-contact-filter-outlet">'
+		. '<!-- wp:generateblocks/looper {"uniqueId":"rsts-ctlp","tagName":"div","className":"gb-loop-rsts-ctlp"} -->' . "\n"
+		. '<div class="gb-looper-rsts-ctlp gb-loop-rsts-ctlp">'
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"rsts-ctli","tagName":"div","styles":{"paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-rsts-ctli{padding:12px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-rsts-ctli"} -->' . "\n"
+		. '<div class="gb-loop-item gb-loop-item-rsts-ctli gb-li-rsts-ctli">'
+		. _pw_gb_row( 'rsts-c0', 'Label', '{{post_meta key:_pw_label}}' ) . "\n"
+		. _pw_gb_row( 'rsts-c1', 'Phone', '{{post_meta key:_pw_phone}}' ) . "\n"
+		. _pw_gb_row( 'rsts-c2', 'Email', '{{post_meta key:_pw_email}}' )
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/loop-item -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/looper -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/query -->' . "\n"
 		. _pw_gb_link( 'rsts-bk', "\xE2\x86\x90 Back to Restaurants", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Spa singular ──────────────────────────────────────────────────────── */
 
 function _pw_markup_spa_singular(): string {
+	$hours = _pw_gb_section(
+		'spas-hrs',
+		_pw_gb_h( 'spas-hh', 'Hours', 'h2' ) . "\n"
+		. '<!-- wp:generateblocks/query {"uniqueId":"spas-hrsq","tagName":"div","query":{"post_type":["pw_spa"],"queryType":"post_meta","metaKey":"_pw_operating_hours","posts_per_page":100},"className":"gb-el gb-el-spas-hrsq"} -->' . "\n"
+		. '<div class="gb-el gb-el-spas-hrsq">'
+		. '<!-- wp:generateblocks/looper {"uniqueId":"spas-hrlp","tagName":"div","className":"gb-loop-spas-hrlp"} -->' . "\n"
+		. '<div class="gb-looper-spas-hrlp gb-loop-spas-hrlp">'
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"spas-hrli","tagName":"div","styles":{"paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-spas-hrli{padding:8px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-spas-hrli"} -->' . "\n"
+		. '<div class="gb-loop-item gb-loop-item-spas-hrli gb-li-spas-hrli">'
+		. _pw_gb_row( 'spas-hl', 'Session', '{{loop_item key:label}}' ) . "\n"
+		. _pw_gb_row( 'spas-ho', 'Open', '{{loop_item key:open_time}}' ) . "\n"
+		. _pw_gb_row( 'spas-hc', 'Close', '{{loop_item key:close_time}}' )
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/loop-item -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/looper -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/query -->'
+	);
+
 	return _pw_gb_img( 'spas-img' ) . "\n"
 		. _pw_gb_h( 'spas-h1', '{{post_title}}', 'h1' ) . "\n"
 		. _pw_gb_p( 'spas-ex', '{{post_excerpt}}' ) . "\n"
-		. _pw_gb_row( 'spas-r0', 'Minimum age',           '{{post_meta key:_pw_min_age}}' )                    . "\n"
-		. _pw_gb_row( 'spas-r1', 'Treatment rooms',       '{{post_meta key:_pw_number_of_treatment_rooms}}' )  . "\n"
-		. _pw_gb_row( 'spas-r2', 'Booking URL',           '{{post_meta key:_pw_booking_url}}' )                . "\n"
-		. _pw_gb_row( 'spas-r3', 'Menu URL',              '{{post_meta key:_pw_menu_url}}' )                   . "\n"
+		. _pw_gb_link( 'spas-bkurl', 'Book spa', '{{post_meta key:_pw_booking_url}}' ) . "\n"
+		. _pw_gb_row( 'spas-r0', 'Minimum age', '{{post_meta key:_pw_min_age}}' ) . "\n"
+		. _pw_gb_row( 'spas-r1', 'Treatment rooms', '{{post_meta key:_pw_number_of_treatment_rooms}}' ) . "\n"
+		. _pw_gb_row( 'spas-r3', 'Menu URL', '{{post_meta key:_pw_menu_url}}' ) . "\n"
+		. $hours . "\n"
 		. _pw_gb_p( 'spas-ct', '{{post_content}}' ) . "\n"
+		. '<!-- wp:generateblocks/query {"uniqueId":"spas-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-outlet"} -->' . "\n"
+		. '<div class="pw-gb-scope-property pw-gb-contact-filter-outlet">'
+		. '<!-- wp:generateblocks/looper {"uniqueId":"spas-ctlp","tagName":"div","className":"gb-loop-spas-ctlp"} -->' . "\n"
+		. '<div class="gb-looper-spas-ctlp gb-loop-spas-ctlp">'
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"spas-ctli","tagName":"div","styles":{"paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-spas-ctli{padding:12px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-spas-ctli"} -->' . "\n"
+		. '<div class="gb-loop-item gb-loop-item-spas-ctli gb-li-spas-ctli">'
+		. _pw_gb_row( 'spas-c0', 'Label', '{{post_meta key:_pw_label}}' ) . "\n"
+		. _pw_gb_row( 'spas-c1', 'Phone', '{{post_meta key:_pw_phone}}' ) . "\n"
+		. _pw_gb_row( 'spas-c2', 'Email', '{{post_meta key:_pw_email}}' )
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/loop-item -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/looper -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/query -->' . "\n"
 		. _pw_gb_link( 'spas-bk', "\xE2\x86\x90 Back to Spas", '{{pw_current_section_listing_url}}' );
 }
 
@@ -1810,9 +1930,26 @@ function _pw_markup_meeting_singular(): string {
 		. _pw_gb_row( 'mts-r4', 'Area (sqm)',          '{{post_meta key:_pw_area_sqm}}' )           . "\n"
 		. _pw_gb_row( 'mts-r5', 'Area (sqft)',         '{{post_meta key:_pw_area_sqft}}' )          . "\n"
 		. _pw_gb_row( 'mts-r6', 'Natural light',       '{{post_meta key:_pw_natural_light}}' )      . "\n"
-		. _pw_gb_row( 'mts-r7', 'Sales email',         '{{post_meta key:_pw_sales_email}}' )        . "\n"
-		. _pw_gb_row( 'mts-r8', 'Sales phone',         '{{post_meta key:_pw_sales_phone}}' )        . "\n"
 		. _pw_gb_p( 'mts-ct', '{{post_content}}' ) . "\n"
+		. _pw_gb_section(
+			'mts-enq',
+			_pw_gb_h( 'mts-eh', 'Enquiries', 'h2' ) . "\n"
+			. '<!-- wp:generateblocks/query {"uniqueId":"mts-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-outlet"} -->' . "\n"
+			. '<div class="pw-gb-scope-property pw-gb-contact-filter-outlet">'
+			. '<!-- wp:generateblocks/looper {"uniqueId":"mts-ctlp","tagName":"div","className":"gb-loop-mts-ctlp"} -->' . "\n"
+			. '<div class="gb-looper-mts-ctlp gb-loop-mts-ctlp">'
+			. '<!-- wp:generateblocks/loop-item {"uniqueId":"mts-ctli","tagName":"div","styles":{"paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-mts-ctli{padding:12px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-mts-ctli"} -->' . "\n"
+			. '<div class="gb-loop-item gb-loop-item-mts-ctli gb-li-mts-ctli">'
+			. _pw_gb_row( 'mts-c0', 'Label', '{{post_meta key:_pw_label}}' ) . "\n"
+			. _pw_gb_row( 'mts-c1', 'Phone', '{{post_meta key:_pw_phone}}' ) . "\n"
+			. _pw_gb_row( 'mts-c2', 'Email', '{{post_meta key:_pw_email}}' )
+			. '</div>' . "\n"
+			. '<!-- /wp:generateblocks/loop-item -->'
+			. '</div>' . "\n"
+			. '<!-- /wp:generateblocks/looper -->'
+			. '</div>' . "\n"
+			. '<!-- /wp:generateblocks/query -->'
+		) . "\n"
 		. _pw_gb_link( 'mts-bk', "\xE2\x86\x90 Back to Meetings", '{{pw_current_section_listing_url}}' );
 }
 
@@ -1822,11 +1959,27 @@ function _pw_markup_experience_singular(): string {
 	return _pw_gb_img( 'exs-img' ) . "\n"
 		. _pw_gb_h( 'exs-h1', '{{post_title}}', 'h1' ) . "\n"
 		. _pw_gb_p( 'exs-ex', '{{post_excerpt}}' ) . "\n"
+		. _pw_gb_p( 'exs-dsc', '{{post_meta key:_pw_description}}' ) . "\n"
 		. _pw_gb_row( 'exs-r0', 'Duration (hours)',   '{{post_meta key:_pw_duration_hours}}' )   . "\n"
 		. _pw_gb_row( 'exs-r1', 'Price from',         '{{post_meta key:_pw_price_from}} __PW_PROPERTY_CURRENCY__' ) . "\n"
 		. _pw_gb_row( 'exs-r2', 'Complimentary',      '{{post_meta key:_pw_is_complimentary}}' ) . "\n"
 		. _pw_gb_row( 'exs-r3', 'Booking URL',        '{{post_meta key:_pw_booking_url}}' )      . "\n"
 		. _pw_gb_p( 'exs-ct', '{{post_content}}' ) . "\n"
+		. '<!-- wp:generateblocks/query {"uniqueId":"exs-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-outlet"} -->' . "\n"
+		. '<div class="pw-gb-scope-property pw-gb-contact-filter-outlet">'
+		. '<!-- wp:generateblocks/looper {"uniqueId":"exs-ctlp","tagName":"div","className":"gb-loop-exs-ctlp"} -->' . "\n"
+		. '<div class="gb-looper-exs-ctlp gb-loop-exs-ctlp">'
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"exs-ctli","tagName":"div","styles":{"paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-exs-ctli{padding:12px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-exs-ctli"} -->' . "\n"
+		. '<div class="gb-loop-item gb-loop-item-exs-ctli gb-li-exs-ctli">'
+		. _pw_gb_row( 'exs-c0', 'Label', '{{post_meta key:_pw_label}}' ) . "\n"
+		. _pw_gb_row( 'exs-c1', 'Phone', '{{post_meta key:_pw_phone}}' ) . "\n"
+		. _pw_gb_row( 'exs-c2', 'Email', '{{post_meta key:_pw_email}}' )
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/loop-item -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/looper -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/query -->' . "\n"
 		. _pw_gb_link( 'exs-bk', "\xE2\x86\x90 Back to Experiences", '{{pw_current_section_listing_url}}' );
 }
 
@@ -1836,14 +1989,30 @@ function _pw_markup_event_singular(): string {
 	return _pw_gb_img( 'evs-img' ) . "\n"
 		. _pw_gb_h( 'evs-h1', '{{post_title}}', 'h1' ) . "\n"
 		. _pw_gb_p( 'evs-ex', '{{post_excerpt}}' ) . "\n"
-		. _pw_gb_row( 'evs-r0', 'Start',               '{{post_meta key:_pw_start_datetime}}' )        . "\n"
-		. _pw_gb_row( 'evs-r1', 'End',                 '{{post_meta key:_pw_end_datetime}}' )          . "\n"
+		. _pw_gb_p( 'evs-dsc', '{{post_meta key:_pw_description}}' ) . "\n"
+		. _pw_gb_row( 'evs-r0', 'Start (ISO 8601)',    '{{post_meta key:_pw_start_datetime_iso8601}}' ) . "\n"
+		. _pw_gb_row( 'evs-r1', 'End (ISO 8601)',      '{{post_meta key:_pw_end_datetime_iso8601}}' )  . "\n"
 		. _pw_gb_row( 'evs-r2', 'Capacity',            '{{post_meta key:_pw_capacity}}' )              . "\n"
 		. _pw_gb_row( 'evs-r3', 'Price from',          '{{post_meta key:_pw_price_from}} __PW_PROPERTY_CURRENCY__' ) . "\n"
 		. _pw_gb_row( 'evs-r4', 'Status',              '{{post_meta key:_pw_event_status}}' )          . "\n"
 		. _pw_gb_row( 'evs-r5', 'Attendance mode',     '{{post_meta key:_pw_event_attendance_mode}}' ) . "\n"
 		. _pw_gb_row( 'evs-r6', 'Booking URL',         '{{post_meta key:_pw_booking_url}}' )           . "\n"
 		. _pw_gb_p( 'evs-ct', '{{post_content}}' ) . "\n"
+		. '<!-- wp:generateblocks/query {"uniqueId":"evs-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-property"} -->' . "\n"
+		. '<div class="pw-gb-scope-property pw-gb-contact-filter-property">'
+		. '<!-- wp:generateblocks/looper {"uniqueId":"evs-ctlp","tagName":"div","className":"gb-loop-evs-ctlp"} -->' . "\n"
+		. '<div class="gb-looper-evs-ctlp gb-loop-evs-ctlp">'
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"evs-ctli","tagName":"div","styles":{"paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-evs-ctli{padding:12px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-evs-ctli"} -->' . "\n"
+		. '<div class="gb-loop-item gb-loop-item-evs-ctli gb-li-evs-ctli">'
+		. _pw_gb_row( 'evs-c0', 'Label', '{{post_meta key:_pw_label}}' ) . "\n"
+		. _pw_gb_row( 'evs-c1', 'Phone', '{{post_meta key:_pw_phone}}' ) . "\n"
+		. _pw_gb_row( 'evs-c2', 'Email', '{{post_meta key:_pw_email}}' )
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/loop-item -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/looper -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/query -->' . "\n"
 		. _pw_gb_link( 'evs-bk', "\xE2\x86\x90 Back to Events", '{{pw_current_section_listing_url}}' );
 }
 

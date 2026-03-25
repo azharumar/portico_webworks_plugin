@@ -426,6 +426,12 @@ function pw_register_child_metaboxes() {
 
 	$cmb->add_field( [ 'name' => 'Gallery', 'id' => '_pw_gallery', 'type' => 'file_list' ] );
 	$cmb->add_field( [ 'name' => 'Display order', 'id' => '_pw_display_order', 'type' => 'text_small', 'sanitization_cb' => 'pw_sanitize_int_nonneg' ] );
+	$cmb->add_field( [
+		'name' => 'Booking URL',
+		'id'   => '_pw_booking_url',
+		'type' => 'text_url',
+		'desc' => 'Deep-link booking engine URL for this room type. Leave blank to use the property default.',
+	] );
 
 	// --- pw_restaurant ---
 
@@ -498,70 +504,83 @@ function pw_register_child_metaboxes() {
 
 	$cmb->add_field( [ 'name' => 'Gallery', 'id' => '_pw_gallery', 'type' => 'file_list' ] );
 
-add_action( 'cmb2_admin_init', 'pw_register_restaurant_operating_hours_metabox' );
-
-function pw_register_restaurant_operating_hours_metabox() {
-	pw_register_operating_hours_metabox( 'pw_restaurant', 'Restaurant' );
-}
-
-function pw_register_operating_hours_metabox( $post_type, $label ) {
-	$days = [
-		'monday'    => 'Monday',
-		'tuesday'   => 'Tuesday',
-		'wednesday' => 'Wednesday',
-		'thursday'  => 'Thursday',
-		'friday'    => 'Friday',
-		'saturday'  => 'Saturday',
-		'sunday'    => 'Sunday',
-	];
-
 	$cmb = new_cmb2_box( [
-		'id'           => $post_type . '_operating_hours',
-		'title'        => 'Operating Hours',
-		'object_types' => [ $post_type ],
+		'id'           => 'pw_restaurant_operating_hours',
+		'title'        => 'Operating hours',
+		'object_types' => [ 'pw_restaurant' ],
 		'context'      => 'normal',
 		'priority'     => 'default',
 	] );
 
-	foreach ( $days as $day_key => $day_label ) {
-		$cmb->add_field( [
-			'name'       => $day_label,
-			'id'         => '_pw_hours_' . $day_key,
-			'type'       => 'group',
-			'repeatable' => false,
-			'fields'     => [
-				[
-					'name' => 'Closed',
-					'id'   => 'is_closed',
-					'type' => 'checkbox',
-					'desc' => 'Check if closed all day',
-				],
-				[
-					'name'       => 'Sessions',
-					'id'         => 'sessions',
-					'type'       => 'group',
-					'repeatable' => true,
-					'options'    => [
-						'group_title'   => 'Session {#}',
-						'add_button'    => 'Add Session',
-						'remove_button' => 'Remove Session',
-					],
-					'fields' => [
-						[ 'name' => 'Label',      'id' => 'label',      'type' => 'text_small', 'desc' => 'e.g. Breakfast, Lunch, Dinner' ],
-						[ 'name' => 'Opens at',   'id' => 'open_time',  'type' => 'text_time' ],
-						[ 'name' => 'Closes at',  'id' => 'close_time', 'type' => 'text_time' ],
-					],
-				],
-			],
-		] );
-	}
-}
+	$group_field_restaurant = $cmb->add_field( [
+		'id'          => '_pw_operating_hours',
+		'type'        => 'group',
+		'description' => 'Add one row per meal period or session.',
+		'options'     => [
+			'group_title'   => 'Session {#}',
+			'add_button'    => 'Add session',
+			'remove_button' => 'Remove session',
+			'sortable'      => true,
+		],
+	] );
 
-add_action( 'cmb2_admin_init', 'pw_register_spa_operating_hours_metabox' );
+	$cmb->add_group_field( $group_field_restaurant, [
+		'name' => 'Label',
+		'id'   => 'label',
+		'type' => 'text',
+		'desc' => 'e.g. Breakfast, Lunch, Dinner',
+	] );
 
-function pw_register_spa_operating_hours_metabox() {
-	pw_register_operating_hours_metabox( 'pw_spa', 'Spa' );
-}
+	$cmb->add_group_field( $group_field_restaurant, [
+		'name' => 'Open time',
+		'id'   => 'open_time',
+		'type' => 'text_time',
+	] );
+
+	$cmb->add_group_field( $group_field_restaurant, [
+		'name' => 'Close time',
+		'id'   => 'close_time',
+		'type' => 'text_time',
+	] );
+
+	$cmb = new_cmb2_box( [
+		'id'           => 'pw_spa_operating_hours',
+		'title'        => 'Operating hours',
+		'object_types' => [ 'pw_spa' ],
+		'context'      => 'normal',
+		'priority'     => 'default',
+	] );
+
+	$group_field_spa = $cmb->add_field( [
+		'id'          => '_pw_operating_hours',
+		'type'        => 'group',
+		'description' => 'Add one row per meal period or session.',
+		'options'     => [
+			'group_title'   => 'Session {#}',
+			'add_button'    => 'Add session',
+			'remove_button' => 'Remove session',
+			'sortable'      => true,
+		],
+	] );
+
+	$cmb->add_group_field( $group_field_spa, [
+		'name' => 'Label',
+		'id'   => 'label',
+		'type' => 'text',
+		'desc' => 'e.g. Breakfast, Lunch, Dinner',
+	] );
+
+	$cmb->add_group_field( $group_field_spa, [
+		'name' => 'Open time',
+		'id'   => 'open_time',
+		'type' => 'text_time',
+	] );
+
+	$cmb->add_group_field( $group_field_spa, [
+		'name' => 'Close time',
+		'id'   => 'close_time',
+		'type' => 'text_time',
+	] );
 
 	// --- pw_amenity ---
 

@@ -5,6 +5,17 @@
 - WordPress 6.9.4 or higher
 - PHP 8.3 or higher
 
+## Important features
+
+### Marketing features
+
+**Promotional popups**
+Highlight offers, seasonal deals, and F&B promotions with timed popups that activate and expire automatically — no manual updates needed. Trigger them on scroll, time delay, or exit intent, and target specific pages so the right message reaches the right visitor.
+
+- **Exit intent** — Surface messages like "Book direct and save 10%" before a visitor leaves.
+- **Seasonal offers** — Show a monsoon package only during the promotion window.
+- **F&B promotions** — Display a weekend brunch promotion only on the dining page.
+
 ## Features
 
 ### Pages & content types

@@ -30,7 +30,7 @@ Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** fo
 
 ### Meta Fields
 
-Scalar profile fields below are registered in `includes/property-post-type.php`. Repeatable / structured groups for `pw_property` (`_pw_gallery`, `_pw_gallery_meta`, `_pw_pools`, `_pw_direct_benefits`, `_pw_certifications`, sustainability and accessibility facet arrays) are registered in `pw_register_child_post_meta()` in `includes/child-post-types.php`.
+Scalar profile fields below are registered in `includes/property-post-type.php`. Repeatable / structured groups for `pw_property` (`_pw_gallery`, `_pw_pools`, `_pw_direct_benefits`, `_pw_certifications`, sustainability and accessibility facet arrays) are registered in `pw_register_child_post_meta()` in `includes/child-post-types.php`.
 
 #### General
 
@@ -92,12 +92,11 @@ Contact rows are **not** stored on the property. Use the `pw_contact` CPT and `p
 | `_pw_social_tripadvisor` | string | `''`    | Custom metabox                             |
 
 
-#### Gallery (`_pw_gallery` / `_pw_gallery_meta`)
+#### Gallery (`_pw_gallery`)
 
-| Meta Key          | Type   | Default | Notes                                                                 | Admin / UI                                      |
-| ----------------- | ------ | ------- | --------------------------------------------------------------------- | ----------------------------------------------- |
-| `_pw_gallery`     | array  | —       | Attachment IDs (CMB2 `file_list` may store `attachment_id => url`)   | CMB2: `pw_property_gallery`                     |
-| `_pw_gallery_meta` | string | `'{}'`  | JSON object: keys = attachment ID strings, values = `{ "category", "caption" }` (categories from `pw_get_gallery_categories( 'pw_property' )`) | Custom metabox: Gallery details (`gallery-meta-metabox.php`) |
+| Meta Key      | Type  | Default | Notes                                                              | Admin / UI                  |
+| ------------- | ----- | ------- | ------------------------------------------------------------------ | --------------------------- |
+| `_pw_gallery` | array | —       | Attachment IDs (CMB2 `file_list` may store `attachment_id => url`). Caption, description, and alt text live on each attachment in the Media Library. | CMB2: `pw_property_gallery` |
 
 
 #### Pools (`_pw_pools`) — repeatable group
@@ -203,8 +202,7 @@ Same shape and normalization behavior as sustainability. CMB2: `pw_property_acce
 | `_pw_max_extra_beds` | integer      | `0`     |                                           | text_small                            |
 | `_pw_display_order`  | integer      | `0`     |                                           | text_small                            |
 | `_pw_features`       | arrayinteger | —       | Array of `pw_feature` post IDs            | multicheck                            |
-| `_pw_gallery`        | arrayinteger | —       | Attachment IDs                            | file_list                             |
-| `_pw_gallery_meta`   | string       | `'{}'`  | JSON map per attachment ID → category + caption (`includes/gallery-categories.php`) | Custom metabox: Gallery details |
+| `_pw_gallery`        | arrayinteger | —       | Attachment IDs (per-image caption/alt on attachments) | file_list                             |
 
 
 **Validation:** Admin UI enforces `max_adults + max_children ≤ max_occupancy` on save.
@@ -225,19 +223,8 @@ Same shape and normalization behavior as sustainability. CMB2: `pw_property_acce
 | `_pw_seating_capacity` | integer      | `0`     |                                | text_small                             |
 | `_pw_reservation_url`  | string       | `''`    |                                | text_url                               |
 | `_pw_menu_url`         | string       | `''`    |                                | text_url                               |
-| `_pw_gallery`          | arrayinteger | —       |                                | file_list                              |
-| `_pw_gallery_meta`     | string       | `'{}'`  | JSON gallery metadata (`pw_get_gallery_categories( 'pw_restaurant' )`) | Custom metabox: Gallery details |
-
-
-#### Operating Hours — per-day meta keys `_pw_hours_{day}` (e.g. `_pw_hours_monday`)
-
-Each day is stored as an **associative array** (map) with keys `is_closed` (boolean) and `sessions` (array of `{ label, open_time, close_time }`). CMB2: `pw_restaurant_operating_hours` (group per day, sessions repeatable). `register_post_meta` uses WordPress type `array` with a REST schema shaped as an object.
-
-
-| Field       | Type    | Notes                                          |
-| ----------- | ------- | ---------------------------------------------- |
-| `is_closed` | boolean | Closed all day                                 |
-| `sessions`  | array   | Repeatable: `label`, `open_time`, `close_time` |
+| `_pw_gallery`          | arrayinteger | —       | Attachment IDs (caption/alt on attachments) | file_list                              |
+| `_pw_operating_hours`  | array        | `[]`    | Same hours every day: repeatable rows `{ label, open_time, close_time }` (strings). REST: array of objects. | CMB2: `pw_restaurant_operating_hours` (repeatable group) |
 
 
 ---
@@ -255,13 +242,9 @@ Each day is stored as an **associative array** (map) with keys `is_closed` (bool
 | `_pw_menu_url`                  | string       | `''`    | text_url                        |
 | `_pw_min_age`                   | integer      | `0`     | text_small                      |
 | `_pw_number_of_treatment_rooms` | integer      | `0`     | text_small                      |
-| `_pw_gallery`                   | arrayinteger | —       | file_list                       |
-| `_pw_gallery_meta`              | string       | `'{}'`  | JSON gallery metadata (`pw_get_gallery_categories( 'pw_spa' )`) | Custom metabox: Gallery details |
+| `_pw_gallery`                   | arrayinteger | —       | file_list (caption/alt on attachments) |
+| `_pw_operating_hours`           | array        | `[]`    | Same as `pw_restaurant`: repeatable `{ label, open_time, close_time }`. | CMB2: `pw_spa_operating_hours` (repeatable group) |
 
-
-#### Operating Hours — per-day `_pw_hours_{day}`
-
-Same storage and REST registration pattern as restaurant. CMB2: `pw_spa_operating_hours`.
 
 ---
 
@@ -284,8 +267,7 @@ Same storage and REST registration pattern as restaurant. CMB2: `pw_spa_operatin
 | `_pw_prefunction_area_sqm`  | integer      | `0`     |                      | text_small                               |
 | `_pw_natural_light`         | boolean      | `false` |                      | checkbox                                 |
 | `_pw_floor_plan`            | integer      | `0`     | Attachment ID        | file                                     |
-| `_pw_gallery`               | arrayinteger | —       |                      | file_list                                |
-| `_pw_gallery_meta`          | string       | `'{}'`  | JSON gallery metadata (`pw_get_gallery_categories( 'pw_meeting_room' )`) | Custom metabox: Gallery details |
+| `_pw_gallery`               | arrayinteger | —       | Attachment IDs (caption/alt on attachments) | file_list                                |
 
 
 ---
@@ -436,8 +418,7 @@ For property-level experience archives, query `_pw_property_id`. `pw_get_experie
 | `_pw_price_from`       | number       | `0`     |                                                                 | text_money                            |
 | `_pw_booking_url`      | string       | `''`    |                                                                 | text_url                              |
 | `_pw_is_complimentary` | boolean      | `false` |                                                                 | checkbox                              |
-| `_pw_gallery`          | arrayinteger | —       |                                                                 | file_list                             |
-| `_pw_gallery_meta`     | string       | `'{}'`  | JSON gallery metadata (`pw_get_gallery_categories( 'pw_experience' )`) | Custom metabox: Gallery details |
+| `_pw_gallery`          | arrayinteger | —       | Attachment IDs (caption/alt on attachments)                     | file_list                             |
 | `_pw_display_order`    | integer      | `0`     |                                                                 | text_small                            |
 
 
@@ -454,7 +435,7 @@ For property-level experience archives, query `_pw_property_id`. `pw_get_experie
 | `_pw_property_id`           | integer      | `0`                            |                                                                                   | CMB2: `pw_event_metabox` (select) |
 | `_pw_venue_id`              | integer      | `0`                            | FK → `pw_meeting_room`                                                            | select (pw_meeting_room_options)  |
 | `_pw_description`           | string       | `''`                           |                                                                                   | textarea                          |
-| `_pw_start_datetime`        | string       | `''`                           | Wall time `Y-m-d H:i:s` (no TZ in DB). **Convention:** interpret in `pw_property._pw_timezone` for schema.org (`pw_event_local_datetime_to_iso8601()` or REST `pw_start_datetime_iso8601`). | text_datetime_timestamp_timezone  |
+| `_pw_start_datetime`        | string       | `''`                           | Wall time `Y-m-d H:i:s` (no TZ in DB). **Convention:** interpret in `pw_property._pw_timezone` for schema.org (`pw_event_local_datetime_to_iso8601()`). | text_datetime_timestamp_timezone  |
 | `_pw_end_datetime`          | string       | `''`                           | Same as start.                                                                  | text_datetime_timestamp_timezone  |
 | `_pw_capacity`              | integer      | `0`                            |                                                                                   | text_small                        |
 | `_pw_price_from`            | number       | `0`                            |                                                                                   | text_money                        |
@@ -462,13 +443,11 @@ For property-level experience archives, query `_pw_property_id`. `pw_get_experie
 | `_pw_recurrence_rule`       | string       | `''`                           | iCal RRULE (e.g. `FREQ=WEEKLY;BYDAY=SA`)                                          | pw_rrule (custom field)           |
 | `_pw_event_status`          | string       | `'EventScheduled'`             | schema.org: EventScheduled | EventCancelled | EventPostponed | EventRescheduled   | select                            |
 | `_pw_event_attendance_mode` | string       | `'OfflineEventAttendanceMode'` | OfflineEventAttendanceMode | OnlineEventAttendanceMode | MixedEventAttendanceMode | select                            |
-| `_pw_gallery`               | arrayinteger | —                              |                                                                                   | file_list                         |
-| `_pw_gallery_meta`          | string       | `'{}'`                         | JSON gallery metadata (`pw_get_gallery_categories( 'pw_event' )`)                | Custom metabox: Gallery details   |
-
+| `_pw_start_datetime_iso8601` | string      | `''`                           | Synced on `save_post_pw_event` from `_pw_start_datetime` via `pw_event_local_datetime_to_iso8601()` (property timezone). | *(synced, not CMB2)*              |
+| `_pw_end_datetime_iso8601`   | string      | `''`                           | Same pattern for end datetime. | *(synced, not CMB2)*              |
+| `_pw_gallery`               | arrayinteger | —                              | Attachment IDs (caption/alt on attachments)                                       | file_list                         |
 
 **Organiser:** Use taxonomy `pw_event_organiser` (term name = organiser name). Term meta `organiser_url` stores the URL. Used for schema.org Event markup.
-
-**REST (computed, read-only):** `pw_start_datetime_iso8601`, `pw_end_datetime_iso8601` — same convention as above.
 
 ---
 
