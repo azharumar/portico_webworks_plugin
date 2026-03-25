@@ -45,7 +45,7 @@ function pw_sample_sideload_sample_media_map() {
 		return $done;
 	}
 	$done = [];
-	$dir  = dirname( __DIR__ ) . '/assets/sample-media/';
+	$dir  = PW_SAMPLE_PACK_DIR . '/assets/sample-media/';
 	if ( ! is_dir( $dir ) ) {
 		return $done;
 	}

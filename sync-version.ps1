@@ -60,5 +60,18 @@ if ($updatedPluginPhp -ne $pluginPhp) {
 	Set-Content -LiteralPath $pluginPath -Value $updatedPluginPhp -NoNewline
 }
 
+$manifestPath = Join-Path $root "sample-data-pack\manifest.json"
+if (Test-Path -LiteralPath $manifestPath) {
+	$manifestRaw = Get-Content -LiteralPath $manifestPath -Raw
+	$manifestUpdated = [regex]::Replace(
+		$manifestRaw,
+		'"pack_version"\s*:\s*"[^"]*"',
+		'"pack_version": "' + $version + '"'
+	)
+	if ($manifestUpdated -ne $manifestRaw) {
+		Set-Content -LiteralPath $manifestPath -Value $manifestUpdated -NoNewline
+	}
+}
+
 Write-Output $version
 

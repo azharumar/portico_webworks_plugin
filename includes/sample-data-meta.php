@@ -367,6 +367,41 @@ function pw_purge_all_plugin_data() {
 }
 
 function pw_delete_all_sample_data() {
+	$flagged = pw_get_sample_flagged_post_ids();
+	$attach  = [];
+	foreach ( $flagged as $pid ) {
+		$pid = (int) $pid;
+		if ( $pid <= 0 ) {
+			continue;
+		}
+		if ( get_post_type( $pid ) === 'attachment' ) {
+			$attach[ $pid ] = true;
+			continue;
+		}
+		$thumb = (int) get_post_meta( $pid, '_thumbnail_id', true );
+		if ( $thumb > 0 ) {
+			$attach[ $thumb ] = true;
+		}
+		$og = (int) get_post_meta( $pid, '_pw_og_image', true );
+		if ( $og > 0 ) {
+			$attach[ $og ] = true;
+		}
+		$gal = get_post_meta( $pid, '_pw_gallery', true );
+		if ( is_array( $gal ) ) {
+			foreach ( $gal as $gid ) {
+				$gid = absint( $gid );
+				if ( $gid > 0 ) {
+					$attach[ $gid ] = true;
+				}
+			}
+		}
+	}
+	$aids = array_keys( $attach );
+	rsort( $aids, SORT_NUMERIC );
+	foreach ( $aids as $aid ) {
+		wp_delete_post( (int) $aid, true );
+	}
+
 	$post_ids = pw_get_sample_flagged_post_ids();
 	rsort( $post_ids, SORT_NUMERIC );
 	foreach ( $post_ids as $pid ) {

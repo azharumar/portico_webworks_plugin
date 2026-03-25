@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.40] - 2026-03-25
+
+### Added
+- **External sample data pack**: dataset PHP and `assets/sample-media` moved to `sample-data-pack/`; release workflow builds `portico_webworks_plugin-sample-data.zip` and excludes the pack from the main plugin ZIP. **Data → Sample content** includes a **Sample data ZIP URL** field (default from **Update** tab GitHub releases URL or `PW_SAMPLE_DATA_GITHUB_OWNER` / `PW_SAMPLE_DATA_GITHUB_REPO`). `includes/sample-data-pack-loader.php` downloads, validates `manifest.json` against `PW_VERSION`, extracts under uploads, or loads the local `sample-data-pack/` folder when present (development).
+- **`pw_sync_portico_nav_menus_after_sample_install()`** (`includes/nav-menus.php`): after sample install, flush rewrite rules and refresh Portico primary nav custom-link URLs (or seed the menu if missing). Shared helpers `pw_resolve_portico_nav_seed_property_id()`, `pw_get_portico_primary_nav_seed_custom_url_map()`.
+
+### Changed
+- **Remove sample data**: deletes attachment IDs referenced by `_thumbnail_id`, `_pw_gallery`, and `_pw_og_image` on flagged posts before removing remaining sample posts and terms.
+
 ## [0.8.39] - 2026-03-25
 
 ### Removed
@@ -12,6 +21,7 @@
 - **`pw-gb-contact-filter-outlet`**: `generateblocks_query_loop_args` filter (priority 13) scopes `pw_contact` queries on singular `pw_restaurant`, `pw_spa`, `pw_meeting_room`, and `pw_experience` templates by `_pw_scope_cpt` / `_pw_scope_id` when the Query block includes `pw-gb-scope-property` and `pw-gb-contact-filter-outlet` (`includes/property-helpers.php`)
 
 ### Changed
+- **Admin**: **Site structure** (required pages, GP Elements, **Install Missing Structure**) moved from **Permalinks** to **Data** (first accordion section); manual installer redirect returns to **Data**; `pw_admin_data_url()` in `includes/admin-page.php`
 - **`DATA-STRUCTURE.md`**: gallery documented as `_pw_gallery` only; per-image text fields live on Media Library attachments; `pw_event` table documents synced `_pw_*_datetime_iso8601` meta rows
 - **Multi-property sample dataset** (`includes/sample-data-multi-install.php`): fictional **Meridian Grand Hotel Bengaluru** (`meridian-grand-bengaluru`) and **Azure Bay Beach Resort** (`azure-bay-beach-resort`); renamed outlets (e.g. Skyline Kitchen, Merchant’s Hall, Azure Shore Grill, Stillwater Spa, Tidepool Garden Spa, Meridian Grand Ballroom, Horizon Boardroom); per-room `_pw_booking_url`; install-relative offer/event dates; richer amenities, experiences (`_pw_description`, body copy), events (`_pw_description`, booking URLs, `pw_sync_pw_event_iso8601_meta` after insert), nearby `post_content`, Goa child policy; demo organiser term **Meridian & Azure Demo Events**
 - **Sample demo media** (`includes/sample-data-demo-media.php`): property and outlet slugs aligned with the renamed sample posts

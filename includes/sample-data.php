@@ -41,6 +41,16 @@ function pw_render_data_tab() {
 	if ( isset( $_GET['pw_sample_error'] ) ) {
 		echo '<div class="notice notice-error is-dismissible"><p>Sample data cannot be installed when properties already exist.</p></div>';
 	}
+	if ( isset( $_GET['pw_sample_fetch_error'] ) ) {
+		$uid = get_current_user_id();
+		$em  = $uid ? get_transient( 'pw_sample_pack_err_' . $uid ) : false;
+		if ( is_string( $em ) && $em !== '' ) {
+			delete_transient( 'pw_sample_pack_err_' . $uid );
+			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html( $em ) . '</p></div>';
+		} else {
+			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Sample data could not be loaded. Check the ZIP URL and try again.', 'portico-webworks' ) . '</p></div>';
+		}
+	}
 	if ( isset( $_GET['pw_sample_removed'] ) ) {
 		echo '<div class="notice notice-success is-dismissible"><p>Sample data removed.</p></div>';
 	}
@@ -58,6 +68,11 @@ function pw_render_data_tab() {
 	}
 
 	pw_data_accordion_open();
+	if ( function_exists( 'pw_render_page_structure_admin_panel' ) ) {
+		pw_data_accordion_item_begin( __( 'Site structure', 'portico-webworks' ) );
+		pw_render_page_structure_admin_panel();
+		pw_data_accordion_item_end();
+	}
 	pw_render_import_export_section();
 
 	$flagged_posts = pw_count_sample_flagged_posts_only();
@@ -73,7 +88,15 @@ function pw_render_data_tab() {
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 		echo '<input type="hidden" name="action" value="pw_install_sample_data" />';
 		wp_nonce_field( 'pw_install_sample_data' );
-		submit_button( 'Install sample data', 'primary', 'submit', false );
+		$def_url = function_exists( 'pw_get_default_sample_data_pack_url' ) ? pw_get_default_sample_data_pack_url() : '';
+		$saved    = get_option( 'pw_sample_data_pack_url', '' );
+		$url_val  = is_string( $saved ) && $saved !== '' ? $saved : $def_url;
+		echo '<table class="form-table" role="presentation"><tbody>';
+		echo '<tr><th scope="row"><label for="pw_sample_data_pack_url">' . esc_html__( 'Sample data ZIP URL', 'portico-webworks' ) . '</label></th><td>';
+		echo '<input type="url" class="large-text code" name="pw_sample_data_pack_url" id="pw_sample_data_pack_url" value="' . esc_attr( $url_val ) . '" />';
+		echo '<p class="description">' . esc_html__( 'HTTPS link to portico_webworks_plugin-sample-data.zip from the same release as this plugin version.', 'portico-webworks' ) . '</p>';
+		echo '</td></tr></tbody></table>';
+		submit_button( __( 'Install sample data', 'portico-webworks' ), 'primary', 'submit', false );
 		echo '</form>';
 	}
 
@@ -163,7 +186,33 @@ function pw_handle_install_sample_data() {
 		exit;
 	}
 
-	pw_install_sample_data();
+	$zip_url = isset( $_POST['pw_sample_data_pack_url'] ) ? esc_url_raw( wp_unslash( (string) $_POST['pw_sample_data_pack_url'] ) ) : '';
+	if ( $zip_url === '' && function_exists( 'pw_get_default_sample_data_pack_url' ) ) {
+		$zip_url = pw_get_default_sample_data_pack_url();
+	}
+
+	$res = pw_install_sample_data( $zip_url );
+	if ( is_wp_error( $res ) ) {
+		$uid = get_current_user_id();
+		if ( $uid ) {
+			set_transient( 'pw_sample_pack_err_' . $uid, wp_strip_all_tags( $res->get_error_message() ), 120 );
+		}
+		wp_safe_redirect(
+			add_query_arg(
+				'pw_sample_fetch_error',
+				'1',
+				admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=data' )
+			)
+		);
+		exit;
+	}
+
+	update_option( 'pw_sample_data_pack_url', $zip_url );
+
+	flush_rewrite_rules( false );
+	if ( function_exists( 'pw_sync_portico_nav_menus_after_sample_install' ) ) {
+		pw_sync_portico_nav_menus_after_sample_install();
+	}
 
 	wp_safe_redirect(
 		add_query_arg(
@@ -276,9 +325,25 @@ function pw_sample_spa_treatment_hours( $open, $close ) {
 	];
 }
 
-require_once __DIR__ . '/sample-data-multi-install.php';
+/**
+ * @param string|null $zip_url URL to sample-data ZIP; null uses saved option or default GitHub asset URL.
+ * @return true|WP_Error
+ */
+function pw_install_sample_data( $zip_url = null ) {
+	if ( $zip_url === null ) {
+		$saved = get_option( 'pw_sample_data_pack_url', '' );
+		$zip_url = is_string( $saved ) && $saved !== '' ? $saved : '';
+		if ( $zip_url === '' && function_exists( 'pw_get_default_sample_data_pack_url' ) ) {
+			$zip_url = pw_get_default_sample_data_pack_url();
+		}
+	}
+	$zip_url = is_string( $zip_url ) ? trim( $zip_url ) : '';
 
-function pw_install_sample_data() {
+	$loaded = pw_ensure_sample_data_pack_loaded( $zip_url );
+	if ( is_wp_error( $loaded ) ) {
+		return $loaded;
+	}
+
 	pw_strip_sample_flags_from_seed_terms();
 	pw_sample_install_lock_open();
 	try {
@@ -286,4 +351,5 @@ function pw_install_sample_data() {
 	} finally {
 		pw_sample_install_lock_close();
 	}
+	return true;
 }

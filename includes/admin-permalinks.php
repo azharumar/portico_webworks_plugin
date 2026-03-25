@@ -138,9 +138,5 @@ function pw_render_permalinks_tab() {
 	submit_button( __( 'Save Permalinks', 'portico-webworks' ) );
 	echo '</form>';
 
-	if ( function_exists( 'pw_render_page_structure_admin_panel' ) ) {
-		pw_render_page_structure_admin_panel();
-	}
-
 	echo '</div></div>';
 }

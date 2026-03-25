@@ -39,14 +39,21 @@ jobs:
             --exclude='.idea' \
             --exclude='.vscode' \
             --exclude='build' \
+            --exclude='sample-data-pack' \
             ./ "build/$PLUGIN_SLUG/"
           cd build && zip -r "../$PLUGIN_SLUG.zip" "$PLUGIN_SLUG"
+
+      - name: Create sample data ZIP
+        run: |
+          cd sample-data-pack && zip -r ../portico_webworks_plugin-sample-data.zip .
 
       - name: Upload release asset
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: portico_webworks_plugin.zip
+          files: |
+            portico_webworks_plugin.zip
+            portico_webworks_plugin-sample-data.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -55,4 +62,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: portico_webworks_plugin
-          path: portico_webworks_plugin.zip
+          path: |
+            portico_webworks_plugin.zip
+            portico_webworks_plugin-sample-data.zip

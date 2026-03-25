@@ -19,6 +19,8 @@ Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** fo
 | `_pw_is_sample_data`   | Post meta    | Constant `PW_IS_SAMPLE_DATA_META_KEY`. Set to `1` on content created by the Sample Data installer. Registered for all plugin CPTs, `post`, and `page`. **REST:** `show_in_rest: true`; `auth_callback` requires `edit_post` on that post. |
 | `_pw_is_sample_data`   | Term meta    | Same key constant. Set when the installer **creates** a term (existing terms are not tagged). Registered for plugin taxonomies, `category`, and `post_tag`. **REST:** `show_in_rest: true`; `auth_callback` requires `edit_term`. |
 
+**Sample data pack (releases):** The multi-property dataset and demo images live in `sample-data-pack/` in the repository. The main plugin release ZIP **excludes** that folder to keep the download small. The matching GitHub release also publishes **`portico_webworks_plugin-sample-data.zip`**; `manifest.json` inside the pack must match `PW_VERSION`. **Portico Webworks → Data → Sample content** downloads the ZIP (HTTPS URL, default built from the **Update** tab GitHub releases URL or `PW_SAMPLE_DATA_GITHUB_OWNER` / `PW_SAMPLE_DATA_GITHUB_REPO` in `portico_webworks_plugin.php`), extracts it under uploads, loads `bootstrap.php`, and runs the installer. A full git checkout includes `sample-data-pack/` locally so no download is required in development. Successful install flushes rewrite rules and refreshes **Portico primary** nav custom-link URLs. **Remove sample data** also deletes attachments referenced by `_thumbnail_id`, `_pw_gallery`, and `_pw_og_image` on flagged posts.
+
 ---
 
 ## Post Type: `pw_property`
@@ -497,7 +499,7 @@ Canonical lists live in `includes/taxonomy-seeds.php` (`pw_get_taxonomy_seed_ter
 
 **Taxonomies seeded (all optional names in code):** `pw_property_type`, `pw_policy_type`, `pw_bed_type`, `pw_view_type`, `pw_meal_period`, `pw_treatment_type`, `pw_av_equipment`, `pw_feature_group`, `pw_nearby_type`, `pw_transport_mode`, `pw_experience_category`, `pw_event_type`.
 
-The **Sample Data** installer (`includes/sample-data-multi-install.php`) merges in the full `pw_get_taxonomy_seed_terms()` arrays for `pw_property_type` and `pw_policy_type`, then ensures additional demo-only names; it assigns **Hotel** / **Resort** on the two demo properties. Canonical term tables and demo-term notes: `[TAXONOMY-SEED-VALUES.md](TAXONOMY-SEED-VALUES.md)`.
+The **Sample Data** installer (`sample-data-pack/sample-data-multi-install.php`, loaded after the pack is fetched or from the local `sample-data-pack/` folder) merges in the full `pw_get_taxonomy_seed_terms()` arrays for `pw_property_type` and `pw_policy_type`, then ensures additional demo-only names; it assigns **Hotel** / **Resort** on the two demo properties. Canonical term tables and demo-term notes: `[TAXONOMY-SEED-VALUES.md](TAXONOMY-SEED-VALUES.md)`.
 
 #### Not seeded automatically
 

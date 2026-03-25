@@ -186,6 +186,54 @@ function pw_get_section_breadcrumb_label( string $cpt ): string {
 	return $map[ $cpt ] ?? '';
 }
 
+/**
+ * Property ID used for Portico primary nav section URLs (default property, or first published by title in multi).
+ */
+function pw_resolve_portico_nav_seed_property_id(): int {
+	$pid = (int) pw_get_setting( 'pw_default_property_id', 0 );
+	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'multi' && $pid <= 0 ) {
+		$first = get_posts(
+			[
+				'post_type'      => 'pw_property',
+				'post_status'    => 'publish',
+				'posts_per_page' => 1,
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+				'fields'         => 'ids',
+			]
+		);
+		$pid = isset( $first[0] ) ? (int) $first[0] : 0;
+	}
+	return $pid;
+}
+
+/**
+ * Map menu item title => custom URL for Portico-seeded primary links.
+ *
+ * @return array<string, string>
+ */
+function pw_get_portico_primary_nav_seed_custom_url_map( int $pid ): array {
+	$map = [];
+	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'multi' ) {
+		$map[ __( 'Hotels', 'portico-webworks' ) ] = untrailingslashit( home_url( '/' ) );
+	}
+	$links = [
+		__( 'Experiences', 'portico-webworks' ) => 'pw_experience',
+		__( 'Offers', 'portico-webworks' )       => 'pw_offer',
+		__( 'Dining', 'portico-webworks' )       => 'pw_restaurant',
+		__( 'Meetings', 'portico-webworks' )     => 'pw_meeting_room',
+		__( 'Events', 'portico-webworks' )       => 'pw_event',
+		__( 'Spa', 'portico-webworks' )          => 'pw_spa',
+	];
+	foreach ( $links as $title => $section_cpt ) {
+		$url = pw_get_section_listing_url( $pid, $section_cpt );
+		if ( $url !== '' ) {
+			$map[ $title ] = $url;
+		}
+	}
+	return $map;
+}
+
 function pw_maybe_seed_portico_nav_menus(): void {
 	if ( ! current_user_can( 'edit_theme_options' ) ) {
 		return;
@@ -207,63 +255,76 @@ function pw_maybe_seed_portico_nav_menus(): void {
 		return;
 	}
 
-	$pid = (int) pw_get_setting( 'pw_default_property_id', 0 );
-	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'multi' && $pid <= 0 ) {
-		$first = get_posts(
-			[
-				'post_type'      => 'pw_property',
-				'post_status'    => 'publish',
-				'posts_per_page' => 1,
-				'orderby'        => 'title',
-				'order'          => 'ASC',
-				'fields'         => 'ids',
-			]
-		);
-		$pid = isset( $first[0] ) ? (int) $first[0] : 0;
-	}
-
+	$pid   = pw_resolve_portico_nav_seed_property_id();
 	$order = 0;
-	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'multi' ) {
+	foreach ( pw_get_portico_primary_nav_seed_custom_url_map( $pid ) as $title => $url ) {
 		wp_update_nav_menu_item(
 			$menu_id,
 			0,
 			[
-				'menu-item-title'  => __( 'Hotels', 'portico-webworks' ),
-				'menu-item-url'    => esc_url_raw( untrailingslashit( home_url( '/' ) ) ),
-				'menu-item-status' => 'publish',
-				'menu-item-position' => ++$order,
-			]
-		);
-	}
-
-	$links = [
-		__( 'Experiences', 'portico-webworks' ) => 'pw_experience',
-		__( 'Offers', 'portico-webworks' )       => 'pw_offer',
-		__( 'Dining', 'portico-webworks' )       => 'pw_restaurant',
-		__( 'Meetings', 'portico-webworks' )     => 'pw_meeting_room',
-		__( 'Events', 'portico-webworks' )       => 'pw_event',
-		__( 'Spa', 'portico-webworks' )          => 'pw_spa',
-	];
-
-	foreach ( $links as $title => $section_cpt ) {
-		$url = pw_get_section_listing_url( $pid, $section_cpt );
-		if ( $url === '' ) {
-			continue;
-		}
-		wp_update_nav_menu_item(
-			$menu_id,
-			0,
-			[
-				'menu-item-title'    => $title,
-				'menu-item-url'      => esc_url_raw( $url ),
-				'menu-item-status'   => 'publish',
-				'menu-item-position' => ++$order,
+				'menu-item-title'      => $title,
+				'menu-item-url'        => esc_url_raw( $url ),
+				'menu-item-status'     => 'publish',
+				'menu-item-position'   => ++$order,
 			]
 		);
 	}
 
 	$locations[ PW_NAV_MENU_PRIMARY ] = $menu_id;
 	set_theme_mod( 'nav_menu_locations', $locations );
+}
+
+/**
+ * After sample data install: refresh primary nav custom-link URLs to match current section listings.
+ */
+function pw_sync_portico_nav_menus_after_sample_install(): void {
+	if ( ! current_user_can( 'edit_theme_options' ) ) {
+		return;
+	}
+
+	$pid = pw_resolve_portico_nav_seed_property_id();
+	if ( $pid <= 0 ) {
+		return;
+	}
+
+	$locations = get_theme_mod( 'nav_menu_locations', [] );
+	if ( ! is_array( $locations ) ) {
+		$locations = [];
+	}
+	$menu_id = isset( $locations[ PW_NAV_MENU_PRIMARY ] ) ? (int) $locations[ PW_NAV_MENU_PRIMARY ] : 0;
+	if ( $menu_id <= 0 || ! is_nav_menu( $menu_id ) ) {
+		pw_maybe_seed_portico_nav_menus();
+		return;
+	}
+
+	$url_map = pw_get_portico_primary_nav_seed_custom_url_map( $pid );
+	$items   = wp_get_nav_menu_items( $menu_id );
+	if ( ! is_array( $items ) ) {
+		return;
+	}
+
+	foreach ( $items as $item ) {
+		if ( ! $item instanceof WP_Post || $item->type !== 'custom' ) {
+			continue;
+		}
+		$title = isset( $item->title ) ? (string) $item->title : '';
+		if ( $title === '' || ! isset( $url_map[ $title ] ) ) {
+			continue;
+		}
+		$new_url = $url_map[ $title ];
+		if ( untrailingslashit( (string) $item->url ) === untrailingslashit( $new_url ) ) {
+			continue;
+		}
+		wp_update_nav_menu_item(
+			$menu_id,
+			(int) $item->db_id,
+			[
+				'menu-item-title'    => $title,
+				'menu-item-url'      => esc_url_raw( $new_url ),
+				'menu-item-status'   => 'publish',
+			]
+		);
+	}
 }
 
 add_action(

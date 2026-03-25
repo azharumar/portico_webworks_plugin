@@ -16,6 +16,10 @@ function pw_admin_permalinks_url() {
 	return admin_url( 'admin.php?page=' . rawurlencode( pw_admin_page_slug() ) . '&tab=permalinks' );
 }
 
+function pw_admin_data_url() {
+	return admin_url( 'admin.php?page=' . rawurlencode( pw_admin_page_slug() ) . '&tab=data' );
+}
+
 function pw_admin_update_url() {
 	return admin_url( 'admin.php?page=' . rawurlencode( pw_admin_page_slug() ) . '&tab=update' );
 }
@@ -356,10 +360,9 @@ add_action(
 add_action('admin_post_pw_save_settings', 'pw_handle_settings_save');
 
 /**
- * Site structure tables + installer (Permalinks tab); not inside another form.
+ * Site structure tables + installer (Data tab); not inside another form.
  */
 function pw_render_page_structure_admin_panel() {
-	echo '<div class="pw-subsection-title" style="margin-top:1.25em;">' . esc_html__( 'Site structure', 'portico-webworks' ) . '</div>';
 	echo '<p class="description">' . esc_html__( 'Installer-managed static pages (Fact Sheet per property scope) and GeneratePress Elements for section archives. Section listings use Elements, not Pages. Starter block markup is inserted only when an element or page is first created.', 'portico-webworks' ) . '</p>';
 	echo '<details class="pw-page-structure"><summary style="cursor:pointer;font-weight:600;margin-top:0.5em;">' . esc_html__( 'Required pages and section archive elements', 'portico-webworks' ) . '</summary>';
 
