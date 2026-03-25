@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Portico Webworks Hotel Website Manager
  * Description: Portico Webworks plugin.
- * Version: 0.8.41
+ * Version: 0.8.42
  * Requires at least: 6.9.4
  * Requires PHP: 8.3
  * Author: Portico Webworks
@@ -23,8 +23,10 @@ if ( is_readable( $pw_fatal_log ) ) {
 	require_once $pw_fatal_log;
 }
 
-define('PW_PLUGIN_FILE', __FILE__);
-define('PW_VERSION', '0.8.41');
+define( 'PW_PLUGIN_FILE', __FILE__ );
+define( 'PW_PLUGIN_DIR', plugin_dir_path( PW_PLUGIN_FILE ) );
+define( 'PW_VERSION', '0.8.42' );
+require_once PW_PLUGIN_DIR . 'includes/template-functions.php';
 define('PW_SAMPLE_DATA_GITHUB_OWNER', 'azharumar');
 define('PW_SAMPLE_DATA_GITHUB_REPO', 'portico_webworks_plugin');
 
@@ -76,7 +78,20 @@ require_once __DIR__ . '/includes/cmb2-rrule-field.php';
 
 require_once __DIR__ . '/includes/github-plugin-update.php';
 require_once __DIR__ . '/includes/permalink-config.php';
+require_once __DIR__ . '/includes/template-loader.php';
+require_once __DIR__ . '/includes/template-strings.php';
+require_once __DIR__ . '/includes/template-data.php';
 require_once __DIR__ . '/includes/reserved-slugs.php';
+
+add_action(
+	'wp_body_open',
+	static function () {
+		if ( is_admin() ) {
+			return;
+		}
+		pw_get_template_part( 'global/announcement-bar', '' );
+	}
+);
 require_once __DIR__ . '/includes/nav-menus.php';
 require_once __DIR__ . '/includes/property-helpers.php';
 require_once __DIR__ . '/includes/page-installer.php';
@@ -86,7 +101,6 @@ add_action( 'transition_post_status', 'pw_on_property_published', 10, 3 );
 require_once __DIR__ . '/includes/currency-data.php';
 require_once __DIR__ . '/includes/property-post-type.php';
 require_once __DIR__ . '/includes/property-rewrites.php';
-require_once __DIR__ . '/includes/gp-elements-compat.php';
 require_once __DIR__ . '/includes/property-facet-definitions.php';
 require_once __DIR__ . '/includes/child-post-types.php';
 require_once __DIR__ . '/includes/contact-resolver.php';

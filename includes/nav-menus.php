@@ -6,6 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'PW_NAV_MENU_PRIMARY', 'pw_primary' );
 define( 'PW_NAV_MENU_UTILITY', 'pw_utility' );
+define( 'PW_NAV_MENU_FOOTER', 'pw_footer' );
 
 add_action( 'after_setup_theme', 'pw_register_nav_menus', 20 );
 
@@ -14,12 +15,14 @@ function pw_register_nav_menus(): void {
 		[
 			PW_NAV_MENU_PRIMARY  => __( 'Portico primary (header)', 'portico-webworks' ),
 			PW_NAV_MENU_UTILITY => __( 'Portico utility (header bar)', 'portico-webworks' ),
+			PW_NAV_MENU_FOOTER  => __( 'Portico footer', 'portico-webworks' ),
 		]
 	);
 }
 
 add_shortcode( 'pw_primary_nav', 'pw_shortcode_primary_nav' );
 add_shortcode( 'pw_utility_nav', 'pw_shortcode_utility_nav' );
+add_shortcode( 'pw_footer_nav', 'pw_shortcode_footer_nav' );
 add_shortcode( 'pw_site_branding', 'pw_shortcode_site_branding' );
 add_shortcode( 'pw_book_now_button', 'pw_shortcode_book_now_button' );
 add_shortcode( 'pw_portico_breadcrumbs', 'pw_shortcode_portico_breadcrumbs' );
@@ -58,6 +61,23 @@ function pw_shortcode_utility_nav(): string {
 	return (string) ob_get_clean();
 }
 
+function pw_shortcode_footer_nav(): string {
+	ob_start();
+	wp_nav_menu(
+		[
+			'theme_location'       => PW_NAV_MENU_FOOTER,
+			'container'            => 'nav',
+			'container_class'      => 'pw-footer-nav',
+			'container_aria_label' => __( 'Footer', 'portico-webworks' ),
+			'menu_class'           => 'pw-footer-nav__list',
+			'fallback_cb'          => false,
+			'depth'                => 2,
+		]
+	);
+
+	return (string) ob_get_clean();
+}
+
 function pw_shortcode_site_branding(): string {
 	$home = esc_url( untrailingslashit( home_url( '/' ) ) );
 	if ( function_exists( 'the_custom_logo' ) && has_custom_logo() ) {
@@ -82,7 +102,7 @@ function pw_shortcode_book_now_button(): string {
 	$url = esc_url( $url );
 
 	return sprintf(
-		'<a class="pw-book-now-button" href="%1$s">%2$s</a>',
+		'<a class="pw-book-now-button btn-primary" href="%1$s">%2$s</a>',
 		$url,
 		esc_html__( 'Book now', 'portico-webworks' )
 	);
@@ -333,7 +353,7 @@ add_action(
 		if ( is_admin() ) {
 			return;
 		}
-		$css = '.pw-primary-nav__list,.pw-utility-nav__list{display:flex;flex-wrap:wrap;gap:1rem;list-style:none;margin:0;padding:0;align-items:center}.pw-utility-nav__list{justify-content:flex-end;font-size:13px}.pw-primary-nav{justify-content:center;width:100%}.pw-header-main__menu{display:flex;justify-content:center;width:100%}.pw-header-main__cta{display:flex;justify-content:flex-end;align-items:center}.pw-book-now-button{display:inline-block;padding:.5rem 1.25rem;background:#c90;text-decoration:none;color:#fff;border-radius:4px;font-weight:600}.pw-book-now-button:hover{opacity:.92;color:#fff}.pw-breadcrumbs{font-size:13px;padding:10px 20px;max-width:1200px;margin:0 auto;color:#555}.pw-site-branding{display:inline-block}.pw-site-branding img{max-height:48px;width:auto}';
+		$css = '.pw-primary-nav__list,.pw-utility-nav__list{display:flex;flex-wrap:wrap;gap:1rem;list-style:none;margin:0;padding:0;align-items:center}.pw-utility-nav,.pw-utility-nav a{color:inherit}.pw-utility-nav__list{justify-content:flex-start}.pw-primary-nav{justify-content:center;width:100%}.pw-header-main__menu{display:flex;justify-content:center;width:100%}.pw-header-main__cta{display:flex;justify-content:flex-end;align-items:center}.pw-book-now-button{display:inline-flex;align-items:center;padding:10px 48px;background:var(--green-1,#025155);text-decoration:none;color:#fff;font-weight:600;text-transform:uppercase;font-size:12px}.pw-book-now-button:hover,.pw-book-now-button:focus{background:var(--green-2,#013d40);color:#fff}@media (max-width:1024px){.pw-book-now-button{padding-left:20px;padding-right:20px;font-size:12px}}.pw-breadcrumbs{font-size:13px;padding:10px 0;color:var(--text-1,#555)}.pw-site-branding{display:inline-block}.pw-site-branding img{max-height:48px;width:auto}.pw-footer-nav__list{display:flex;flex-direction:column;gap:10px;list-style:none;margin:0;padding:0}.pw-footer-nav__list a{color:inherit;text-decoration:none}.pw-footer-nav__list a:hover,.pw-footer-nav__list a:focus{text-decoration:underline}.pw-footer-ql a{color:inherit;text-decoration:none}.pw-footer-ql a:hover,.pw-footer-ql a:focus{text-decoration:underline}';
 		wp_register_style( 'pw-nav-menus', false, [], defined( 'PW_VERSION' ) ? PW_VERSION : '0' );
 		wp_enqueue_style( 'pw-nav-menus' );
 		wp_add_inline_style( 'pw-nav-menus', $css );

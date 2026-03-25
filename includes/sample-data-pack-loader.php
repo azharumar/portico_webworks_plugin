@@ -12,6 +12,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 const PW_SAMPLE_DATA_ZIP_FILENAME = 'portico_webworks_plugin-sample-data.zip';
 
 /**
+ * Allowed targetOrigin for postMessage from the sample-install iframe (admin scheme/host/port).
+ */
+function pw_sample_install_allowed_post_message_origin(): string {
+	$parsed = wp_parse_url( admin_url() );
+	if ( ! is_array( $parsed ) || empty( $parsed['host'] ) ) {
+		return '*';
+	}
+	$scheme = isset( $parsed['scheme'] ) ? $parsed['scheme'] : 'https';
+	$host   = $parsed['host'];
+	$port   = isset( $parsed['port'] ) ? ':' . (int) $parsed['port'] : '';
+	return $scheme . '://' . $host . $port;
+}
+
+/**
  * @return true|WP_Error
  */
 function pw_ensure_sample_data_pack_loaded( string $zip_url ) {

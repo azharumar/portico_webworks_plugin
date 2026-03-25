@@ -117,6 +117,28 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 			true
 		);
 	}
+	if ( $tab === 'data' && defined( 'PW_PLUGIN_FILE' ) ) {
+		wp_enqueue_script(
+			'pw-admin-sample-install',
+			plugins_url( 'assets/admin-sample-install.js', PW_PLUGIN_FILE ),
+			[],
+			defined( 'PW_VERSION' ) ? PW_VERSION : '1',
+			true
+		);
+		$expect = function_exists( 'pw_sample_install_allowed_post_message_origin' )
+			? pw_sample_install_allowed_post_message_origin()
+			: '*';
+		wp_localize_script(
+			'pw-admin-sample-install',
+			'pwSampleInstall',
+			[
+				'expectOrigin' => $expect,
+				'strings'      => [
+					'starting' => __( 'Starting…', 'portico-webworks' ),
+				],
+			]
+		);
+	}
 
 	wp_enqueue_style(
 		'pw-admin-fonts',
@@ -241,6 +263,8 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 .pw-admin .pw-section-bases-table td .regular-text{width:100%;max-width:18rem;box-sizing:border-box}
 .pw-admin .pw-page-structure-table code{font-size:12px}
 .pw-admin .pw-default-property-row.pw-is-hidden{display:none!important}
+.pw-admin .pw-sample-install-progress-wrap progress{width:100%;height:10px;border-radius:4px;overflow:hidden}
+.pw-admin .pw-sample-install-progress-label{margin:0.5em 0 0;font-size:13px;color:var(--sub,#50575e)}
 ";
 
 	wp_register_style('pw-admin', false, array(), '0.1.0');

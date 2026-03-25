@@ -1,4 +1,622 @@
 <?php
+defined( 'ABSPATH' ) || exit;
+
+if ( ! defined( 'PW_FACT_SHEET_PAGE_SLUG' ) ) {
+	define( 'PW_FACT_SHEET_PAGE_SLUG', 'fact-sheet' );
+}
+
+add_action( 'init', 'pw_register_page_installer_meta', 8 );
+add_action( 'transition_post_status', 'pw_on_property_published', 10, 3 );
+add_action( 'admin_post_pw_run_page_installer', 'pw_handle_admin_post_pw_run_page_installer' );
+
+function pw_register_page_installer_meta() {
+	$registered = static function ( string $key ): bool {
+		return function_exists( 'wp_is_post_meta_registered' ) && wp_is_post_meta_registered( 'page', $key );
+	};
+
+	if ( ! $registered( '_pw_property_id' ) ) {
+		register_post_meta(
+			'page',
+			'_pw_property_id',
+			[
+				'type'         => 'integer',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => 0,
+			]
+		);
+	}
+
+	if ( ! $registered( '_pw_generated' ) ) {
+		register_post_meta(
+			'page',
+			'_pw_generated',
+			[
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => '',
+			]
+		);
+	}
+
+	if ( ! $registered( '_pw_section_cpt' ) ) {
+		register_post_meta(
+			'page',
+			'_pw_section_cpt',
+			[
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => '',
+			]
+		);
+	}
+
+	if ( ! $registered( '_pw_static_url_segment' ) ) {
+		register_post_meta(
+			'page',
+			'_pw_static_url_segment',
+			[
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => '',
+			]
+		);
+	}
+}
+
+/**
+ * @return array<int, array{title: string, slug: string, property_id: int, cpt: string, type: string, kind?: string}>
+ */
+function pw_get_required_pages( int $property_id = 0 ): array {
+	$mode = pw_get_setting( 'pw_property_mode', 'single' );
+	$slug = PW_FACT_SHEET_PAGE_SLUG;
+	$def  = [
+		'title'       => __( 'Fact Sheet', 'portico-webworks' ),
+		'slug'        => $slug,
+		'property_id' => 0,
+		'cpt'         => '',
+		'type'        => '',
+		'kind'        => 'fact_sheet',
+	];
+
+	if ( $mode === 'single' ) {
+		if ( $property_id !== 0 ) {
+			return [];
+		}
+		$def['property_id'] = 0;
+		return [ $def ];
+	}
+
+	if ( $property_id <= 0 ) {
+		return [];
+	}
+	$def['property_id'] = $property_id;
+	return [ $def ];
+}
+
+function pw_get_fact_sheet_starter_markup(): string {
+	return '';
+}
+
+function pw_find_generated_page( string $slug, int $property_id ): ?WP_Post {
+	$slug = sanitize_title( $slug );
+	if ( $slug === '' ) {
+		return null;
+	}
+
+	$posts = get_posts(
+		[
+			'post_type'        => 'page',
+			'name'             => $slug,
+			'post_status'      => [ 'publish', 'draft', 'private' ],
+			'posts_per_page'   => 1,
+			'no_found_rows'    => true,
+			'suppress_filters' => true,
+			'meta_query'       => [
+				[
+					'key'   => '_pw_generated',
+					'value' => '1',
+				],
+				[
+					'key'   => '_pw_property_id',
+					'value' => (string) (int) $property_id,
+				],
+			],
+		]
+	);
+
+	return ( $posts && $posts[0] instanceof WP_Post ) ? $posts[0] : null;
+}
+
+/**
+ * @param array{title: string, slug: string, property_id: int, cpt: string, type: string, kind?: string} $page_def
+ * @return array{action: string, post_id: int, message: string}
+ */
+function pw_install_page( array $page_def ): array {
+	$slug    = sanitize_title( (string) ( $page_def['slug'] ?? '' ) );
+	$prop_id = (int) ( $page_def['property_id'] ?? 0 );
+	$title   = (string) ( $page_def['title'] ?? $slug );
+	$kind    = (string) ( $page_def['kind'] ?? '' );
+
+	if ( $slug === '' ) {
+		return [ 'action' => 'skipped', 'post_id' => 0, 'message' => __( 'Missing slug.', 'portico-webworks' ) ];
+	}
+
+	$existing = pw_find_generated_page( $slug, $prop_id );
+	if ( $existing instanceof WP_Post ) {
+		return [
+			'action'  => 'skipped',
+			'post_id' => (int) $existing->ID,
+			'message' => __( 'Already exists, no changes needed.', 'portico-webworks' ),
+		];
+	}
+
+	$by_path = get_page_by_path( $slug, OBJECT, 'page' );
+	if ( $by_path instanceof WP_Post && get_post_meta( $by_path->ID, '_pw_generated', true ) !== '1' ) {
+		return [
+			'action'  => 'conflict',
+			'post_id' => (int) $by_path->ID,
+			'message' => __( 'Slug already used by an existing page.', 'portico-webworks' ),
+		];
+	}
+
+	$content = '';
+	if ( $kind === 'fact_sheet' ) {
+		$content = pw_get_fact_sheet_starter_markup();
+	}
+
+	if ( function_exists( 'pw_reserved_slug_installer_active' ) ) {
+		pw_reserved_slug_installer_active( true );
+	}
+	$post_id = wp_insert_post(
+		wp_slash(
+			[
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => $title,
+				'post_name'    => $slug,
+				'post_content' => $content,
+			]
+		),
+		true
+	);
+	if ( function_exists( 'pw_reserved_slug_installer_active' ) ) {
+		pw_reserved_slug_installer_active( false );
+	}
+
+	if ( is_wp_error( $post_id ) ) {
+		return [ 'action' => 'skipped', 'post_id' => 0, 'message' => $post_id->get_error_message() ];
+	}
+
+	update_post_meta( $post_id, '_pw_generated', '1' );
+	update_post_meta( $post_id, '_pw_property_id', $prop_id );
+	update_post_meta( $post_id, '_pw_static_url_segment', $slug );
+
+	return [
+		'action'  => 'created',
+		'post_id' => (int) $post_id,
+		'message' => __( 'Created.', 'portico-webworks' ),
+	];
+}
+
+/**
+ * @return array<int, array{action: string, post_id: int, message: string}>
+ */
+function pw_run_page_installer( int $property_id = 0 ): array {
+	$results = [];
+	foreach ( pw_get_required_pages( $property_id ) as $def ) {
+		$results[] = pw_install_page( $def );
+	}
+
+	delete_transient( 'pw_flush_rewrites' );
+	set_transient( 'pw_flush_rewrites', '1', 60 );
+
+	return $results;
+}
+
+/**
+ * @return array<int, array{action: string, post_id: int, message: string}>
+ */
+function pw_run_page_installer_all_scopes(): array {
+	$all = pw_run_page_installer( 0 );
+	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'multi' ) {
+		$ids = get_posts(
+			[
+				'post_type'      => 'pw_property',
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+			]
+		);
+		foreach ( $ids as $pid ) {
+			$all = array_merge( $all, pw_run_page_installer( (int) $pid ) );
+		}
+	}
+
+	return $all;
+}
+
+/**
+ * @param array<int, array{action: string, post_id: int, message: string}> $results
+ * @return array{created: int, updated: int, unchanged: int, conflict: int, conflict_messages: string[]}
+ */
+function pw_summarize_installer_results( array $results ): array {
+	$out = [
+		'created'           => 0,
+		'updated'           => 0,
+		'unchanged'         => 0,
+		'conflict'          => 0,
+		'conflict_messages' => [],
+	];
+
+	foreach ( $results as $r ) {
+		if ( ! is_array( $r ) || ! isset( $r['action'] ) ) {
+			continue;
+		}
+		$msg = isset( $r['message'] ) ? (string) $r['message'] : '';
+		if ( $r['action'] === 'created' ) {
+			++$out['created'];
+		} elseif ( $r['action'] === 'updated' ) {
+			++$out['updated'];
+		} elseif ( $r['action'] === 'conflict' ) {
+			++$out['conflict'];
+			if ( $msg !== '' ) {
+				$out['conflict_messages'][] = $msg;
+			}
+		} elseif ( $r['action'] === 'skipped' ) {
+			++$out['unchanged'];
+		}
+	}
+
+	return $out;
+}
+
+function pw_on_property_published( $new_status, $old_status, $post ) {
+	if ( ! $post instanceof WP_Post || $post->post_type !== 'pw_property' ) {
+		return;
+	}
+	if ( $new_status !== 'publish' || $old_status === 'publish' ) {
+		return;
+	}
+
+	$mode = pw_get_setting( 'pw_property_mode', 'single' );
+	if ( $mode === 'multi' ) {
+		pw_run_page_installer( (int) $post->ID );
+	} else {
+		pw_run_page_installer( 0 );
+	}
+}
+
+function pw_handle_admin_post_pw_run_page_installer() {
+	if (
+		! current_user_can( 'manage_options' ) ||
+		! isset( $_POST['pw_run_page_installer_nonce'] ) ||
+		! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['pw_run_page_installer_nonce'] ) ), 'pw_run_page_installer' )
+	) {
+		wp_die( 'Unauthorised' );
+	}
+
+	pw_run_page_installer_all_scopes();
+
+	wp_safe_redirect( wp_get_referer() ?: admin_url( 'admin.php?page=' . urlencode( pw_admin_page_slug() ) ) );
+	exit;
+}
+
+<?php
+defined( 'ABSPATH' ) || exit;
+
+if ( ! defined( 'PW_FACT_SHEET_PAGE_SLUG' ) ) {
+	define( 'PW_FACT_SHEET_PAGE_SLUG', 'fact-sheet' );
+}
+
+add_action( 'init', 'pw_register_page_installer_meta', 8 );
+add_action( 'transition_post_status', 'pw_on_property_published', 10, 3 );
+add_action( 'admin_post_pw_run_page_installer', 'pw_handle_admin_post_pw_run_page_installer' );
+
+function pw_register_page_installer_meta() {
+	$registered = static function ( string $key ): bool {
+		return function_exists( 'wp_is_post_meta_registered' ) && wp_is_post_meta_registered( 'page', $key );
+	};
+
+	if ( ! $registered( '_pw_property_id' ) ) {
+		register_post_meta(
+			'page',
+			'_pw_property_id',
+			[
+				'type'         => 'integer',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => 0,
+			]
+		);
+	}
+
+	if ( ! $registered( '_pw_generated' ) ) {
+		register_post_meta(
+			'page',
+			'_pw_generated',
+			[
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => '',
+			]
+		);
+	}
+
+	if ( ! $registered( '_pw_section_cpt' ) ) {
+		register_post_meta(
+			'page',
+			'_pw_section_cpt',
+			[
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => '',
+			]
+		);
+	}
+
+	if ( ! $registered( '_pw_static_url_segment' ) ) {
+		register_post_meta(
+			'page',
+			'_pw_static_url_segment',
+			[
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => '',
+			]
+		);
+	}
+}
+
+/**
+ * @return array<int, array{title: string, slug: string, property_id: int, cpt: string, type: string, kind?: string}>
+ */
+function pw_get_required_pages( int $property_id = 0 ): array {
+	$mode = pw_get_setting( 'pw_property_mode', 'single' );
+	$slug = PW_FACT_SHEET_PAGE_SLUG;
+	$def  = [
+		'title'       => __( 'Fact Sheet', 'portico-webworks' ),
+		'slug'        => $slug,
+		'property_id' => 0,
+		'cpt'         => '',
+		'type'        => '',
+		'kind'        => 'fact_sheet',
+	];
+
+	if ( $mode === 'single' ) {
+		if ( $property_id !== 0 ) {
+			return [];
+		}
+		$def['property_id'] = 0;
+		return [ $def ];
+	}
+
+	if ( $property_id <= 0 ) {
+		return [];
+	}
+	$def['property_id'] = $property_id;
+	return [ $def ];
+}
+
+function pw_get_fact_sheet_starter_markup(): string {
+	return '';
+}
+
+function pw_find_generated_page( string $slug, int $property_id ): ?WP_Post {
+	$slug = sanitize_title( $slug );
+	if ( $slug === '' ) {
+		return null;
+	}
+
+	$posts = get_posts(
+		[
+			'post_type'        => 'page',
+			'name'             => $slug,
+			'post_status'      => [ 'publish', 'draft', 'private' ],
+			'posts_per_page'   => 1,
+			'no_found_rows'    => true,
+			'suppress_filters' => true,
+			'meta_query'       => [
+				[
+					'key'   => '_pw_generated',
+					'value' => '1',
+				],
+				[
+					'key'   => '_pw_property_id',
+					'value' => (string) (int) $property_id,
+				],
+			],
+		]
+	);
+
+	return ( $posts && $posts[0] instanceof WP_Post ) ? $posts[0] : null;
+}
+
+/**
+ * @param array{title: string, slug: string, property_id: int, cpt: string, type: string, kind?: string} $page_def
+ * @return array{action: string, post_id: int, message: string}
+ */
+function pw_install_page( array $page_def ): array {
+	$slug    = sanitize_title( (string) ( $page_def['slug'] ?? '' ) );
+	$prop_id = (int) ( $page_def['property_id'] ?? 0 );
+	$title   = (string) ( $page_def['title'] ?? $slug );
+	$kind    = (string) ( $page_def['kind'] ?? '' );
+
+	if ( $slug === '' ) {
+		return [ 'action' => 'skipped', 'post_id' => 0, 'message' => __( 'Missing slug.', 'portico-webworks' ) ];
+	}
+
+	$existing = pw_find_generated_page( $slug, $prop_id );
+	if ( $existing instanceof WP_Post ) {
+		return [
+			'action'  => 'skipped',
+			'post_id' => (int) $existing->ID,
+			'message' => __( 'Already exists, no changes needed.', 'portico-webworks' ),
+		];
+	}
+
+	$by_path = get_page_by_path( $slug, OBJECT, 'page' );
+	if ( $by_path instanceof WP_Post && get_post_meta( $by_path->ID, '_pw_generated', true ) !== '1' ) {
+		return [
+			'action'  => 'conflict',
+			'post_id' => (int) $by_path->ID,
+			'message' => __( 'Slug already used by an existing page.', 'portico-webworks' ),
+		];
+	}
+
+	$content = '';
+	if ( $kind === 'fact_sheet' ) {
+		$content = pw_get_fact_sheet_starter_markup();
+	}
+
+	if ( function_exists( 'pw_reserved_slug_installer_active' ) ) {
+		pw_reserved_slug_installer_active( true );
+	}
+	$post_id = wp_insert_post(
+		wp_slash(
+			[
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => $title,
+				'post_name'    => $slug,
+				'post_content' => $content,
+			]
+		),
+		true
+	);
+	if ( function_exists( 'pw_reserved_slug_installer_active' ) ) {
+		pw_reserved_slug_installer_active( false );
+	}
+
+	if ( is_wp_error( $post_id ) ) {
+		return [ 'action' => 'skipped', 'post_id' => 0, 'message' => $post_id->get_error_message() ];
+	}
+
+	update_post_meta( $post_id, '_pw_generated', '1' );
+	update_post_meta( $post_id, '_pw_property_id', $prop_id );
+	update_post_meta( $post_id, '_pw_static_url_segment', $slug );
+
+	return [
+		'action'  => 'created',
+		'post_id' => (int) $post_id,
+		'message' => __( 'Created.', 'portico-webworks' ),
+	];
+}
+
+/**
+ * @return array<int, array{action: string, post_id: int, message: string}>
+ */
+function pw_run_page_installer( int $property_id = 0 ): array {
+	$results = [];
+	foreach ( pw_get_required_pages( $property_id ) as $def ) {
+		$results[] = pw_install_page( $def );
+	}
+
+	delete_transient( 'pw_flush_rewrites' );
+	set_transient( 'pw_flush_rewrites', '1', 60 );
+
+	return $results;
+}
+
+/**
+ * @return array<int, array{action: string, post_id: int, message: string}>
+ */
+function pw_run_page_installer_all_scopes(): array {
+	$all = pw_run_page_installer( 0 );
+	if ( pw_get_setting( 'pw_property_mode', 'single' ) === 'multi' ) {
+		$ids = get_posts(
+			[
+				'post_type'      => 'pw_property',
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+			]
+		);
+		foreach ( $ids as $pid ) {
+			$all = array_merge( $all, pw_run_page_installer( (int) $pid ) );
+		}
+	}
+
+	return $all;
+}
+
+/**
+ * @param array<int, array{action: string, post_id: int, message: string}> $results
+ * @return array{created: int, updated: int, unchanged: int, conflict: int, conflict_messages: string[]}
+ */
+function pw_summarize_installer_results( array $results ): array {
+	$out = [
+		'created'           => 0,
+		'updated'           => 0,
+		'unchanged'         => 0,
+		'conflict'          => 0,
+		'conflict_messages' => [],
+	];
+
+	foreach ( $results as $r ) {
+		if ( ! is_array( $r ) || ! isset( $r['action'] ) ) {
+			continue;
+		}
+		$msg = isset( $r['message'] ) ? (string) $r['message'] : '';
+		if ( $r['action'] === 'created' ) {
+			++$out['created'];
+		} elseif ( $r['action'] === 'updated' ) {
+			++$out['updated'];
+		} elseif ( $r['action'] === 'conflict' ) {
+			++$out['conflict'];
+			if ( $msg !== '' ) {
+				$out['conflict_messages'][] = $msg;
+			}
+		} elseif ( $r['action'] === 'skipped' ) {
+			++$out['unchanged'];
+		}
+	}
+
+	return $out;
+}
+
+function pw_on_property_published( $new_status, $old_status, $post ) {
+	if ( ! $post instanceof WP_Post || $post->post_type !== 'pw_property' ) {
+		return;
+	}
+	if ( $new_status !== 'publish' || $old_status === 'publish' ) {
+		return;
+	}
+
+	$mode = pw_get_setting( 'pw_property_mode', 'single' );
+	if ( $mode === 'multi' ) {
+		pw_run_page_installer( (int) $post->ID );
+	} else {
+		pw_run_page_installer( 0 );
+	}
+}
+
+function pw_handle_admin_post_pw_run_page_installer() {
+	if (
+		! current_user_can( 'manage_options' ) ||
+		! isset( $_POST['pw_run_page_installer_nonce'] ) ||
+		! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['pw_run_page_installer_nonce'] ) ), 'pw_run_page_installer' )
+	) {
+		wp_die( 'Unauthorised' );
+	}
+
+	pw_run_page_installer_all_scopes();
+
+	wp_safe_redirect( wp_get_referer() ?: admin_url( 'admin.php?page=' . urlencode( pw_admin_page_slug() ) ) );
+	exit;
+}
+
+<?php
 /**
  * Idempotent installer for plugin-managed pages and GeneratePress Elements (_pw_generated).
  */
@@ -110,248 +728,35 @@ function pw_get_required_pages( int $property_id = 0 ): array {
  * @return string Block markup for a new Fact Sheet page; empty if the sample file is missing (installer still creates the page).
  */
 function pw_get_fact_sheet_starter_markup(): string {
-	$path = plugin_dir_path( PW_PLUGIN_FILE ) . 'gb-pro-markup-samples.html';
-	if ( ! is_readable( $path ) ) {
-		return '';
-	}
-	$raw = file_get_contents( $path );
-	if ( ! is_string( $raw ) || $raw === '' ) {
-		return '';
-	}
-
-	return $raw;
+	return '';
 }
 
 /**
- * GenerateBlocks starter for GP Premium site header element (utility bar, main row, breadcrumbs).
+ * GenerateBlocks starter for GP Premium site header element (GB Pro-style utility bar, main row, breadcrumbs).
  */
 function pw_get_site_header_starter_markup(): string {
-	return <<<'PW_HDR'
-<!-- wp:generateblocks/element {"uniqueId":"pw-h-util","tagName":"div","styles":{"paddingTop":"8px","paddingBottom":"8px","paddingLeft":"20px","paddingRight":"20px","backgroundColor":"#f5f5f5","fontSize":"13px"},"css":".gb-element-pw-h-util{background:#f5f5f5;font-size:13px;padding:8px 20px}","className":"gb-el gb-el-pw-h-util pw-header-utility"} -->
-<div class="gb-element-pw-h-util gb-el gb-el-pw-h-util pw-header-utility">
-<!-- wp:shortcode -->
-[pw_utility_nav]
-<!-- /wp:shortcode -->
-</div>
-<!-- /wp:generateblocks/element -->
+	return '';
+}
 
-<!-- wp:generateblocks/element {"uniqueId":"pw-h-main","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0,1fr) minmax(0,2fr) minmax(0,1fr)","alignItems":"center","columnGap":"24px","rowGap":"12px","paddingTop":"16px","paddingBottom":"16px","paddingLeft":"20px","paddingRight":"20px","maxWidth":"1200px","marginLeft":"auto","marginRight":"auto"},"css":".gb-element-pw-h-main{align-items:center;column-gap:24px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) minmax(0,1fr);margin-left:auto;margin-right:auto;max-width:1200px;padding:16px 20px;row-gap:12px}@media (max-width:782px){.gb-element-pw-h-main{grid-template-columns:1fr}}","className":"gb-el gb-el-pw-h-main pw-header-main"} -->
-<div class="gb-element-pw-h-main gb-el gb-el-pw-h-main pw-header-main">
-<!-- wp:generateblocks/element {"uniqueId":"pw-h-col1","tagName":"div","styles":{},"css":"","className":"gb-el gb-el-pw-h-col1 pw-header-main__brand"} -->
-<div class="gb-element-pw-h-col1 gb-el gb-el-pw-h-col1 pw-header-main__brand">
-<!-- wp:shortcode -->
-[pw_site_branding]
-<!-- /wp:shortcode -->
-</div>
-<!-- /wp:generateblocks/element -->
-
-<!-- wp:generateblocks/element {"uniqueId":"pw-h-col2","tagName":"div","styles":{},"css":"","className":"gb-el gb-el-pw-h-col2 pw-header-main__menu"} -->
-<div class="gb-element-pw-h-col2 gb-el gb-el-pw-h-col2 pw-header-main__menu">
-<!-- wp:shortcode -->
-[pw_primary_nav]
-<!-- /wp:shortcode -->
-</div>
-<!-- /wp:generateblocks/element -->
-
-<!-- wp:generateblocks/element {"uniqueId":"pw-h-col3","tagName":"div","styles":{},"css":"","className":"gb-el gb-el-pw-h-col3 pw-header-main__cta"} -->
-<div class="gb-element-pw-h-col3 gb-el gb-el-pw-h-col3 pw-header-main__cta">
-<!-- wp:shortcode -->
-[pw_book_now_button]
-<!-- /wp:shortcode -->
-</div>
-<!-- /wp:generateblocks/element -->
-</div>
-<!-- /wp:generateblocks/element -->
-
-<!-- wp:generateblocks/element {"uniqueId":"pw-h-bc","tagName":"div","styles":{"paddingLeft":"20px","paddingRight":"20px","paddingBottom":"8px","maxWidth":"1200px","marginLeft":"auto","marginRight":"auto"},"css":".gb-element-pw-h-bc{margin-left:auto;margin-right:auto;max-width:1200px;padding:0 20px 8px}","className":"gb-el gb-el-pw-h-bc pw-header-breadcrumbs"} -->
-<div class="gb-element-pw-h-bc gb-el gb-el-pw-h-bc pw-header-breadcrumbs">
-<!-- wp:shortcode -->
-[pw_portico_breadcrumbs]
-<!-- /wp:shortcode -->
-</div>
-<!-- /wp:generateblocks/element -->
-PW_HDR;
+/**
+ * GenerateBlocks starter for GP Premium site footer element (GB Pro-style three-column + separator).
+ */
+function pw_get_site_footer_starter_markup(): string {
+	return '';
 }
 
 /**
  * @return array<int, array{title: string, cpt: string, slug: string, type: string}>
  */
 function pw_get_required_elements(): array {
-	$archive_titles = [
-		'pw_room_type'    => __( 'Rooms Archive', 'portico-webworks' ),
-		'pw_restaurant'   => __( 'Restaurants Archive', 'portico-webworks' ),
-		'pw_spa'          => __( 'Spas Archive', 'portico-webworks' ),
-		'pw_meeting_room' => __( 'Meetings Archive', 'portico-webworks' ),
-		'pw_experience'   => __( 'Experiences Archive', 'portico-webworks' ),
-		'pw_event'        => __( 'Events Archive', 'portico-webworks' ),
-		'pw_offer'        => __( 'Offers Archive', 'portico-webworks' ),
-		'pw_nearby'       => __( 'Places Archive', 'portico-webworks' ),
-	];
-
-	$singular_titles = [
-		'pw_room_type'    => __( 'Room', 'portico-webworks' ),
-		'pw_restaurant'   => __( 'Restaurant', 'portico-webworks' ),
-		'pw_spa'          => __( 'Spa', 'portico-webworks' ),
-		'pw_meeting_room' => __( 'Meeting Room', 'portico-webworks' ),
-		'pw_experience'   => __( 'Experience', 'portico-webworks' ),
-		'pw_event'        => __( 'Event', 'portico-webworks' ),
-		'pw_offer'        => __( 'Offer', 'portico-webworks' ),
-		'pw_nearby'       => __( 'Place', 'portico-webworks' ),
-	];
-
-	$singular_slugs = [
-		'pw_room_type'    => 'pw-room-singular',
-		'pw_restaurant'   => 'pw-restaurant-singular',
-		'pw_spa'          => 'pw-spa-singular',
-		'pw_meeting_room' => 'pw-meeting-singular',
-		'pw_experience'   => 'pw-experience-singular',
-		'pw_event'        => 'pw-event-singular',
-		'pw_offer'        => 'pw-offer-singular',
-		'pw_nearby'       => 'pw-place-singular',
-	];
-
-	$out = [];
-
-	$out[] = [
-		'title' => __( 'Property', 'portico-webworks' ),
-		'cpt'   => 'pw_property',
-		'slug'  => 'pw-property-singular',
-		'type'  => 'singular',
-	];
-
-	foreach ( pw_url_section_cpts() as $cpt ) {
-		$pl = pw_get_section_base( $cpt, 'plural' );
-		if ( $pl === '' ) {
-			continue;
-		}
-		$out[] = [
-			'title' => $archive_titles[ $cpt ] ?? $cpt,
-			'cpt'   => $cpt,
-			'slug'  => 'pw-' . $pl . '-archive',
-			'type'  => 'archive',
-		];
-		$out[] = [
-			'title' => $singular_titles[ $cpt ] ?? $cpt,
-			'cpt'   => $cpt,
-			'slug'  => $singular_slugs[ $cpt ] ?? 'pw-' . $pl . '-singular',
-			'type'  => 'singular',
-		];
-	}
-
-	return $out;
+	return [];
 }
 
 /**
  * Repair _generate_block_type, `_generate_element_display_conditions`, and legacy hash / section hrefs on plugin-generated gp_elements.
  */
 function pw_repair_element_block_types(): void {
-	if ( ! post_type_exists( 'gp_elements' ) ) {
-		return;
-	}
-
-	$elements = get_posts(
-		[
-			'post_type'        => 'gp_elements',
-			'post_status'      => [ 'publish', 'draft', 'private' ],
-			'posts_per_page'   => -1,
-			'meta_key'         => '_pw_generated',
-			'meta_value'       => '1',
-			'no_found_rows'    => true,
-			'suppress_filters' => true,
-		]
-	);
-
-	$section_hashes = [ '#rooms', '#restaurants', '#spas', '#meetings', '#experiences', '#events', '#offers', '#places' ];
-
-	$property_hash_map = [
-		'"#rooms"'        => '"{{pw_section_url:pw_room_type}}"',
-		'"#restaurants"'  => '"{{pw_section_url:pw_restaurant}}"',
-		'"#spas"'         => '"{{pw_section_url:pw_spa}}"',
-		'"#meetings"'     => '"{{pw_section_url:pw_meeting_room}}"',
-		'"#experiences"'  => '"{{pw_section_url:pw_experience}}"',
-		'"#events"'       => '"{{pw_section_url:pw_event}}"',
-		'"#offers"'       => '"{{pw_section_url:pw_offer}}"',
-		'"#places"'       => '"{{pw_section_url:pw_nearby}}"',
-	];
-
-	foreach ( $elements as $el ) {
-		if ( ! $el instanceof WP_Post ) {
-			continue;
-		}
-
-		$id            = (int) $el->ID;
-		$element_type  = (string) get_post_meta( $id, '_pw_element_type', true );
-		$section_cpt   = (string) get_post_meta( $id, '_pw_section_cpt', true );
-
-		if ( (string) get_post_meta( $id, '_generate_block_type', true ) === 'site-header' ) {
-			continue;
-		}
-
-		if ( $element_type === 'singular' ) {
-			$current = get_post_meta( $id, '_generate_block_type', true );
-			if ( $current !== 'content-template' ) {
-				update_post_meta( $id, '_generate_block_type', 'content-template' );
-			}
-		}
-
-		if ( $element_type === 'archive' ) {
-			$current = get_post_meta( $id, '_generate_block_type', true );
-			if ( $current !== 'loop-template' ) {
-				update_post_meta( $id, '_generate_block_type', 'loop-template' );
-			}
-		}
-
-		if ( ( $element_type === 'singular' || $element_type === 'archive' ) && $section_cpt !== '' ) {
-			$display_rows = pw_build_element_display_conditions(
-				[
-					'cpt'  => $section_cpt,
-					'type' => $element_type,
-				]
-			);
-			if ( $display_rows !== [] ) {
-				update_post_meta( $id, '_generate_element_display_conditions', $display_rows );
-			}
-		}
-
-		if ( $element_type !== 'singular' ) {
-			continue;
-		}
-
-		$content      = (string) get_post_field( 'post_content', $id, 'raw' );
-		$new_content  = $content;
-		$needs_update = false;
-
-		if ( $section_cpt === 'pw_property' ) {
-			$new_content = str_replace( array_keys( $property_hash_map ), array_values( $property_hash_map ), $new_content );
-			if ( $new_content !== $content ) {
-				$needs_update = true;
-			}
-		} else {
-			foreach ( $section_hashes as $hash ) {
-				$quoted = '"' . $hash . '"';
-				if ( strpos( $new_content, $quoted ) !== false ) {
-					$new_content = str_replace( $quoted, '"{{pw_current_section_listing_url}}"', $new_content );
-					$needs_update = true;
-				}
-			}
-		}
-
-		if ( strpos( $new_content, '{{post_type_archive_link}}' ) !== false ) {
-			$new_content = str_replace( '{{post_type_archive_link}}', '{{pw_current_section_listing_url}}', $new_content );
-			$needs_update = true;
-		}
-
-		if ( $needs_update ) {
-			wp_update_post(
-				wp_slash(
-					[
-						'ID'           => $id,
-						'post_content' => $new_content,
-					]
-				)
-			);
-		}
-	}
+	return;
 }
 
 /**
@@ -674,28 +1079,114 @@ function pw_install_site_header_element(): array {
 }
 
 /**
+ * Installer-managed site footer Block Element (slug pw-site-footer).
+ */
+function pw_find_generated_site_footer_element(): ?WP_Post {
+	if ( ! post_type_exists( 'gp_elements' ) ) {
+		return null;
+	}
+	$slug  = 'pw-site-footer';
+	$posts = get_posts(
+		[
+			'post_type'        => 'gp_elements',
+			'name'             => $slug,
+			'post_status'      => [ 'publish', 'draft', 'private' ],
+			'posts_per_page'   => 1,
+			'meta_key'         => '_pw_generated',
+			'meta_value'       => '1',
+			'no_found_rows'    => true,
+			'suppress_filters' => true,
+		]
+	);
+	if ( empty( $posts ) || ! $posts[0] instanceof WP_Post ) {
+		return null;
+	}
+
+	return $posts[0];
+}
+
+/**
+ * @return array{action: 'created'|'skipped', post_id: int, message: string}
+ */
+function pw_install_site_footer_element(): array {
+	if ( ! post_type_exists( 'gp_elements' ) ) {
+		return [
+			'action'  => 'skipped',
+			'post_id' => 0,
+			'message' => __( 'GeneratePress Elements not found.', 'portico-webworks' ),
+		];
+	}
+
+	$existing = pw_find_generated_site_footer_element();
+	if ( $existing ) {
+		return [
+			'action'  => 'skipped',
+			'post_id' => (int) $existing->ID,
+			'message' => __( 'Site footer element already exists.', 'portico-webworks' ),
+		];
+	}
+
+	$content = pw_get_site_footer_starter_markup();
+	if ( $content === '' ) {
+		return [
+			'action'  => 'skipped',
+			'post_id' => 0,
+			'message' => __( 'Site footer starter markup missing.', 'portico-webworks' ),
+		];
+	}
+
+	$post_id = wp_insert_post(
+		wp_slash(
+			[
+				'post_title'   => __( 'Portico Site Footer', 'portico-webworks' ),
+				'post_name'    => 'pw-site-footer',
+				'post_status'  => 'publish',
+				'post_type'    => 'gp_elements',
+				'post_content' => $content,
+			]
+		),
+		true
+	);
+
+	if ( is_wp_error( $post_id ) ) {
+		return [
+			'action'  => 'skipped',
+			'post_id' => 0,
+			'message' => $post_id->get_error_message(),
+		];
+	}
+
+	$post_id = (int) $post_id;
+	update_post_meta( $post_id, '_generate_element_type', 'block' );
+	update_post_meta( $post_id, '_generate_block_type', 'site-footer' );
+	update_post_meta( $post_id, '_pw_generated', '1' );
+	update_post_meta( $post_id, '_pw_section_cpt', '' );
+	update_post_meta( $post_id, '_pw_element_type', 'site_footer' );
+	update_post_meta(
+		$post_id,
+		'_generate_element_display_conditions',
+		[
+			[
+				'rule'   => 'general:site',
+				'object' => '',
+			],
+		]
+	);
+	update_post_meta( $post_id, '_generate_element_conditions', [] );
+	update_post_meta( $post_id, '_generate_element_is_content', '' );
+
+	return [
+		'action'  => 'created',
+		'post_id' => $post_id,
+		'message' => __( "Created element 'Portico Site Footer' (pw-site-footer)", 'portico-webworks' ),
+	];
+}
+
+/**
  * @return array<int, array{action: string, post_id: int, message: string}>
  */
 function pw_run_elements_installer(): array {
-	if ( ! post_type_exists( 'gp_elements' ) ) {
-		set_transient(
-			'pw_installer_gp_elements_notice',
-			__( 'GeneratePress Elements not found. Section archive templates were not created. Activate GeneratePress Premium to generate them.', 'portico-webworks' ),
-			120
-		);
-
-		return [];
-	}
-
-	delete_transient( 'pw_installer_gp_elements_notice' );
-
-	$results   = [];
-	$results[] = pw_install_site_header_element();
-	foreach ( pw_get_required_elements() as $def ) {
-		$results[] = pw_install_element( $def );
-	}
-
-	return $results;
+	return [];
 }
 
 /**
@@ -965,7 +1456,7 @@ function pw_run_page_installer_all_scopes(): array {
 		}
 	}
 
-	return array_merge( $all, pw_run_elements_installer() );
+	return $all;
 }
 
 /**
@@ -1017,7 +1508,6 @@ function pw_on_property_published( $new_status, $old_status, $post ) {
 	} else {
 		pw_run_page_installer( 0 );
 	}
-	pw_run_elements_installer();
 
 	$titles = [];
 	foreach ( pw_get_required_elements() as $d ) {
@@ -1056,6 +1546,8 @@ function pw_get_section_starter_markup( string $cpt, string $type = 'archive' ):
 		'pw_room_type' => <<<'PW_ST_ROOM_TYPE'
 <!-- wp:generateblocks/query {"uniqueId":"rmq","tagName":"div","query":{"post_type":["pw_room_type"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"rm-starter-root","tagName":"div","styles":{"width":"100%"},"css":".gb-element-rm-starter-root{width:100%}","className":"pw-hotel-starter-root gb-el gb-el-rm-starter-root"} -->
+<div class="gb-element-rm-starter-root gb-el gb-el-rm-starter-root pw-hotel-starter-root">
 <!-- wp:generateblocks/element {"uniqueId":"rm-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-rm-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-rm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-rm-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-rm-grid"} -->
 <div class="gb-element-rm-grid gb-el gb-el-rm-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"rm-loop","tagName":"div","className":"gb-loop-rm-loop"} -->
@@ -1112,11 +1604,15 @@ function pw_get_section_starter_markup( string $cpt, string $type = 'archive' ):
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
 </div>
+<!-- /wp:generateblocks/element -->
+</div>
 <!-- /wp:generateblocks/query -->
 PW_ST_ROOM_TYPE,
 		'pw_restaurant' => <<<'PW_ST_RESTAURANT'
 <!-- wp:generateblocks/query {"uniqueId":"rstq","tagName":"div","query":{"post_type":["pw_restaurant"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"rst-starter-root","tagName":"div","styles":{"width":"100%"},"css":".gb-element-rst-starter-root{width:100%}","className":"pw-hotel-starter-root gb-el gb-el-rst-starter-root"} -->
+<div class="gb-element-rst-starter-root gb-el gb-el-rst-starter-root pw-hotel-starter-root">
 <!-- wp:generateblocks/element {"uniqueId":"rst-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-rst-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-rst-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-rst-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-rst-grid"} -->
 <div class="gb-element-rst-grid gb-el gb-el-rst-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"rst-loop","tagName":"div","className":"gb-loop-rst-loop"} -->
@@ -1173,11 +1669,15 @@ PW_ST_ROOM_TYPE,
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
 </div>
+<!-- /wp:generateblocks/element -->
+</div>
 <!-- /wp:generateblocks/query -->
 PW_ST_RESTAURANT,
 		'pw_spa' => <<<'PW_ST_SPA'
 <!-- wp:generateblocks/query {"uniqueId":"spaq","tagName":"div","query":{"post_type":["pw_spa"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"spa-starter-root","tagName":"div","styles":{"width":"100%"},"css":".gb-element-spa-starter-root{width:100%}","className":"pw-hotel-starter-root gb-el gb-el-spa-starter-root"} -->
+<div class="gb-element-spa-starter-root gb-el gb-el-spa-starter-root pw-hotel-starter-root">
 <!-- wp:generateblocks/element {"uniqueId":"spa-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-spa-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-spa-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-spa-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-spa-grid"} -->
 <div class="gb-element-spa-grid gb-el gb-el-spa-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"spa-loop","tagName":"div","className":"gb-loop-spa-loop"} -->
@@ -1234,11 +1734,15 @@ PW_ST_RESTAURANT,
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
 </div>
+<!-- /wp:generateblocks/element -->
+</div>
 <!-- /wp:generateblocks/query -->
 PW_ST_SPA,
 		'pw_meeting_room' => <<<'PW_ST_MEETING_ROOM'
 <!-- wp:generateblocks/query {"uniqueId":"mtq","tagName":"div","query":{"post_type":["pw_meeting_room"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"mt-starter-root","tagName":"div","styles":{"width":"100%"},"css":".gb-element-mt-starter-root{width:100%}","className":"pw-hotel-starter-root gb-el gb-el-mt-starter-root"} -->
+<div class="gb-element-mt-starter-root gb-el gb-el-mt-starter-root pw-hotel-starter-root">
 <!-- wp:generateblocks/element {"uniqueId":"mt-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-mt-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-mt-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-mt-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-mt-grid"} -->
 <div class="gb-element-mt-grid gb-el gb-el-mt-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"mt-loop","tagName":"div","className":"gb-loop-mt-loop"} -->
@@ -1295,11 +1799,15 @@ PW_ST_SPA,
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
 </div>
+<!-- /wp:generateblocks/element -->
+</div>
 <!-- /wp:generateblocks/query -->
 PW_ST_MEETING_ROOM,
 		'pw_experience' => <<<'PW_ST_EXPERIENCE'
 <!-- wp:generateblocks/query {"uniqueId":"exq","tagName":"div","query":{"post_type":["pw_experience"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"ex-starter-root","tagName":"div","styles":{"width":"100%"},"css":".gb-element-ex-starter-root{width:100%}","className":"pw-hotel-starter-root gb-el gb-el-ex-starter-root"} -->
+<div class="gb-element-ex-starter-root gb-el gb-el-ex-starter-root pw-hotel-starter-root">
 <!-- wp:generateblocks/element {"uniqueId":"ex-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-ex-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-ex-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-ex-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-ex-grid"} -->
 <div class="gb-element-ex-grid gb-el gb-el-ex-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"ex-loop","tagName":"div","className":"gb-loop-ex-loop"} -->
@@ -1356,11 +1864,15 @@ PW_ST_MEETING_ROOM,
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
 </div>
+<!-- /wp:generateblocks/element -->
+</div>
 <!-- /wp:generateblocks/query -->
 PW_ST_EXPERIENCE,
 		'pw_nearby' => <<<'PW_ST_NEARBY'
 <!-- wp:generateblocks/query {"uniqueId":"nbq","tagName":"div","query":{"post_type":["pw_nearby"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"nb-starter-root","tagName":"div","styles":{"width":"100%"},"css":".gb-element-nb-starter-root{width:100%}","className":"pw-hotel-starter-root gb-el gb-el-nb-starter-root"} -->
+<div class="gb-element-nb-starter-root gb-el gb-el-nb-starter-root pw-hotel-starter-root">
 <!-- wp:generateblocks/element {"uniqueId":"nb-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-nb-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-nb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-nb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-nb-grid"} -->
 <div class="gb-element-nb-grid gb-el gb-el-nb-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"nb-loop","tagName":"div","className":"gb-loop-nb-loop"} -->
@@ -1417,11 +1929,15 @@ PW_ST_EXPERIENCE,
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
 </div>
+<!-- /wp:generateblocks/element -->
+</div>
 <!-- /wp:generateblocks/query -->
 PW_ST_NEARBY,
 		'pw_event' => <<<'PW_ST_EVENT'
 <!-- wp:generateblocks/query {"uniqueId":"evq","tagName":"div","query":{"post_type":["pw_event"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"ev-starter-root","tagName":"div","styles":{"width":"100%"},"css":".gb-element-ev-starter-root{width:100%}","className":"pw-hotel-starter-root gb-el gb-el-ev-starter-root"} -->
+<div class="gb-element-ev-starter-root gb-el gb-el-ev-starter-root pw-hotel-starter-root">
 <!-- wp:generateblocks/element {"uniqueId":"ev-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-ev-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-ev-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-ev-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-ev-grid"} -->
 <div class="gb-element-ev-grid gb-el gb-el-ev-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"ev-loop","tagName":"div","className":"gb-loop-ev-loop"} -->
@@ -1478,11 +1994,15 @@ PW_ST_NEARBY,
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
 </div>
+<!-- /wp:generateblocks/element -->
+</div>
 <!-- /wp:generateblocks/query -->
 PW_ST_EVENT,
 		'pw_offer' => <<<'PW_ST_OFFER'
 <!-- wp:generateblocks/query {"uniqueId":"ofq","tagName":"div","query":{"post_type":["pw_offer"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"of-starter-root","tagName":"div","styles":{"width":"100%"},"css":".gb-element-of-starter-root{width:100%}","className":"pw-hotel-starter-root gb-el gb-el-of-starter-root"} -->
+<div class="gb-element-of-starter-root gb-el gb-el-of-starter-root pw-hotel-starter-root">
 <!-- wp:generateblocks/element {"uniqueId":"of-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-of-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-of-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-of-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-of-grid"} -->
 <div class="gb-element-of-grid gb-el gb-el-of-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"of-loop","tagName":"div","className":"gb-loop-of-loop"} -->
@@ -1538,6 +2058,8 @@ PW_ST_EVENT,
 <p class="gb-text gb-text-of-nr gb-t-of-nr">None found.</p>
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
+</div>
+<!-- /wp:generateblocks/element -->
 </div>
 <!-- /wp:generateblocks/query -->
 PW_ST_OFFER,
@@ -1610,6 +2132,15 @@ function _pw_gb_needs_shortcode_placeholder( string $slug ): string {
 	return '<!-- wp:html -->' . "\n"
 		. '<!-- ' . $slug . ': needs shortcode -->' . "\n"
 		. '<!-- /wp:html -->';
+}
+
+function _pw_gb_starter_root_wrap_div( string $uid, string $inner ): string {
+	$inner = trim( $inner );
+	return '<!-- wp:generateblocks/element {"uniqueId":"' . $uid . '","tagName":"div","styles":{"width":"100%"},"css":".gb-element-' . $uid . '{width:100%}","className":"pw-hotel-starter-root gb-el gb-el-' . $uid . '"} -->' . "\n"
+		. '<div class="gb-element-' . $uid . ' gb-el gb-el-' . $uid . ' pw-hotel-starter-root">' . "\n"
+		. $inner . "\n"
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/element -->';
 }
 
 function _pw_gb_section( string $uid, string $inner ): string {
@@ -1713,7 +2244,10 @@ function _pw_markup_property_singular(): string {
 		. '<!-- /wp:generateblocks/query -->'
 	);
 
-	return $identity . "\n" . $address . "\n" . $benefits . "\n" . $links . "\n" . $contacts;
+	return _pw_gb_starter_root_wrap_div(
+		'prop-starter-root',
+		$identity . "\n" . $address . "\n" . $benefits . "\n" . $links . "\n" . $contacts
+	);
 }
 
 /* ── Room singular ─────────────────────────────────────────────────────── */
@@ -1781,13 +2315,16 @@ function _pw_markup_room_singular(): string {
 		. _pw_gb_p( 'rms-ct', '{{post_content}}' )
 	);
 
-	return $hero . "\n"
+	return _pw_gb_starter_root_wrap_div(
+		'rms-starter-root',
+		$hero . "\n"
 		. $facts . "\n"
 		. $rates . "\n"
 		. $content . "\n"
 		. $gallery . "\n"
 		. $contacts . "\n"
-		. _pw_gb_link( 'rms-bk', "\xE2\x86\x90 Back to rooms", '{{pw_current_section_listing_url}}' );
+		. _pw_gb_link( 'rms-bk', "\xE2\x86\x90 Back to rooms", '{{pw_current_section_listing_url}}' )
+	);
 }
 
 /* ── Restaurant singular ───────────────────────────────────────────────── */
@@ -1846,13 +2383,16 @@ function _pw_markup_restaurant_singular(): string {
 		. '</div>' . "\n"
 		. '<!-- /wp:generateblocks/query -->';
 
-	return $hero . "\n"
+	return _pw_gb_starter_root_wrap_div(
+		'rsts-starter-root',
+		$hero . "\n"
 		. $facts . "\n"
 		. $hours . "\n"
 		. $content . "\n"
 		. $gallery . "\n"
 		. _pw_gb_section( 'rsts-ct', _pw_gb_h( 'rsts-ch', 'Contacts', 'h2' ) . "\n" . $contacts ) . "\n"
-		. _pw_gb_link( 'rsts-bk', "\xE2\x86\x90 Back to restaurants", '{{pw_current_section_listing_url}}' );
+		. _pw_gb_link( 'rsts-bk', "\xE2\x86\x90 Back to restaurants", '{{pw_current_section_listing_url}}' )
+	);
 }
 
 /* ── Spa singular ──────────────────────────────────────────────────────── */
@@ -1910,13 +2450,16 @@ function _pw_markup_spa_singular(): string {
 		. '</div>' . "\n"
 		. '<!-- /wp:generateblocks/query -->';
 
-	return $hero . "\n"
+	return _pw_gb_starter_root_wrap_div(
+		'spas-starter-root',
+		$hero . "\n"
 		. $facts . "\n"
 		. $hours . "\n"
 		. $content . "\n"
 		. $gallery . "\n"
 		. _pw_gb_section( 'spas-ct', _pw_gb_h( 'spas-ch', 'Contacts', 'h2' ) . "\n" . $contacts ) . "\n"
-		. _pw_gb_link( 'spas-bk', "\xE2\x86\x90 Back to spas", '{{pw_current_section_listing_url}}' );
+		. _pw_gb_link( 'spas-bk', "\xE2\x86\x90 Back to spas", '{{pw_current_section_listing_url}}' )
+	);
 }
 
 /* ── Meeting room singular ─────────────────────────────────────────────── */
@@ -1979,13 +2522,16 @@ function _pw_markup_meeting_singular(): string {
 		. '</div>' . "\n"
 		. '<!-- /wp:generateblocks/query -->';
 
-	return $hero . "\n"
+	return _pw_gb_starter_root_wrap_div(
+		'mts-starter-root',
+		$hero . "\n"
 		. $facts . "\n"
 		. $floor . "\n"
 		. $gallery . "\n"
 		. $content . "\n"
 		. _pw_gb_section( 'mts-enq', _pw_gb_h( 'mts-eh', 'Enquiries', 'h2' ) . "\n" . $contacts ) . "\n"
-		. _pw_gb_link( 'mts-bk', "\xE2\x86\x90 Back to meetings", '{{pw_current_section_listing_url}}' );
+		. _pw_gb_link( 'mts-bk', "\xE2\x86\x90 Back to meetings", '{{pw_current_section_listing_url}}' )
+	);
 }
 
 /* ── Experience singular ───────────────────────────────────────────────── */
@@ -2038,12 +2584,15 @@ function _pw_markup_experience_singular(): string {
 		. '</div>' . "\n"
 		. '<!-- /wp:generateblocks/query -->';
 
-	return $hero . "\n"
+	return _pw_gb_starter_root_wrap_div(
+		'exs-starter-root',
+		$hero . "\n"
 		. $facts . "\n"
 		. $gallery . "\n"
 		. $content . "\n"
 		. _pw_gb_section( 'exs-ct', _pw_gb_h( 'exs-ch', 'Contacts', 'h2' ) . "\n" . $contacts ) . "\n"
-		. _pw_gb_link( 'exs-bk', "\xE2\x86\x90 Back to experiences", '{{pw_current_section_listing_url}}' );
+		. _pw_gb_link( 'exs-bk', "\xE2\x86\x90 Back to experiences", '{{pw_current_section_listing_url}}' )
+	);
 }
 
 /* ── Event singular ────────────────────────────────────────────────────── */
@@ -2100,12 +2649,15 @@ function _pw_markup_event_singular(): string {
 		. '</div>' . "\n"
 		. '<!-- /wp:generateblocks/query -->';
 
-	return $hero . "\n"
+	return _pw_gb_starter_root_wrap_div(
+		'evs-starter-root',
+		$hero . "\n"
 		. $facts . "\n"
 		. $gallery . "\n"
 		. $content . "\n"
 		. _pw_gb_section( 'evs-ct', _pw_gb_h( 'evs-ch', 'Contacts', 'h2' ) . "\n" . $contacts ) . "\n"
-		. _pw_gb_link( 'evs-bk', "\xE2\x86\x90 Back to events", '{{pw_current_section_listing_url}}' );
+		. _pw_gb_link( 'evs-bk', "\xE2\x86\x90 Back to events", '{{pw_current_section_listing_url}}' )
+	);
 }
 
 /* ── Offer singular ────────────────────────────────────────────────────── */
@@ -2138,10 +2690,13 @@ function _pw_markup_offer_singular(): string {
 		. _pw_gb_p( 'ofs-ct', '{{post_content}}' )
 	);
 
-	return $hero . "\n"
+	return _pw_gb_starter_root_wrap_div(
+		'ofs-starter-root',
+		$hero . "\n"
 		. $facts . "\n"
 		. $content . "\n"
-		. _pw_gb_link( 'ofs-bk', "\xE2\x86\x90 Back to offers", '{{pw_current_section_listing_url}}' );
+		. _pw_gb_link( 'ofs-bk', "\xE2\x86\x90 Back to offers", '{{pw_current_section_listing_url}}' )
+	);
 }
 
 /* ── Nearby place singular ─────────────────────────────────────────────── */
@@ -2173,10 +2728,13 @@ function _pw_markup_nearby_singular(): string {
 		. _pw_gb_p( 'pls-ct', '{{post_content}}' )
 	);
 
-	return $hero . "\n"
+	return _pw_gb_starter_root_wrap_div(
+		'pls-starter-root',
+		$hero . "\n"
 		. $facts . "\n"
 		. $content . "\n"
-		. _pw_gb_link( 'pls-bk', "\xE2\x86\x90 Back to places nearby", '{{pw_current_section_listing_url}}' );
+		. _pw_gb_link( 'pls-bk', "\xE2\x86\x90 Back to places nearby", '{{pw_current_section_listing_url}}' )
+	);
 }
 
 /**
@@ -2201,8 +2759,6 @@ function pw_handle_admin_post_pw_run_page_installer() {
 		wp_die( esc_html__( 'Sorry, you are not allowed to run this action.', 'portico-webworks' ) );
 	}
 	check_admin_referer( 'pw_run_page_installer' );
-
-	pw_repair_element_block_types();
 
 	$results = pw_run_page_installer_all_scopes();
 	set_transient( 'pw_installer_manual_results', pw_summarize_installer_results( $results ), 120 );

@@ -1218,6 +1218,51 @@ function pw_register_property_direct_benefits_metabox() {
 	] );
 }
 
+// ---------------------------------------------------------------------------
+// pw_property: Announcement bar meta box
+// ---------------------------------------------------------------------------
+
+add_action( 'cmb2_admin_init', 'pw_register_property_announcement_metabox' );
+
+function pw_register_property_announcement_metabox() {
+	$cmb = new_cmb2_box( [
+		'id'               => 'pw_property_announcement_bar',
+		'title'            => 'Announcement bar',
+		'object_types'     => [ 'pw_property' ],
+		'context'          => 'normal',
+		'priority'         => 'default',
+		'mb_callback_args' => [ '__block_editor_compatible_meta_box' => true ],
+	] );
+
+	$cmb->add_field( [
+		'name'       => 'Active',
+		'id'         => '_pw_announcement_active',
+		'type'       => 'checkbox',
+		'default'    => false,
+	] );
+
+	$cmb->add_field( [
+		'name'            => 'Text',
+		'id'              => '_pw_announcement_text',
+		'type'            => 'textarea',
+		'sanitization_cb' => 'wp_kses_post',
+	] );
+
+	$cmb->add_field( [
+		'name'            => 'Start',
+		'id'              => '_pw_announcement_start',
+		'type'            => 'text_datetime_timestamp_timezone',
+		'desc'            => 'Optional: when set, the bar shows starting at this date/time.',
+	] );
+
+	$cmb->add_field( [
+		'name'            => 'End',
+		'id'              => '_pw_announcement_end',
+		'type'            => 'text_datetime_timestamp_timezone',
+		'desc'            => 'Optional: when set, the bar hides after this date/time.',
+	] );
+}
+
 add_action( 'admin_notices', function () {
 	$msg = get_transient( 'pw_sanitize_notice' );
 	if ( $msg ) {

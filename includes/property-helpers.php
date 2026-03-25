@@ -563,61 +563,10 @@ function pw_replace_property_currency_token( $html ) {
 	return $html;
 }
 
-add_filter( 'render_block', 'pw_replace_property_currency_token', 999, 1 );
 add_filter( 'the_content', 'pw_replace_property_currency_token', 999, 1 );
 add_filter( 'widget_block_content', 'pw_replace_property_currency_token', 999, 1 );
 
-/**
- * Replace Portico URL tokens in block HTML: {{pw_section_url:cpt}}, {{pw_current_section_listing_url}}, {{pw_home_url}}.
- *
- * @param string $html  Rendered block HTML.
- * @param array  $block Parsed block.
- * @return string
- */
-function pw_resolve_section_url_tokens( string $html, array $block ): string {
-	unset( $block );
-
-	$needs_work =
-		strpos( $html, '{{pw_section_url:' ) !== false
-		|| strpos( $html, '{{pw_current_section_listing_url}}' ) !== false
-		|| strpos( $html, '{{pw_home_url}}' ) !== false;
-	if ( ! $needs_work ) {
-		return $html;
-	}
-
-	if ( strpos( $html, '{{pw_section_url:' ) !== false ) {
-		$property_id = pw_get_current_property_id();
-		foreach ( pw_url_section_cpts() as $cpt ) {
-			$token = '{{pw_section_url:' . $cpt . '}}';
-			if ( strpos( $html, $token ) !== false ) {
-				$url  = pw_get_section_listing_url( $property_id, $cpt );
-				$html = str_replace( $token, esc_url( $url ), $html );
-			}
-		}
-	}
-
-	if ( strpos( $html, '{{pw_current_section_listing_url}}' ) !== false ) {
-		$property_id = (int) pw_get_current_property_id();
-		$pt            = get_post_type();
-		if ( ! is_string( $pt ) || $pt === '' || ! in_array( $pt, pw_url_section_cpts(), true ) ) {
-			$qo = get_queried_object();
-			$pt = ( $qo instanceof WP_Post_Type && isset( $qo->name ) ) ? (string) $qo->name : '';
-		}
-		$replace = '';
-		if ( $property_id > 0 && $pt !== '' && in_array( $pt, pw_url_section_cpts(), true ) ) {
-			$replace = esc_url( pw_get_section_listing_url( $property_id, $pt ) );
-		}
-		$html = str_replace( '{{pw_current_section_listing_url}}', $replace, $html );
-	}
-
-	if ( strpos( $html, '{{pw_home_url}}' ) !== false ) {
-		$html = str_replace( '{{pw_home_url}}', esc_url( untrailingslashit( home_url( '/' ) ) ), $html );
-	}
-
-	return $html;
-}
-
-add_filter( 'render_block', 'pw_resolve_section_url_tokens', 10, 2 );
+// Presentation token replacements are no longer applied during block rendering.
 
 // Scoping: Query block Additional CSS class "pw-gb-scope-property", or legacy pw_scope_to_property attribute.
 function pw_gb_query_should_scope_to_property( array $attributes ) {

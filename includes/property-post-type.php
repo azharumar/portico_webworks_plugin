@@ -149,6 +149,34 @@ function pw_register_property_post_meta() {
 		'show_in_rest' => true,
 		'default'      => 0,
 	] );
+
+	register_post_meta( 'pw_property', '_pw_announcement_active', [
+		'type'         => 'boolean',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => false,
+	] );
+
+	register_post_meta( 'pw_property', '_pw_announcement_text', [
+		'type'         => 'string',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => '',
+	] );
+
+	register_post_meta( 'pw_property', '_pw_announcement_start', [
+		'type'         => 'string',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => '',
+	] );
+
+	register_post_meta( 'pw_property', '_pw_announcement_end', [
+		'type'         => 'string',
+		'single'       => true,
+		'show_in_rest' => true,
+		'default'      => '',
+	] );
 }
 
 // Override viewable so builders (GenerateBlocks) discover pw_property even when publicly_queryable is false.

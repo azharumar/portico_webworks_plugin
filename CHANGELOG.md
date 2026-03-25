@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.42] - 2026-03-25
+
+### Changed
+- **Sample data install**: progress bar and status text on **Data → Sample content** via hidden iframe streaming (`postMessage`); `pw_sample_install_progress()` checkpoints in `sample-data-pack/sample-data-multi-install.php`; `assets/admin-sample-install.js` on the Data tab.
+
 ## [0.8.41] - 2026-03-25
 
 ### Changed
@@ -82,7 +87,6 @@
 ## [0.8.34] - 2026-03-24
 
 ### Fixed
-- **GP Block Elements on Portico URLs**: `generate_block_element_display` filter (`gp-elements-compat.php`) forces display for `_pw_generated` content-template / loop-template elements when Portico query vars and property context match (single mode uses `pw_default_property_id` when `pw_property_slug` is empty), so Elements hook before `template_redirect` reshapes the main query
 - **Outlet CPT permalinks (block editor / REST)**: section CPT permastructs use `%pw_room_type%`-style tokens instead of `%postname%`, matching WordPress `get_post_permalink()` replacement so `link` and permalink hrefs are real URLs after save; property permastruct uses `%pw_property%` for the same reason
 
 ### Changed

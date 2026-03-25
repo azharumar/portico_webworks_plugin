@@ -16,6 +16,102 @@ add_filter(
 add_action( 'pw_render_tab_data', 'pw_render_data_tab' );
 
 add_action( 'admin_post_pw_install_sample_data', 'pw_handle_install_sample_data' );
+
+/**
+ * Report install progress (no-op unless streaming install is active).
+ *
+ * @param int    $percent 0–100.
+ * @param string $message Status line for the admin UI.
+ */
+function pw_sample_install_progress( int $percent, string $message ): void {
+	$percent = max( 0, min( 100, $percent ) );
+	/**
+	 * Fires during sample data installation with approximate progress.
+	 *
+	 * @param int    $percent 0–100.
+	 * @param string $message Human-readable status.
+	 */
+	do_action( 'pw_sample_install_progress', $percent, $message );
+	if ( empty( $GLOBALS['pw_sample_install_streaming'] ) ) {
+		return;
+	}
+	if ( ! function_exists( 'pw_sample_install_allowed_post_message_origin' ) ) {
+		return;
+	}
+	$origin  = wp_json_encode( pw_sample_install_allowed_post_message_origin() );
+	$payload = wp_json_encode(
+		[
+			'type'    => 'pw_sample_install_progress',
+			'percent' => $percent,
+			'message' => $message,
+		],
+		JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+	);
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON for postMessage only.
+	echo '<script>try{parent.postMessage(' . $payload . ',' . $origin . ');}catch(e){}</script>' . "\n";
+	if ( function_exists( 'flush' ) ) {
+		flush();
+	}
+}
+
+function pw_sample_install_stream_begin(): void {
+	if ( function_exists( 'apache_setenv' ) ) {
+		@apache_setenv( 'no-gzip', '1' );
+	}
+	@ini_set( 'zlib.output_compression', '0' );
+	@ini_set( 'implicit_flush', '1' );
+	while ( ob_get_level() > 0 ) {
+		ob_end_clean();
+	}
+	nocache_headers();
+	header( 'Content-Type: text/html; charset=' . get_option( 'blog_charset' ) );
+	header( 'X-Accel-Buffering: no' );
+	echo '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>';
+	echo esc_html__( 'Installing sample data', 'portico-webworks' );
+	echo '</title></head><body>';
+	if ( function_exists( 'flush' ) ) {
+		flush();
+	}
+}
+
+function pw_sample_install_stream_done( string $redirect_url ): void {
+	if ( ! function_exists( 'pw_sample_install_allowed_post_message_origin' ) ) {
+		return;
+	}
+	$origin  = wp_json_encode( pw_sample_install_allowed_post_message_origin() );
+	$payload = wp_json_encode(
+		[
+			'type'     => 'pw_sample_install_done',
+			'redirect' => $redirect_url,
+		],
+		JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+	);
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo '<script>try{parent.postMessage(' . $payload . ',' . $origin . ');}catch(e){}</script></body></html>';
+	if ( function_exists( 'flush' ) ) {
+		flush();
+	}
+}
+
+function pw_sample_install_stream_fail( string $message ): void {
+	if ( ! function_exists( 'pw_sample_install_allowed_post_message_origin' ) ) {
+		return;
+	}
+	$origin  = wp_json_encode( pw_sample_install_allowed_post_message_origin() );
+	$payload = wp_json_encode(
+		[
+			'type'    => 'pw_sample_install_error',
+			'message' => wp_strip_all_tags( $message ),
+		],
+		JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+	);
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo '<script>try{parent.postMessage(' . $payload . ',' . $origin . ');}catch(e){}</script></body></html>';
+	if ( function_exists( 'flush' ) ) {
+		flush();
+	}
+}
+
 add_action( 'admin_post_pw_remove_sample_data', 'pw_handle_remove_sample_data' );
 add_action( 'admin_post_pw_reseed_taxonomies', 'pw_handle_reseed_taxonomies' );
 add_action( 'admin_post_pw_purge_plugin_data', 'pw_handle_purge_plugin_data' );
@@ -85,8 +181,9 @@ function pw_render_data_tab() {
 	if ( ! empty( $has_properties ) ) {
 		echo '<p><strong>Sample data can only be installed when no properties exist.</strong> Delete existing properties first if you want to reinstall.</p>';
 	} else {
-		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+		echo '<form id="pw-sample-install-form" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" target="pw-sample-install-iframe">';
 		echo '<input type="hidden" name="action" value="pw_install_sample_data" />';
+		echo '<input type="hidden" name="pw_sample_install_stream" value="1" />';
 		wp_nonce_field( 'pw_install_sample_data' );
 		$def_url = function_exists( 'pw_get_default_sample_data_pack_url' ) ? pw_get_default_sample_data_pack_url() : '';
 		$saved    = get_option( 'pw_sample_data_pack_url', '' );
@@ -96,8 +193,14 @@ function pw_render_data_tab() {
 		echo '<input type="url" class="large-text code" name="pw_sample_data_pack_url" id="pw_sample_data_pack_url" value="' . esc_attr( $url_val ) . '" />';
 		echo '<p class="description">' . esc_html__( 'HTTPS link to portico_webworks_plugin-sample-data.zip from the same release as this plugin version.', 'portico-webworks' ) . '</p>';
 		echo '</td></tr></tbody></table>';
-		submit_button( __( 'Install sample data', 'portico-webworks' ), 'primary', 'submit', false );
+		echo '<div id="pw-sample-install-progress-wrap" class="pw-sample-install-progress-wrap" hidden style="display:none;margin:1em 0;max-width:42rem;">';
+		echo '<progress id="pw-sample-install-progress" max="100" value="0" style="width:100%;height:10px;"></progress>';
+		echo '<p id="pw-sample-install-progress-label" class="pw-sample-install-progress-label" style="margin:0.5em 0 0;font-size:13px;color:var(--sub,#50575e);"></p>';
+		echo '</div>';
+		echo '<p class="description" style="margin-top:0.75em;">' . esc_html__( 'Progress updates appear below while the installer runs (may take a few minutes).', 'portico-webworks' ) . '</p>';
+		submit_button( __( 'Install sample data', 'portico-webworks' ), 'primary', 'pw-sample-install-submit', false, [ 'id' => 'pw-sample-install-submit' ] );
 		echo '</form>';
+		echo '<iframe name="pw-sample-install-iframe" id="pw-sample-install-iframe" class="pw-sample-install-iframe" title="' . esc_attr__( 'Sample data installation', 'portico-webworks' ) . '" style="width:0;height:0;border:0;visibility:hidden;position:absolute;"></iframe>';
 	}
 
 	if ( $flagged > 0 ) {
@@ -157,11 +260,82 @@ function pw_render_data_tab() {
 	pw_data_accordion_close();
 }
 
+function pw_handle_install_sample_data_stream(): void {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'Unauthorised', 'portico-webworks' ) );
+	}
+	check_admin_referer( 'pw_install_sample_data' );
+
+	$existing = get_posts(
+		[
+			'post_type'              => 'pw_property',
+			'post_status'            => 'any',
+			'posts_per_page'         => 1,
+			'fields'                 => 'ids',
+			'suppress_filters'       => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		]
+	);
+
+	pw_sample_install_stream_begin();
+	$GLOBALS['pw_sample_install_streaming'] = true;
+
+	if ( ! empty( $existing ) ) {
+		pw_sample_install_stream_fail( __( 'Sample data cannot be installed when properties already exist.', 'portico-webworks' ) );
+		exit;
+	}
+
+	$zip_url = isset( $_POST['pw_sample_data_pack_url'] ) ? esc_url_raw( wp_unslash( (string) $_POST['pw_sample_data_pack_url'] ) ) : '';
+	if ( $zip_url === '' && function_exists( 'pw_get_default_sample_data_pack_url' ) ) {
+		$zip_url = pw_get_default_sample_data_pack_url();
+	}
+
+	pw_sample_install_progress( 2, __( 'Loading sample data pack…', 'portico-webworks' ) );
+
+	$loaded = pw_ensure_sample_data_pack_loaded( $zip_url );
+	if ( is_wp_error( $loaded ) ) {
+		pw_sample_install_stream_fail( wp_strip_all_tags( $loaded->get_error_message() ) );
+		exit;
+	}
+
+	pw_sample_install_progress( 6, __( 'Installing dataset (this may take a while)…', 'portico-webworks' ) );
+
+	$res = pw_install_sample_data( $zip_url, [ 'skip_pack_load' => true ] );
+	if ( is_wp_error( $res ) ) {
+		pw_sample_install_stream_fail( wp_strip_all_tags( $res->get_error_message() ) );
+		exit;
+	}
+
+	update_option( 'pw_sample_data_pack_url', $zip_url );
+
+	pw_sample_install_progress( 96, __( 'Updating menus and permalinks…', 'portico-webworks' ) );
+	flush_rewrite_rules( false );
+	if ( function_exists( 'pw_sync_portico_nav_menus_after_sample_install' ) ) {
+		pw_sync_portico_nav_menus_after_sample_install();
+	}
+
+	pw_sample_install_progress( 100, __( 'Done.', 'portico-webworks' ) );
+
+	$redirect = add_query_arg(
+		'pw_sample_installed',
+		'1',
+		admin_url( 'admin.php?page=' . pw_admin_page_slug() . '&tab=data' )
+	);
+	pw_sample_install_stream_done( $redirect );
+	exit;
+}
+
 function pw_handle_install_sample_data() {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( 'Unauthorised' );
 	}
 	check_admin_referer( 'pw_install_sample_data' );
+
+	if ( isset( $_POST['pw_sample_install_stream'] ) && (string) wp_unslash( $_POST['pw_sample_install_stream'] ) === '1' ) {
+		pw_handle_install_sample_data_stream();
+		return;
+	}
 
 	$existing = get_posts(
 		[
@@ -327,9 +501,10 @@ function pw_sample_spa_treatment_hours( $open, $close ) {
 
 /**
  * @param string|null $zip_url URL to sample-data ZIP; null uses saved option or default GitHub asset URL.
+ * @param array       $args    Optional. `skip_pack_load` (bool) if pack was already loaded this request.
  * @return true|WP_Error
  */
-function pw_install_sample_data( $zip_url = null ) {
+function pw_install_sample_data( $zip_url = null, array $args = [] ) {
 	if ( $zip_url === null ) {
 		$saved = get_option( 'pw_sample_data_pack_url', '' );
 		$zip_url = is_string( $saved ) && $saved !== '' ? $saved : '';
@@ -339,9 +514,12 @@ function pw_install_sample_data( $zip_url = null ) {
 	}
 	$zip_url = is_string( $zip_url ) ? trim( $zip_url ) : '';
 
-	$loaded = pw_ensure_sample_data_pack_loaded( $zip_url );
-	if ( is_wp_error( $loaded ) ) {
-		return $loaded;
+	$skip_pack = ! empty( $args['skip_pack_load'] );
+	if ( ! $skip_pack ) {
+		$loaded = pw_ensure_sample_data_pack_loaded( $zip_url );
+		if ( is_wp_error( $loaded ) ) {
+			return $loaded;
+		}
 	}
 
 	pw_strip_sample_flags_from_seed_terms();

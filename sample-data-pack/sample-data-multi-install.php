@@ -80,6 +80,9 @@ function pw_install_sample_dataset_multi() {
 			pw_sample_ensure_term( $name, $tax );
 		}
 	}
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 8, __( 'Demo taxonomy terms ready.', 'portico-webworks' ) );
+	}
 
 	$organiser_id = pw_sample_ensure_term( 'Meridian & Azure Demo Events', 'pw_event_organiser' );
 	if ( $organiser_id ) {
@@ -113,6 +116,9 @@ function pw_install_sample_dataset_multi() {
 	}
 	$p1 = (int) $p1_ins;
 	$p2 = (int) $p2_ins;
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 14, __( 'Created demo properties.', 'portico-webworks' ) );
+	}
 
 	$y_cur            = (int) gmdate( 'Y' );
 	$season_conf_from = $y_cur . '-09-01';
@@ -256,6 +262,9 @@ function pw_install_sample_dataset_multi() {
 			pw_get_accessibility_facet_definitions()
 		)
 	);
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 24, __( 'Meridian Grand profile and contacts…', 'portico-webworks' ) );
+	}
 
 	$p2_strings = [
 		'_pw_legal_name'         => 'Azure Bay Hospitality LLP',
@@ -368,6 +377,9 @@ function pw_install_sample_dataset_multi() {
 			pw_get_accessibility_facet_definitions()
 		)
 	);
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 32, __( 'Azure Bay profile and room features…', 'portico-webworks' ) );
+	}
 
 	$feature_defs = [
 		[ 'title' => 'Air Conditioning', 'icon' => 'ac', 'group' => 'Room Features' ],
@@ -399,6 +411,9 @@ function pw_install_sample_dataset_multi() {
 			wp_set_object_terms( $fid, [ $gid ], 'pw_feature_group' );
 		}
 		$feature_ids[] = $fid;
+	}
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 40, __( 'Room feature library ready.', 'portico-webworks' ) );
 	}
 
 	$king_tid      = pw_sample_ensure_term( 'King', 'pw_bed_type' );
@@ -509,6 +524,9 @@ function pw_install_sample_dataset_multi() {
 		if ( ! empty( $rd['views'] ) ) {
 			wp_set_object_terms( $rid, array_filter( array_map( 'intval', $rd['views'] ) ), 'pw_view_type' );
 		}
+	}
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 46, __( 'Room types created.', 'portico-webworks' ) );
 	}
 
 	$bf = pw_sample_ensure_term( 'Breakfast', 'pw_meal_period' );
@@ -840,6 +858,9 @@ function pw_install_sample_dataset_multi() {
 			]
 		);
 	}
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 54, __( 'Outlets and contacts…', 'portico-webworks' ) );
+	}
 
 	pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_events(
 		$p1,
@@ -861,8 +882,14 @@ function pw_install_sample_dataset_multi() {
 		$offer_adv_from,
 		$offer_adv_to
 	);
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 88, __( 'Sideloading demo images…', 'portico-webworks' ) );
+	}
 
 	pw_sample_multi_install_apply_demo_media( $p1, $p2 );
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 94, __( 'Demo media attached.', 'portico-webworks' ) );
+	}
 }
 
 function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_events(
@@ -887,6 +914,9 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 ) {
 	$p1 = (int) $p1;
 	$p2 = (int) $p2;
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 58, __( 'Amenities, policies, offers, and nearby places…', 'portico-webworks' ) );
+	}
 	$ev_base          = strtotime( gmdate( 'Y-m-d' ) );
 	$ev_fmt           = static function ( $ts ) {
 		return gmdate( 'Y-m-d H:i:s', $ts );
@@ -1242,6 +1272,9 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 		wp_set_object_terms( $nid, array_filter( [ (int) $nd['trans'] ] ), 'pw_transport_mode' );
 		++$i;
 	}
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 68, __( 'Nearby places added.', 'portico-webworks' ) );
+	}
 
 	$cul = pw_sample_ensure_term( 'Culinary', 'pw_experience_category' );
 	$wel = pw_sample_ensure_term( 'Wellness', 'pw_experience_category' );
@@ -1290,6 +1323,9 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 			wp_set_object_terms( $eid, [ (int) $er['cat'] ], 'pw_experience_category' );
 		}
 	}
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 76, __( 'Experiences created.', 'portico-webworks' ) );
+	}
 
 	$gala_tid = pw_sample_ensure_term( 'Gala', 'pw_event_type' );
 	$conf_tid = pw_sample_ensure_term( 'Conference', 'pw_event_type' );
@@ -1304,6 +1340,9 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 		[ 'pid' => $p2, 'slug' => 'azure-bay-christmas-brunch', 'title' => 'Azure Bay Christmas Brunch', 'desc' => 'Festive buffet with live carving and dessert room.', 'start' => $ev_xmas_start, 'end' => $ev_xmas_end, 'price' => 3200, 'cap' => 90, 'type' => $brunch_tid, 'venue' => 0, 'book' => 'https://azurebay.example/events/christmas-brunch' ],
 		[ 'pid' => $p2, 'slug' => 'new-years-eve-beach-bash-goa', 'title' => 'New Year\'s Eve Beach Bash — Goa', 'desc' => 'Sand, fireworks offshore, and countdown by the Arabian Sea.', 'start' => $ev_nye_goa_start, 'end' => $ev_nye_goa_end, 'price' => 5500, 'cap' => 200, 'type' => $beach_ev_tid, 'venue' => 0, 'book' => 'https://azurebay.example/events/nye-beach-bash' ],
 	];
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 82, __( 'Creating scheduled events…', 'portico-webworks' ) );
+	}
 	foreach ( $event_rows as $ev ) {
 		$eid = pw_sample_wp_insert_post(
 			[
@@ -1373,5 +1412,8 @@ function pw_sample_multi_install_amenities_policies_faqs_offers_nearby_exp_event
 	$tag_id = pw_sample_ensure_term( 'India hotels', 'post_tag' );
 	if ( ! is_wp_error( $blog_ins ) && $blog_ins && $tag_id ) {
 		wp_set_object_terms( (int) $blog_ins, [ (int) $tag_id ], 'post_tag', true );
+	}
+	if ( function_exists( 'pw_sample_install_progress' ) ) {
+		pw_sample_install_progress( 86, __( 'Demo blog content ready.', 'portico-webworks' ) );
 	}
 }

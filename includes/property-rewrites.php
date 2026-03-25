@@ -362,8 +362,7 @@ function pw_url_front_controller() {
 		add_filter(
 			'template_include',
 			static function ( $template ) use ( $cpt ) {
-				$p = locate_template( [ "single-{$cpt}.php", 'single.php', 'singular.php', 'index.php' ] );
-				return $p ? $p : $template;
+				return pw_template_include_section_singular( $template, $cpt );
 			}
 		);
 		return;
@@ -525,8 +524,7 @@ function pw_url_front_controller() {
 	add_filter(
 		'template_include',
 		static function ( $template ) {
-			$p = locate_template( [ 'single-pw_property.php', 'single.php', 'singular.php', 'index.php' ] );
-			return $p ? $p : $template;
+			return pw_template_include_property_singular( $template );
 		},
 		10
 	);
@@ -565,8 +563,7 @@ function pw_url_virtual_archive( $cpt ) {
 	add_filter(
 		'template_include',
 		static function ( $template ) use ( $cpt ) {
-			$p = locate_template( [ "archive-{$cpt}.php", 'archive.php', 'index.php' ] );
-			return $p ? $p : $template;
+			return pw_template_include_section_archive( $template, $cpt );
 		}
 	);
 }

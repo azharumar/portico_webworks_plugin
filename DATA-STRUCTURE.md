@@ -47,6 +47,10 @@ Scalar profile fields below are registered in `includes/property-post-type.php`.
 | `_pw_year_established` | integer | `0`     | schema.org LodgingBusiness | Custom metabox                              |
 | `_pw_total_rooms`      | integer | `0`     | Total inventory count      | Custom metabox                              |
 | `_pw_og_image`         | integer | `0`     | Open Graph image attachment ID (optional) | `register_post_meta` in `property-post-type.php` |
+| `_pw_announcement_active` | boolean | `false` | Whether the property announcement bar is enabled | `register_post_meta` in `property-post-type.php`; custom CMB2 metabox |
+| `_pw_announcement_text`   | string  | `''`    | Announcement bar body text (rendered as HTML)   | `register_post_meta` in `property-post-type.php`; custom CMB2 metabox |
+| `_pw_announcement_start`  | string  | `''`    | Optional start datetime (parsable by `strtotime`) | `register_post_meta` in `property-post-type.php`; custom CMB2 metabox |
+| `_pw_announcement_end`    | string  | `''`    | Optional end datetime (parsable by `strtotime`)   | `register_post_meta` in `property-post-type.php`; custom CMB2 metabox |
 | `_pw_url_slug`         | string  | `''`    | Optional segment when Permalinks uses custom slug mode (`pw_get_permalink_slug_source()`). `sanitize_title`; unique among published properties. Field appears in General only when that mode is on. | Custom metabox (`property-profile.php`) |
 
 
