@@ -29,10 +29,6 @@ while ( have_posts() ) :
 	pw_get_template_part( 'single-offer/booking-cta', '', [ 'post_id' => $pw_offer_post_id ] );
 	do_action( 'pw_after_offer_booking_cta', $pw_offer_post_id );
 
-	do_action( 'pw_before_offer_fine_print', $pw_offer_post_id );
-	pw_get_template_part( 'single-offer/fine-print', '', [ 'post_id' => $pw_offer_post_id ] );
-	do_action( 'pw_after_offer_fine_print', $pw_offer_post_id );
-
 	do_action( 'pw_before_offer_related_offers', $pw_offer_post_id );
 	pw_get_template_part( 'single-offer/related-offers', '', [ 'post_id' => $pw_offer_post_id ] );
 	do_action( 'pw_after_offer_related_offers', $pw_offer_post_id );

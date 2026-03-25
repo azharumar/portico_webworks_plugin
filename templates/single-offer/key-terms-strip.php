@@ -10,7 +10,6 @@ $valid_from = (string) get_post_meta( $post_id, '_pw_valid_from', true );
 $valid_to   = (string) get_post_meta( $post_id, '_pw_valid_to', true );
 $min_stay    = (int) get_post_meta( $post_id, '_pw_minimum_stay_nights', true );
 $offer_type  = (string) get_post_meta( $post_id, '_pw_offer_type', true );
-$advance_days = (int) get_post_meta( $post_id, '_pw_advance_days', true );
 
 $room_ids = get_post_meta( $post_id, '_pw_room_types', true );
 if ( ! is_array( $room_ids ) ) {
@@ -28,7 +27,7 @@ foreach ( $room_ids as $rid ) {
 }
 $room_names_preview = $room_names !== [] ? implode( ', ', $room_names ) : '';
 
-$has_any = trim( $valid_from ) !== '' || trim( $valid_to ) !== '' || $min_stay > 0 || $advance_days > 0 || $room_names_preview !== '';
+$has_any = trim( $valid_from ) !== '' || trim( $valid_to ) !== '' || $min_stay > 0 || $room_names_preview !== '';
 if ( ! $has_any ) {
 	return;
 }
@@ -57,20 +56,6 @@ if ( ! $has_any ) {
 				<span class="pw-offer-key-terms-strip__value">
 					<?php echo esc_html( sprintf( '%d %s', $min_stay, esc_html__( 'nights', 'portico-webworks' ) ) ); ?>
 				</span>
-			</li>
-		<?php endif; ?>
-
-		<?php if ( $advance_days > 0 ) : ?>
-			<li class="pw-offer-key-terms-strip__item">
-				<span class="pw-offer-key-terms-strip__label"><?php echo esc_html__( 'Advance purchase', 'portico-webworks' ); ?></span>
-				<span class="pw-offer-key-terms-strip__value">
-					<?php echo esc_html( sprintf( '%d %s', $advance_days, esc_html__( 'days', 'portico-webworks' ) ) ); ?>
-				</span>
-			</li>
-		<?php elseif ( $offer_type === 'advance' ) : ?>
-			<li class="pw-offer-key-terms-strip__item">
-				<span class="pw-offer-key-terms-strip__label"><?php echo esc_html__( 'Advance purchase', 'portico-webworks' ); ?></span>
-				<span class="pw-offer-key-terms-strip__value"><?php echo esc_html__( 'Required', 'portico-webworks' ); ?></span>
 			</li>
 		<?php endif; ?>
 

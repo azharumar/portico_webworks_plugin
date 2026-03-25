@@ -21,14 +21,6 @@ while ( have_posts() ) :
 	pw_get_template_part( 'single-experience/key-details-strip', '', [ 'post_id' => $pw_experience_post_id ] );
 	do_action( 'pw_after_experience_key_details_strip', $pw_experience_post_id );
 
-	do_action( 'pw_before_experience_what_to_expect', $pw_experience_post_id );
-	pw_get_template_part( 'single-experience/what-to-expect', '', [ 'post_id' => $pw_experience_post_id ] );
-	do_action( 'pw_after_experience_what_to_expect', $pw_experience_post_id );
-
-	do_action( 'pw_before_experience_inclusions_exclusions', $pw_experience_post_id );
-	pw_get_template_part( 'single-experience/inclusions-exclusions', '', [ 'post_id' => $pw_experience_post_id ] );
-	do_action( 'pw_after_experience_inclusions_exclusions', $pw_experience_post_id );
-
 	do_action( 'pw_before_experience_booking_cta', $pw_experience_post_id );
 	pw_get_template_part( 'single-experience/booking-cta', '', [ 'post_id' => $pw_experience_post_id ] );
 	do_action( 'pw_after_experience_booking_cta', $pw_experience_post_id );

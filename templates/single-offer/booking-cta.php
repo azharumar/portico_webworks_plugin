@@ -10,11 +10,6 @@ $booking_url = (string) get_post_meta( $post_id, '_pw_booking_url', true );
 if ( $booking_url === '' ) {
 	return;
 }
-
-$promo_code = (string) get_post_meta( $post_id, '_pw_promo_code', true );
-if ( trim( $promo_code ) !== '' ) {
-	$booking_url = add_query_arg( 'promo_code', $promo_code, $booking_url );
-}
 ?>
 <section class="pw-offer-booking-cta" aria-labelledby="pw-offer-booking-cta-heading-<?php echo esc_attr( (string) $post_id ); ?>">
 	<?php do_action( 'pw_before_offer_booking_cta_content', $post_id ); ?>

@@ -8,7 +8,6 @@ if ( $post_id <= 0 ) {
 
 $start_iso = (string) get_post_meta( $post_id, '_pw_start_datetime_iso8601', true );
 $end_iso   = (string) get_post_meta( $post_id, '_pw_end_datetime_iso8601', true );
-$dress_code = (string) get_post_meta( $post_id, '_pw_dress_code', true );
 $price_from = (float) get_post_meta( $post_id, '_pw_price_from', true );
 $venue_id   = (int) get_post_meta( $post_id, '_pw_venue_id', true );
 
@@ -35,7 +34,7 @@ if ( trim( $end_iso ) !== '' && trim( $start_iso ) !== '' ) {
 
 $venue_title = $venue_id > 0 ? get_the_title( $venue_id ) : '';
 
-$has_any = $date_text !== '' || $time_text !== '' || $dress_code !== '' || $price_from > 0 || $venue_title !== '';
+$has_any = $date_text !== '' || $time_text !== '' || $price_from > 0 || $venue_title !== '';
 if ( ! $has_any ) {
 	return;
 }
@@ -62,12 +61,6 @@ if ( ! $has_any ) {
 			<li class="pw-event-key-details-strip__item">
 				<span class="pw-event-key-details-strip__label"><?php echo esc_html__( 'Venue', 'portico-webworks' ); ?></span>
 				<span class="pw-event-key-details-strip__value"><?php echo esc_html( $venue_title ); ?></span>
-			</li>
-		<?php endif; ?>
-		<?php if ( trim( $dress_code ) !== '' ) : ?>
-			<li class="pw-event-key-details-strip__item">
-				<span class="pw-event-key-details-strip__label"><?php echo esc_html__( 'Dress code', 'portico-webworks' ); ?></span>
-				<span class="pw-event-key-details-strip__value"><?php echo esc_html( $dress_code ); ?></span>
 			</li>
 		<?php endif; ?>
 		<?php if ( $price_from > 0 ) : ?>

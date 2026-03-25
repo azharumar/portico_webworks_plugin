@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.43] - 2026-03-25
+
+### Changed
+- Remove GP Elements / GenerateBlocks installer markup from `includes/page-installer.php`.
+- Trim several single templates by removing optional sections (event add-ons/programme, experience inclusions/expectations, spa facilities/treatments, nearby concierge tip, meeting catering note, offer fine print).
+
 ## [0.8.42] - 2026-03-25
 
 ### Changed

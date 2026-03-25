@@ -17,17 +17,9 @@ while ( have_posts() ) :
 	pw_get_template_part( 'single-spa/introduction', '', [ 'post_id' => $pw_spa_post_id ] );
 	do_action( 'pw_after_spa_introduction', $pw_spa_post_id );
 
-	do_action( 'pw_before_spa_signature_treatments', $pw_spa_post_id );
-	pw_get_template_part( 'single-spa/signature-treatments', '', [ 'post_id' => $pw_spa_post_id ] );
-	do_action( 'pw_after_spa_signature_treatments', $pw_spa_post_id );
-
 	do_action( 'pw_before_spa_treatments_menu', $pw_spa_post_id );
 	pw_get_template_part( 'single-spa/treatments-menu', '', [ 'post_id' => $pw_spa_post_id ] );
 	do_action( 'pw_after_spa_treatments_menu', $pw_spa_post_id );
-
-	do_action( 'pw_before_spa_facilities', $pw_spa_post_id );
-	pw_get_template_part( 'single-spa/facilities', '', [ 'post_id' => $pw_spa_post_id ] );
-	do_action( 'pw_after_spa_facilities', $pw_spa_post_id );
 
 	do_action( 'pw_before_spa_opening_hours', $pw_spa_post_id );
 	pw_get_template_part( 'single-spa/opening-hours', '', [ 'post_id' => $pw_spa_post_id ] );

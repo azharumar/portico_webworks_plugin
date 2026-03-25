@@ -29,10 +29,6 @@ while ( have_posts() ) :
 	pw_get_template_part( 'single-nearby/getting-there', '', [ 'post_id' => $pw_nearby_post_id ] );
 	do_action( 'pw_after_nearby_getting_there', $pw_nearby_post_id );
 
-	do_action( 'pw_before_nearby_concierge_tip', $pw_nearby_post_id );
-	pw_get_template_part( 'single-nearby/concierge-tip', '', [ 'post_id' => $pw_nearby_post_id ] );
-	do_action( 'pw_after_nearby_concierge_tip', $pw_nearby_post_id );
-
 	do_action( 'pw_before_nearby_related_places', $pw_nearby_post_id );
 	pw_get_template_part( 'single-nearby/related-places', '', [ 'post_id' => $pw_nearby_post_id ] );
 	do_action( 'pw_after_nearby_related_places', $pw_nearby_post_id );

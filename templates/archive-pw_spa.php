@@ -54,9 +54,6 @@ get_header();
 				$thumb_id = (int) get_post_thumbnail_id( $sid );
 				$excerpt  = (string) get_post_field( 'post_excerpt', $sid, 'raw' );
 				$booking   = (string) get_post_meta( $sid, '_pw_booking_url', true );
-				$treatments_raw = get_post_meta( $sid, '_pw_signature_treatments', true );
-				$treatments = is_array( $treatments_raw ) ? $treatments_raw : [];
-				$treatments = array_slice( $treatments, 0, 4 );
 
 				$hours = pw_get_operating_hours( $sid );
 				?>
@@ -83,36 +80,6 @@ get_header();
 					</h2>
 					<?php if ( trim( $excerpt ) !== '' ) : ?>
 						<p class="pw-spa-card__excerpt"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $excerpt ), 28 ) ); ?></p>
-					<?php endif; ?>
-
-					<?php if ( is_array( $treatments ) && $treatments !== [] ) : ?>
-						<div class="pw-spa-card__treatments">
-							<h3 class="pw-spa-card__treatments-heading"><?php echo esc_html__( 'Signature treatments', 'portico-webworks' ); ?></h3>
-							<ul class="pw-spa-card__treatments-list">
-								<?php foreach ( $treatments as $row ) : ?>
-									<?php
-									if ( ! is_array( $row ) ) {
-										continue;
-									}
-									$name = isset( $row['name'] ) ? (string) $row['name'] : '';
-									$dur  = isset( $row['duration_min'] ) ? (int) $row['duration_min'] : 0;
-									$desc  = isset( $row['description'] ) ? (string) $row['description'] : '';
-									if ( $name === '' && $desc === '' ) {
-										continue;
-									}
-									?>
-									<li class="pw-spa-card__treatment">
-										<span class="pw-spa-card__treatment-name"><?php echo esc_html( $name ); ?></span>
-										<?php if ( $dur > 0 ) : ?>
-											<span class="pw-spa-card__treatment-duration"><?php echo esc_html( sprintf( '%d %s', $dur, __( 'min', 'portico-webworks' ) ) ); ?></span>
-										<?php endif; ?>
-										<?php if ( trim( $desc ) !== '' ) : ?>
-											<p class="pw-spa-card__treatment-desc"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $desc ), 24 ) ); ?></p>
-										<?php endif; ?>
-									</li>
-								<?php endforeach; ?>
-							</ul>
-						</div>
 					<?php endif; ?>
 
 					<?php if ( is_array( $hours ) && $hours !== [] ) : ?>
