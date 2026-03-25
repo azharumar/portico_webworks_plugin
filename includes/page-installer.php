@@ -1039,7 +1039,7 @@ function pw_on_property_published( $new_status, $old_status, $post ) {
 
 /**
  * GenerateBlocks starter post_content for section CPT archive loop templates (insert only).
- * Derived from gb-pro-markup-samples.html. Room type: pw_bed_type / pw_view_type omitted (no verified GB Pro term-list tag in loops).
+ * Guest-facing card grids and singular heroes; repeatable meta rendered via HTML placeholders (see _pw_gb_needs_shortcode_placeholder).
  *
  * @param string $cpt Section CPT or empty.
  */
@@ -1056,104 +1056,58 @@ function pw_get_section_starter_markup( string $cpt, string $type = 'archive' ):
 		'pw_room_type' => <<<'PW_ST_ROOM_TYPE'
 <!-- wp:generateblocks/query {"uniqueId":"rmq","tagName":"div","query":{"post_type":["pw_room_type"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"rm-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-rm-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-rm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-rm-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-rm-grid"} -->
+<div class="gb-element-rm-grid gb-el gb-el-rm-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"rm-loop","tagName":"div","className":"gb-loop-rm-loop"} -->
 <div class="gb-looper-rm-loop gb-loop-rm-loop">
 <!-- wp:generateblocks/loop-item {"uniqueId":"rm-item","tagName":"div","className":"gb-li-rm-item"} -->
 <div class="gb-loop-item gb-loop-item-rm-item gb-li-rm-item">
-<!-- wp:generateblocks/image {"uniqueId":"rm-fi","styles":{"display":"block","height":"auto","maxWidth":"100%","marginBottom":"16px"},"css":".gb-image-rm-fi{display:block;height:auto;max-width:100%;margin-bottom:16px}","dynamicImage":"featured-image","className":"gb-img-rm-fi"} -->
+<!-- wp:generateblocks/element {"uniqueId":"rm-card","tagName":"article","styles":{"overflow":"hidden","borderTopLeftRadius":"12px","borderTopRightRadius":"12px","borderBottomLeftRadius":"12px","borderBottomRightRadius":"12px","borderTopWidth":"1px","borderRightWidth":"1px","borderBottomWidth":"1px","borderLeftWidth":"1px","borderTopStyle":"solid","borderRightStyle":"solid","borderBottomStyle":"solid","borderLeftStyle":"solid","borderTopColor":"#e8e8e8","borderRightColor":"#e8e8e8","borderBottomColor":"#e8e8e8","borderLeftColor":"#e8e8e8","boxShadow":"0 8px 24px rgba(0,0,0,0.06)","backgroundColor":"#ffffff","height":"100%","display":"flex","flexDirection":"column"},"css":".gb-element-rm-card{background-color:#fff;border:1px solid #e8e8e8;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.06);display:flex;flex-direction:column;height:100%;overflow:hidden}","className":"pw-hotel-card gb-el gb-el-rm-card"} -->
+<article class="gb-element-rm-card gb-el gb-el-rm-card pw-hotel-card">
+<!-- wp:generateblocks/element {"uniqueId":"rm-card-media","tagName":"div","styles":{"overflow":"hidden","width":"100%","maxHeight":"220px"},"css":".gb-element-rm-card-media{max-height:220px;overflow:hidden;width:100%}","className":"gb-el gb-el-rm-card-media"} -->
+<div class="gb-element-rm-card-media gb-el gb-el-rm-card-media">
+<!-- wp:generateblocks/image {"uniqueId":"rm-fi","styles":{"display":"block","width":"100%","maxWidth":"100%","minHeight":"200px","marginBottom":"0px","objectFit":"cover"},"css":".gb-image-rm-fi{display:block;margin-bottom:0;max-width:100%;min-height:200px;object-fit:cover;width:100%}","dynamicImage":"featured-image","className":"gb-img-rm-fi"} -->
 <img class="gb-image gb-image-rm-fi gb-img-rm-fi" />
 <!-- /wp:generateblocks/image -->
-<!-- wp:generateblocks/element {"uniqueId":"rtlsp","tagName":"div","styles":{"marginBottom":"32px","paddingBottom":"8px"},"css":".gb-element-rtlsp{margin-bottom:32px;padding-bottom:8px}","className":"gb-el gb-el-rtlsp"} -->
-<div class="gb-element-rtlsp gb-el gb-el-rtlsp"><!-- wp:generateblocks/text {"uniqueId":"rt_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600","display":"inline-block","textDecoration":"none"},"css":".gb-text-rt_t{margin-bottom:12px;font-size:18px;font-weight:600;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-rt_t"} -->
+</div>
+<!-- /wp:generateblocks/element -->
+<!-- wp:generateblocks/element {"uniqueId":"rm-card-body","tagName":"div","styles":{"display":"flex","flexDirection":"column","flexGrow":"1","paddingTop":"24px","paddingRight":"24px","paddingBottom":"24px","paddingLeft":"24px"},"css":".gb-element-rm-card-body{display:flex;flex-direction:column;flex-grow:1;padding:24px}","className":"gb-el gb-el-rm-card-body"} -->
+<div class="gb-element-rm-card-body gb-el gb-el-rm-card-body">
+<!-- wp:generateblocks/text {"uniqueId":"rt_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"22px","fontWeight":"600","display":"inline-block","textDecoration":"none","lineHeight":"1.25"},"css":".gb-text-rt_t{display:inline-block;font-size:22px;font-weight:600;line-height:1.25;margin-bottom:12px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-rt_t"} -->
 <a class="gb-text gb-text-rt_t gb-t-rt_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"rt_e","tagName":"p","styles":{"marginBottom":"12px"},"css":".gb-text-rt_e{margin-bottom:12px}","className":"gb-t-rt_e"} -->
+<!-- wp:generateblocks/text {"uniqueId":"rt_e","tagName":"p","styles":{"marginBottom":"16px","fontSize":"16px","lineHeight":"1.55","color":"#4a4a4a"},"css":".gb-text-rt_e{color:#4a4a4a;font-size:16px;line-height:1.55;margin-bottom:16px}","className":"gb-t-rt_e"} -->
 <p class="gb-text gb-text-rt_e gb-t-rt_e">{{post_excerpt}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/element {"uniqueId":"rtgr","tagName":"div","styles":{"display":"flex","flexDirection":"column","width":"100%"},"css":".gb-element-rtgr{display:flex;flex-direction:column;width:100%}","className":"gb-el gb-el-rtgr"} -->
-<div class="gb-element-rtgr gb-el gb-el-rtgr"><!-- wp:generateblocks/element {"uniqueId":"rtrw0","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-rtrw0{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-rtrw0{grid-template-columns:1fr}}","className":"gb-el gb-el-rtrw0"} -->
-<div class="gb-element-rtrw0 gb-el gb-el-rtrw0"><!-- wp:generateblocks/text {"uniqueId":"rtlk0","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-rtlk0{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-rtlk0"} -->
-<div class="gb-text gb-text-rtlk0 gb-t-rtlk0">Rate from</div>
+<!-- wp:generateblocks/element {"uniqueId":"rm-specs","tagName":"div","styles":{"display":"flex","flexDirection":"column","rowGap":"8px","marginBottom":"20px","width":"100%"},"css":".gb-element-rm-specs{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;width:100%}","className":"gb-el gb-el-rm-specs"} -->
+<div class="gb-element-rm-specs gb-el gb-el-rm-specs">
+<!-- wp:generateblocks/text {"uniqueId":"rm-sp0","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-rm-sp0{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-rm-sp0"} -->
+<p class="gb-text gb-text-rm-sp0 gb-t-rm-sp0">From {{post_meta key:_pw_rate_from}} __PW_PROPERTY_CURRENCY__</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"rtvk0","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-rtvk0{margin-bottom:0px;font-size:14px}","className":"gb-t-rtvk0"} -->
-<div class="gb-text gb-text-rtvk0 gb-t-rtvk0">{{post_meta key:_pw_rate_from}} __PW_PROPERTY_CURRENCY__</div>
+<!-- wp:generateblocks/text {"uniqueId":"rm-sp1","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-rm-sp1{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-rm-sp1"} -->
+<p class="gb-text gb-text-rm-sp1 gb-t-rm-sp1">Sleeps {{post_meta key:_pw_max_occupancy}}</p>
 <!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"rtrw1","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-rtrw1{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-rtrw1{grid-template-columns:1fr}}","className":"gb-el gb-el-rtrw1"} -->
-<div class="gb-element-rtrw1 gb-el gb-el-rtrw1"><!-- wp:generateblocks/text {"uniqueId":"rtlk1","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-rtlk1{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-rtlk1"} -->
-<div class="gb-text gb-text-rtlk1 gb-t-rtlk1">Rate to</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"rtvk1","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-rtvk1{margin-bottom:0px;font-size:14px}","className":"gb-t-rtvk1"} -->
-<div class="gb-text gb-text-rtvk1 gb-t-rtvk1">{{post_meta key:_pw_rate_to}} __PW_PROPERTY_CURRENCY__</div>
+<!-- wp:generateblocks/text {"uniqueId":"rm-sp2","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-rm-sp2{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-rm-sp2"} -->
+<p class="gb-text gb-text-rm-sp2 gb-t-rm-sp2">{{post_terms taxonomy:pw_bed_type}}</p>
 <!-- /wp:generateblocks/text -->
 </div>
 <!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"rtrw2","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-rtrw2{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-rtrw2{grid-template-columns:1fr}}","className":"gb-el gb-el-rtrw2"} -->
-<div class="gb-element-rtrw2 gb-el gb-el-rtrw2"><!-- wp:generateblocks/text {"uniqueId":"rtlk2","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-rtlk2{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-rtlk2"} -->
-<div class="gb-text gb-text-rtlk2 gb-t-rtlk2">Max occupancy</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"rtvk2","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-rtvk2{margin-bottom:0px;font-size:14px}","className":"gb-t-rtvk2"} -->
-<div class="gb-text gb-text-rtvk2 gb-t-rtvk2">{{post_meta key:_pw_max_occupancy}}</div>
+<!-- wp:generateblocks/text {"uniqueId":"rm-cta","tagName":"a","styles":{"display":"inline-block","marginTop":"auto","paddingTop":"12px","paddingRight":"22px","paddingBottom":"12px","paddingLeft":"22px","fontSize":"15px","fontWeight":"600","textDecoration":"none","color":"#ffffff","backgroundColor":"#1a1a1a","borderTopLeftRadius":"6px","borderTopRightRadius":"6px","borderBottomLeftRadius":"6px","borderBottomRightRadius":"6px"},"css":".gb-text-rm-cta{background-color:#1a1a1a;border-radius:6px;color:#fff;display:inline-block;font-size:15px;font-weight:600;margin-top:auto;padding:12px 22px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-rm-cta pw-hotel-cta"} -->
+<a class="gb-text gb-text-rm-cta gb-t-rm-cta pw-hotel-cta" href="{{post_permalink}}">View room</a>
 <!-- /wp:generateblocks/text -->
 </div>
 <!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"rtrw3","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-rtrw3{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-rtrw3{grid-template-columns:1fr}}","className":"gb-el gb-el-rtrw3"} -->
-<div class="gb-element-rtrw3 gb-el gb-el-rtrw3"><!-- wp:generateblocks/text {"uniqueId":"rtlk3","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-rtlk3{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-rtlk3"} -->
-<div class="gb-text gb-text-rtlk3 gb-t-rtlk3">Max adults</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"rtvk3","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-rtvk3{margin-bottom:0px;font-size:14px}","className":"gb-t-rtvk3"} -->
-<div class="gb-text gb-text-rtvk3 gb-t-rtvk3">{{post_meta key:_pw_max_adults}}</div>
-<!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"rtrw4","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-rtrw4{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-rtrw4{grid-template-columns:1fr}}","className":"gb-el gb-el-rtrw4"} -->
-<div class="gb-element-rtrw4 gb-el gb-el-rtrw4"><!-- wp:generateblocks/text {"uniqueId":"rtlk4","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-rtlk4{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-rtlk4"} -->
-<div class="gb-text gb-text-rtlk4 gb-t-rtlk4">Max children</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"rtvk4","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-rtvk4{margin-bottom:0px;font-size:14px}","className":"gb-t-rtvk4"} -->
-<div class="gb-text gb-text-rtvk4 gb-t-rtvk4">{{post_meta key:_pw_max_children}}</div>
-<!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"rtrw5","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-rtrw5{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-rtrw5{grid-template-columns:1fr}}","className":"gb-el gb-el-rtrw5"} -->
-<div class="gb-element-rtrw5 gb-el gb-el-rtrw5"><!-- wp:generateblocks/text {"uniqueId":"rtlk5","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-rtlk5{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-rtlk5"} -->
-<div class="gb-text gb-text-rtlk5 gb-t-rtlk5">Size (m²)</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"rtvk5","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-rtvk5{margin-bottom:0px;font-size:14px}","className":"gb-t-rtvk5"} -->
-<div class="gb-text gb-text-rtvk5 gb-t-rtvk5">{{post_meta key:_pw_size_sqm}}</div>
-<!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"rtrw6","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-rtrw6{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-rtrw6{grid-template-columns:1fr}}","className":"gb-el gb-el-rtrw6"} -->
-<div class="gb-element-rtrw6 gb-el gb-el-rtrw6"><!-- wp:generateblocks/text {"uniqueId":"rtlk6","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-rtlk6{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-rtlk6"} -->
-<div class="gb-text gb-text-rtlk6 gb-t-rtlk6">Size (ft²)</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"rtvk6","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-rtvk6{margin-bottom:0px;font-size:14px}","className":"gb-t-rtvk6"} -->
-<div class="gb-text gb-text-rtvk6 gb-t-rtvk6">{{post_meta key:_pw_size_sqft}}</div>
-<!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"rtrw7","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-rtrw7{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-rtrw7{grid-template-columns:1fr}}","className":"gb-el gb-el-rtrw7"} -->
-<div class="gb-element-rtrw7 gb-el gb-el-rtrw7"><!-- wp:generateblocks/text {"uniqueId":"rtlk7","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-rtlk7{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-rtlk7"} -->
-<div class="gb-text gb-text-rtlk7 gb-t-rtlk7">Extra beds</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"rtvk7","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-rtvk7{margin-bottom:0px;font-size:14px}","className":"gb-t-rtvk7"} -->
-<div class="gb-text gb-text-rtvk7 gb-t-rtvk7">{{post_meta key:_pw_max_extra_beds}}</div>
-<!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-</div>
-<!-- /wp:generateblocks/element -->
-</div>
+</article>
 <!-- /wp:generateblocks/element -->
 </div>
 <!-- /wp:generateblocks/loop-item -->
 </div>
 <!-- /wp:generateblocks/looper -->
+</div>
+<!-- /wp:generateblocks/element -->
 <!-- wp:generateblocks/query-pagination /-->
 <!-- wp:generateblocks/query-no-results -->
-<!-- wp:generateblocks/text {"uniqueId":"rm-nr","tagName":"p","styles":{"marginBottom":"0px"},"css":".gb-text-rm-nr{margin-bottom:0px}","className":"gb-t-rm-nr"} -->
+<!-- wp:generateblocks/text {"uniqueId":"rm-nr","tagName":"p","styles":{"marginBottom":"0px","fontSize":"16px"},"css":".gb-text-rm-nr{font-size:16px;margin-bottom:0}","className":"gb-t-rm-nr"} -->
 <p class="gb-text gb-text-rm-nr gb-t-rm-nr">None found.</p>
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
@@ -1163,38 +1117,58 @@ PW_ST_ROOM_TYPE,
 		'pw_restaurant' => <<<'PW_ST_RESTAURANT'
 <!-- wp:generateblocks/query {"uniqueId":"rstq","tagName":"div","query":{"post_type":["pw_restaurant"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"rst-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-rst-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-rst-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-rst-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-rst-grid"} -->
+<div class="gb-element-rst-grid gb-el gb-el-rst-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"rst-loop","tagName":"div","className":"gb-loop-rst-loop"} -->
 <div class="gb-looper-rst-loop gb-loop-rst-loop">
 <!-- wp:generateblocks/loop-item {"uniqueId":"rst-item","tagName":"div","className":"gb-li-rst-item"} -->
 <div class="gb-loop-item gb-loop-item-rst-item gb-li-rst-item">
-<!-- wp:generateblocks/element {"uniqueId":"rslsp","tagName":"div","styles":{"marginBottom":"32px","paddingBottom":"8px"},"css":".gb-element-rslsp{margin-bottom:32px;padding-bottom:8px}","className":"gb-el gb-el-rslsp"} -->
-<div class="gb-element-rslsp gb-el gb-el-rslsp"><!-- wp:generateblocks/element {"uniqueId":"rsbd","tagName":"div","styles":{"paddingLeft":"18px","borderLeftWidth":"3px","borderLeftStyle":"solid","borderLeftColor":"#c5c5c5"},"css":".gb-element-rsbd{border-left:3px solid #c5c5c5;padding-left:18px}","className":"gb-el gb-el-rsbd"} -->
-<div class="gb-element-rsbd gb-el gb-el-rsbd"><!-- wp:generateblocks/text {"uniqueId":"rs_t","tagName":"a","styles":{"marginBottom":"6px","fontSize":"17px","fontWeight":"600","display":"inline-block","textDecoration":"none"},"css":".gb-text-rs_t{margin-bottom:6px;font-size:17px;font-weight:600;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-rs_t"} -->
+<!-- wp:generateblocks/element {"uniqueId":"rst-card","tagName":"article","styles":{"overflow":"hidden","borderTopLeftRadius":"12px","borderTopRightRadius":"12px","borderBottomLeftRadius":"12px","borderBottomRightRadius":"12px","borderTopWidth":"1px","borderRightWidth":"1px","borderBottomWidth":"1px","borderLeftWidth":"1px","borderTopStyle":"solid","borderRightStyle":"solid","borderBottomStyle":"solid","borderLeftStyle":"solid","borderTopColor":"#e8e8e8","borderRightColor":"#e8e8e8","borderBottomColor":"#e8e8e8","borderLeftColor":"#e8e8e8","boxShadow":"0 8px 24px rgba(0,0,0,0.06)","backgroundColor":"#ffffff","height":"100%","display":"flex","flexDirection":"column"},"css":".gb-element-rst-card{background-color:#fff;border:1px solid #e8e8e8;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.06);display:flex;flex-direction:column;height:100%;overflow:hidden}","className":"pw-hotel-card gb-el gb-el-rst-card"} -->
+<article class="gb-element-rst-card gb-el gb-el-rst-card pw-hotel-card">
+<!-- wp:generateblocks/element {"uniqueId":"rst-card-media","tagName":"div","styles":{"overflow":"hidden","width":"100%","maxHeight":"220px"},"css":".gb-element-rst-card-media{max-height:220px;overflow:hidden;width:100%}","className":"gb-el gb-el-rst-card-media"} -->
+<div class="gb-element-rst-card-media gb-el gb-el-rst-card-media">
+<!-- wp:generateblocks/image {"uniqueId":"rst-fi","styles":{"display":"block","width":"100%","maxWidth":"100%","minHeight":"200px","marginBottom":"0px","objectFit":"cover"},"css":".gb-image-rst-fi{display:block;margin-bottom:0;max-width:100%;min-height:200px;object-fit:cover;width:100%}","dynamicImage":"featured-image","className":"gb-img-rst-fi"} -->
+<img class="gb-image gb-image-rst-fi gb-img-rst-fi" />
+<!-- /wp:generateblocks/image -->
+</div>
+<!-- /wp:generateblocks/element -->
+<!-- wp:generateblocks/element {"uniqueId":"rst-card-body","tagName":"div","styles":{"display":"flex","flexDirection":"column","flexGrow":"1","paddingTop":"24px","paddingRight":"24px","paddingBottom":"24px","paddingLeft":"24px"},"css":".gb-element-rst-card-body{display:flex;flex-direction:column;flex-grow:1;padding:24px}","className":"gb-el gb-el-rst-card-body"} -->
+<div class="gb-element-rst-card-body gb-el gb-el-rst-card-body">
+<!-- wp:generateblocks/text {"uniqueId":"rs_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"22px","fontWeight":"600","display":"inline-block","textDecoration":"none","lineHeight":"1.25"},"css":".gb-text-rs_t{display:inline-block;font-size:22px;font-weight:600;line-height:1.25;margin-bottom:12px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-rs_t"} -->
 <a class="gb-text gb-text-rs_t gb-t-rs_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"rs_d","tagName":"div","styles":{"marginBottom":"8px","fontSize":"14px"},"css":".gb-text-rs_d{margin-bottom:8px;font-size:14px}","className":"gb-t-rs_d"} -->
-<div class="gb-text gb-text-rs_d gb-t-rs_d">{{post_meta key:_pw_cuisine_type}} · {{post_meta key:_pw_location}} · {{post_meta key:_pw_seating_capacity}} seats</div>
+<!-- wp:generateblocks/text {"uniqueId":"rs_e","tagName":"p","styles":{"marginBottom":"16px","fontSize":"16px","lineHeight":"1.55","color":"#4a4a4a"},"css":".gb-text-rs_e{color:#4a4a4a;font-size:16px;line-height:1.55;margin-bottom:16px}","className":"gb-t-rs_e"} -->
+<p class="gb-text gb-text-rs_e gb-t-rs_e">{{post_excerpt}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"rs_e","tagName":"div","styles":{"marginBottom":"8px","fontSize":"14px"},"css":".gb-text-rs_e{margin-bottom:8px;font-size:14px}","className":"gb-t-rs_e"} -->
-<div class="gb-text gb-text-rs_e gb-t-rs_e">{{post_excerpt}}</div>
+<!-- wp:generateblocks/element {"uniqueId":"rst-specs","tagName":"div","styles":{"display":"flex","flexDirection":"column","rowGap":"8px","marginBottom":"20px","width":"100%"},"css":".gb-element-rst-specs{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;width:100%}","className":"gb-el gb-el-rst-specs"} -->
+<div class="gb-element-rst-specs gb-el gb-el-rst-specs">
+<!-- wp:generateblocks/text {"uniqueId":"rst-sp0","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-rst-sp0{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-rst-sp0"} -->
+<p class="gb-text gb-text-rst-sp0 gb-t-rst-sp0">{{post_meta key:_pw_cuisine_type}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"rs_ru","tagName":"a","styles":{"marginBottom":"4px","display":"inline-block"},"css":".gb-text-rs_ru{display:inline-block;margin-bottom:4px}","htmlAttributes":{"href":"{{post_meta key:_pw_reservation_url}}"},"className":"gb-t-rs_ru"} -->
-<a class="gb-text gb-text-rs_ru gb-t-rs_ru" href="{{post_meta key:_pw_reservation_url}}">Reservations</a>
+<!-- wp:generateblocks/text {"uniqueId":"rst-sp1","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-rst-sp1{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-rst-sp1"} -->
+<p class="gb-text gb-text-rst-sp1 gb-t-rst-sp1">{{post_meta key:_pw_location}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"rs_mu","tagName":"a","styles":{"marginBottom":"0px","display":"inline-block"},"css":".gb-text-rs_mu{display:inline-block;margin-bottom:0px}","htmlAttributes":{"href":"{{post_meta key:_pw_menu_url}}"},"className":"gb-t-rs_mu"} -->
-<a class="gb-text gb-text-rs_mu gb-t-rs_mu" href="{{post_meta key:_pw_menu_url}}">Menu</a>
+<!-- wp:generateblocks/text {"uniqueId":"rst-sp2","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-rst-sp2{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-rst-sp2"} -->
+<p class="gb-text gb-text-rst-sp2 gb-t-rst-sp2">{{post_terms taxonomy:pw_meal_period}} · {{post_meta key:_pw_seating_capacity}} seats</p>
 <!-- /wp:generateblocks/text -->
 </div>
 <!-- /wp:generateblocks/element -->
+<!-- wp:generateblocks/text {"uniqueId":"rst-cta","tagName":"a","styles":{"display":"inline-block","marginTop":"auto","paddingTop":"12px","paddingRight":"22px","paddingBottom":"12px","paddingLeft":"22px","fontSize":"15px","fontWeight":"600","textDecoration":"none","color":"#ffffff","backgroundColor":"#1a1a1a","borderTopLeftRadius":"6px","borderTopRightRadius":"6px","borderBottomLeftRadius":"6px","borderBottomRightRadius":"6px"},"css":".gb-text-rst-cta{background-color:#1a1a1a;border-radius:6px;color:#fff;display:inline-block;font-size:15px;font-weight:600;margin-top:auto;padding:12px 22px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-rst-cta pw-hotel-cta"} -->
+<a class="gb-text gb-text-rst-cta gb-t-rst-cta pw-hotel-cta" href="{{post_permalink}}">View restaurant</a>
+<!-- /wp:generateblocks/text -->
 </div>
+<!-- /wp:generateblocks/element -->
+</article>
 <!-- /wp:generateblocks/element -->
 </div>
 <!-- /wp:generateblocks/loop-item -->
 </div>
 <!-- /wp:generateblocks/looper -->
+</div>
+<!-- /wp:generateblocks/element -->
 <!-- wp:generateblocks/query-pagination /-->
 <!-- wp:generateblocks/query-no-results -->
-<!-- wp:generateblocks/text {"uniqueId":"rst-nr","tagName":"p","styles":{"marginBottom":"0px"},"css":".gb-text-rst-nr{margin-bottom:0px}","className":"gb-t-rst-nr"} -->
+<!-- wp:generateblocks/text {"uniqueId":"rst-nr","tagName":"p","styles":{"marginBottom":"0px","fontSize":"16px"},"css":".gb-text-rst-nr{font-size:16px;margin-bottom:0}","className":"gb-t-rst-nr"} -->
 <p class="gb-text gb-text-rst-nr gb-t-rst-nr">None found.</p>
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
@@ -1204,53 +1178,58 @@ PW_ST_RESTAURANT,
 		'pw_spa' => <<<'PW_ST_SPA'
 <!-- wp:generateblocks/query {"uniqueId":"spaq","tagName":"div","query":{"post_type":["pw_spa"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"spa-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-spa-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-spa-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-spa-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-spa-grid"} -->
+<div class="gb-element-spa-grid gb-el gb-el-spa-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"spa-loop","tagName":"div","className":"gb-loop-spa-loop"} -->
 <div class="gb-looper-spa-loop gb-loop-spa-loop">
 <!-- wp:generateblocks/loop-item {"uniqueId":"spa-item","tagName":"div","className":"gb-li-spa-item"} -->
 <div class="gb-loop-item gb-loop-item-spa-item gb-li-spa-item">
-<!-- wp:generateblocks/element {"uniqueId":"splsp","tagName":"div","styles":{"marginBottom":"32px","paddingBottom":"8px"},"css":".gb-element-splsp{margin-bottom:32px;padding-bottom:8px}","className":"gb-el gb-el-splsp"} -->
-<div class="gb-element-splsp gb-el gb-el-splsp"><!-- wp:generateblocks/text {"uniqueId":"sp_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600","display":"inline-block","textDecoration":"none"},"css":".gb-text-sp_t{margin-bottom:12px;font-size:18px;font-weight:600;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-sp_t"} -->
+<!-- wp:generateblocks/element {"uniqueId":"spa-card","tagName":"article","styles":{"overflow":"hidden","borderTopLeftRadius":"12px","borderTopRightRadius":"12px","borderBottomLeftRadius":"12px","borderBottomRightRadius":"12px","borderTopWidth":"1px","borderRightWidth":"1px","borderBottomWidth":"1px","borderLeftWidth":"1px","borderTopStyle":"solid","borderRightStyle":"solid","borderBottomStyle":"solid","borderLeftStyle":"solid","borderTopColor":"#e8e8e8","borderRightColor":"#e8e8e8","borderBottomColor":"#e8e8e8","borderLeftColor":"#e8e8e8","boxShadow":"0 8px 24px rgba(0,0,0,0.06)","backgroundColor":"#ffffff","height":"100%","display":"flex","flexDirection":"column"},"css":".gb-element-spa-card{background-color:#fff;border:1px solid #e8e8e8;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.06);display:flex;flex-direction:column;height:100%;overflow:hidden}","className":"pw-hotel-card gb-el gb-el-spa-card"} -->
+<article class="gb-element-spa-card gb-el gb-el-spa-card pw-hotel-card">
+<!-- wp:generateblocks/element {"uniqueId":"spa-card-media","tagName":"div","styles":{"overflow":"hidden","width":"100%","maxHeight":"220px"},"css":".gb-element-spa-card-media{max-height:220px;overflow:hidden;width:100%}","className":"gb-el gb-el-spa-card-media"} -->
+<div class="gb-element-spa-card-media gb-el gb-el-spa-card-media">
+<!-- wp:generateblocks/image {"uniqueId":"spa-fi","styles":{"display":"block","width":"100%","maxWidth":"100%","minHeight":"200px","marginBottom":"0px","objectFit":"cover"},"css":".gb-image-spa-fi{display:block;margin-bottom:0;max-width:100%;min-height:200px;object-fit:cover;width:100%}","dynamicImage":"featured-image","className":"gb-img-spa-fi"} -->
+<img class="gb-image gb-image-spa-fi gb-img-spa-fi" />
+<!-- /wp:generateblocks/image -->
+</div>
+<!-- /wp:generateblocks/element -->
+<!-- wp:generateblocks/element {"uniqueId":"spa-card-body","tagName":"div","styles":{"display":"flex","flexDirection":"column","flexGrow":"1","paddingTop":"24px","paddingRight":"24px","paddingBottom":"24px","paddingLeft":"24px"},"css":".gb-element-spa-card-body{display:flex;flex-direction:column;flex-grow:1;padding:24px}","className":"gb-el gb-el-spa-card-body"} -->
+<div class="gb-element-spa-card-body gb-el gb-el-spa-card-body">
+<!-- wp:generateblocks/text {"uniqueId":"sp_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"22px","fontWeight":"600","display":"inline-block","textDecoration":"none","lineHeight":"1.25"},"css":".gb-text-sp_t{display:inline-block;font-size:22px;font-weight:600;line-height:1.25;margin-bottom:12px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-sp_t"} -->
 <a class="gb-text gb-text-sp_t gb-t-sp_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"sp_e","tagName":"p","styles":{"marginBottom":"12px"},"css":".gb-text-sp_e{margin-bottom:12px}","className":"gb-t-sp_e"} -->
+<!-- wp:generateblocks/text {"uniqueId":"sp_e","tagName":"p","styles":{"marginBottom":"16px","fontSize":"16px","lineHeight":"1.55","color":"#4a4a4a"},"css":".gb-text-sp_e{color:#4a4a4a;font-size:16px;line-height:1.55;margin-bottom:16px}","className":"gb-t-sp_e"} -->
 <p class="gb-text gb-text-sp_e gb-t-sp_e">{{post_excerpt}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/element {"uniqueId":"spgr","tagName":"div","styles":{"display":"flex","flexDirection":"column","width":"100%"},"css":".gb-element-spgr{display:flex;flex-direction:column;width:100%}","className":"gb-el gb-el-spgr"} -->
-<div class="gb-element-spgr gb-el gb-el-spgr"><!-- wp:generateblocks/element {"uniqueId":"sprw0","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-sprw0{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-sprw0{grid-template-columns:1fr}}","className":"gb-el gb-el-sprw0"} -->
-<div class="gb-element-sprw0 gb-el gb-el-sprw0"><!-- wp:generateblocks/text {"uniqueId":"splk0","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-splk0{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-splk0"} -->
-<div class="gb-text gb-text-splk0 gb-t-splk0">Min age</div>
+<!-- wp:generateblocks/element {"uniqueId":"spa-specs","tagName":"div","styles":{"display":"flex","flexDirection":"column","rowGap":"8px","marginBottom":"20px","width":"100%"},"css":".gb-element-spa-specs{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;width:100%}","className":"gb-el gb-el-spa-specs"} -->
+<div class="gb-element-spa-specs gb-el gb-el-spa-specs">
+<!-- wp:generateblocks/text {"uniqueId":"spa-sp0","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-spa-sp0{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-spa-sp0"} -->
+<p class="gb-text gb-text-spa-sp0 gb-t-spa-sp0">{{post_terms taxonomy:pw_treatment_type}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"spvk0","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-spvk0{margin-bottom:0px;font-size:14px}","className":"gb-t-spvk0"} -->
-<div class="gb-text gb-text-spvk0 gb-t-spvk0">{{post_meta key:_pw_min_age}} years</div>
+<!-- wp:generateblocks/text {"uniqueId":"spa-sp1","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-spa-sp1{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-spa-sp1"} -->
+<p class="gb-text gb-text-spa-sp1 gb-t-spa-sp1">From age {{post_meta key:_pw_min_age}}</p>
 <!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"sprw1","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-sprw1{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-sprw1{grid-template-columns:1fr}}","className":"gb-el gb-el-sprw1"} -->
-<div class="gb-element-sprw1 gb-el gb-el-sprw1"><!-- wp:generateblocks/text {"uniqueId":"splk1","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-splk1{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-splk1"} -->
-<div class="gb-text gb-text-splk1 gb-t-splk1">Treatment rooms</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"spvk1","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-spvk1{margin-bottom:0px;font-size:14px}","className":"gb-t-spvk1"} -->
-<div class="gb-text gb-text-spvk1 gb-t-spvk1">{{post_meta key:_pw_number_of_treatment_rooms}} rooms</div>
+<!-- wp:generateblocks/text {"uniqueId":"spa-sp2","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-spa-sp2{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-spa-sp2"} -->
+<p class="gb-text gb-text-spa-sp2 gb-t-spa-sp2">{{post_meta key:_pw_number_of_treatment_rooms}} treatment rooms</p>
 <!-- /wp:generateblocks/text -->
 </div>
 <!-- /wp:generateblocks/element -->
+<!-- wp:generateblocks/text {"uniqueId":"spa-cta","tagName":"a","styles":{"display":"inline-block","marginTop":"auto","paddingTop":"12px","paddingRight":"22px","paddingBottom":"12px","paddingLeft":"22px","fontSize":"15px","fontWeight":"600","textDecoration":"none","color":"#ffffff","backgroundColor":"#1a1a1a","borderTopLeftRadius":"6px","borderTopRightRadius":"6px","borderBottomLeftRadius":"6px","borderBottomRightRadius":"6px"},"css":".gb-text-spa-cta{background-color:#1a1a1a;border-radius:6px;color:#fff;display:inline-block;font-size:15px;font-weight:600;margin-top:auto;padding:12px 22px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-spa-cta pw-hotel-cta"} -->
+<a class="gb-text gb-text-spa-cta gb-t-spa-cta pw-hotel-cta" href="{{post_permalink}}">View spa</a>
+<!-- /wp:generateblocks/text -->
 </div>
 <!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/text {"uniqueId":"sp_bu","tagName":"a","styles":{"marginBottom":"4px","display":"inline-block"},"css":".gb-text-sp_bu{display:inline-block;margin-bottom:4px}","htmlAttributes":{"href":"{{post_meta key:_pw_booking_url}}"},"className":"gb-t-sp_bu"} -->
-<a class="gb-text gb-text-sp_bu gb-t-sp_bu" href="{{post_meta key:_pw_booking_url}}">Book spa</a>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"sp_mu","tagName":"a","styles":{"marginBottom":"0px","display":"inline-block"},"css":".gb-text-sp_mu{display:inline-block;margin-bottom:0px}","htmlAttributes":{"href":"{{post_meta key:_pw_menu_url}}"},"className":"gb-t-sp_mu"} -->
-<a class="gb-text gb-text-sp_mu gb-t-sp_mu" href="{{post_meta key:_pw_menu_url}}">Spa menu</a>
-<!-- /wp:generateblocks/text -->
-</div>
+</article>
 <!-- /wp:generateblocks/element -->
 </div>
 <!-- /wp:generateblocks/loop-item -->
 </div>
 <!-- /wp:generateblocks/looper -->
+</div>
+<!-- /wp:generateblocks/element -->
 <!-- wp:generateblocks/query-pagination /-->
 <!-- wp:generateblocks/query-no-results -->
-<!-- wp:generateblocks/text {"uniqueId":"spa-nr","tagName":"p","styles":{"marginBottom":"0px"},"css":".gb-text-spa-nr{margin-bottom:0px}","className":"gb-t-spa-nr"} -->
+<!-- wp:generateblocks/text {"uniqueId":"spa-nr","tagName":"p","styles":{"marginBottom":"0px","fontSize":"16px"},"css":".gb-text-spa-nr{font-size:16px;margin-bottom:0}","className":"gb-t-spa-nr"} -->
 <p class="gb-text gb-text-spa-nr gb-t-spa-nr">None found.</p>
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
@@ -1260,44 +1239,58 @@ PW_ST_SPA,
 		'pw_meeting_room' => <<<'PW_ST_MEETING_ROOM'
 <!-- wp:generateblocks/query {"uniqueId":"mtq","tagName":"div","query":{"post_type":["pw_meeting_room"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"mt-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-mt-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-mt-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-mt-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-mt-grid"} -->
+<div class="gb-element-mt-grid gb-el gb-el-mt-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"mt-loop","tagName":"div","className":"gb-loop-mt-loop"} -->
 <div class="gb-looper-mt-loop gb-loop-mt-loop">
 <!-- wp:generateblocks/loop-item {"uniqueId":"mt-item","tagName":"div","className":"gb-li-mt-item"} -->
 <div class="gb-loop-item gb-loop-item-mt-item gb-li-mt-item">
-<!-- wp:generateblocks/element {"uniqueId":"ch_mrrow","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"repeat(8, minmax(5.5rem, 1fr))","columnGap":"10px","rowGap":"6px","alignItems":"start","paddingTop":"10px","paddingBottom":"10px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-ch_mrrow{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:10px;display:grid;grid-template-columns:repeat(8,minmax(5.5rem,1fr));padding:10px 0;row-gap:6px;width:100%}","className":"gb-el gb-el-ch_mrrow"} -->
-<div class="gb-element-ch_mrrow gb-el gb-el-ch_mrrow"><!-- wp:generateblocks/text {"uniqueId":"ch_mrrowc0","tagName":"a","styles":{"marginBottom":"0px","fontSize":"14px","display":"inline-block","textDecoration":"none"},"css":".gb-text-ch_mrrowc0{margin-bottom:0;font-size:14px;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-ch_mrrowc0"} -->
-<a class="gb-text gb-text-ch_mrrowc0 gb-t-ch_mrrowc0" href="{{post_permalink}}">{{post_title}}</a>
+<!-- wp:generateblocks/element {"uniqueId":"mt-card","tagName":"article","styles":{"overflow":"hidden","borderTopLeftRadius":"12px","borderTopRightRadius":"12px","borderBottomLeftRadius":"12px","borderBottomRightRadius":"12px","borderTopWidth":"1px","borderRightWidth":"1px","borderBottomWidth":"1px","borderLeftWidth":"1px","borderTopStyle":"solid","borderRightStyle":"solid","borderBottomStyle":"solid","borderLeftStyle":"solid","borderTopColor":"#e8e8e8","borderRightColor":"#e8e8e8","borderBottomColor":"#e8e8e8","borderLeftColor":"#e8e8e8","boxShadow":"0 8px 24px rgba(0,0,0,0.06)","backgroundColor":"#ffffff","height":"100%","display":"flex","flexDirection":"column"},"css":".gb-element-mt-card{background-color:#fff;border:1px solid #e8e8e8;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.06);display:flex;flex-direction:column;height:100%;overflow:hidden}","className":"pw-hotel-card gb-el gb-el-mt-card"} -->
+<article class="gb-element-mt-card gb-el gb-el-mt-card pw-hotel-card">
+<!-- wp:generateblocks/element {"uniqueId":"mt-card-media","tagName":"div","styles":{"overflow":"hidden","width":"100%","maxHeight":"220px"},"css":".gb-element-mt-card-media{max-height:220px;overflow:hidden;width:100%}","className":"gb-el gb-el-mt-card-media"} -->
+<div class="gb-element-mt-card-media gb-el gb-el-mt-card-media">
+<!-- wp:generateblocks/image {"uniqueId":"mt-fi","styles":{"display":"block","width":"100%","maxWidth":"100%","minHeight":"200px","marginBottom":"0px","objectFit":"cover"},"css":".gb-image-mt-fi{display:block;margin-bottom:0;max-width:100%;min-height:200px;object-fit:cover;width:100%}","dynamicImage":"featured-image","className":"gb-img-mt-fi"} -->
+<img class="gb-image gb-image-mt-fi gb-img-mt-fi" />
+<!-- /wp:generateblocks/image -->
+</div>
+<!-- /wp:generateblocks/element -->
+<!-- wp:generateblocks/element {"uniqueId":"mt-card-body","tagName":"div","styles":{"display":"flex","flexDirection":"column","flexGrow":"1","paddingTop":"24px","paddingRight":"24px","paddingBottom":"24px","paddingLeft":"24px"},"css":".gb-element-mt-card-body{display:flex;flex-direction:column;flex-grow:1;padding:24px}","className":"gb-el gb-el-mt-card-body"} -->
+<div class="gb-element-mt-card-body gb-el gb-el-mt-card-body">
+<!-- wp:generateblocks/text {"uniqueId":"mt_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"22px","fontWeight":"600","display":"inline-block","textDecoration":"none","lineHeight":"1.25"},"css":".gb-text-mt_t{display:inline-block;font-size:22px;font-weight:600;line-height:1.25;margin-bottom:12px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-mt_t"} -->
+<a class="gb-text gb-text-mt_t gb-t-mt_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ch_mrrowc1","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_mrrowc1{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_mrrowc1"} -->
-<div class="gb-text gb-text-ch_mrrowc1 gb-t-ch_mrrowc1">{{post_meta key:_pw_capacity_theatre}} guests</div>
+<!-- wp:generateblocks/text {"uniqueId":"mt_e","tagName":"p","styles":{"marginBottom":"16px","fontSize":"16px","lineHeight":"1.55","color":"#4a4a4a"},"css":".gb-text-mt_e{color:#4a4a4a;font-size:16px;line-height:1.55;margin-bottom:16px}","className":"gb-t-mt_e"} -->
+<p class="gb-text gb-text-mt_e gb-t-mt_e">{{post_excerpt}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ch_mrrowc2","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_mrrowc2{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_mrrowc2"} -->
-<div class="gb-text gb-text-ch_mrrowc2 gb-t-ch_mrrowc2">{{post_meta key:_pw_capacity_classroom}} guests</div>
+<!-- wp:generateblocks/element {"uniqueId":"mt-specs","tagName":"div","styles":{"display":"flex","flexDirection":"column","rowGap":"8px","marginBottom":"20px","width":"100%"},"css":".gb-element-mt-specs{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;width:100%}","className":"gb-el gb-el-mt-specs"} -->
+<div class="gb-element-mt-specs gb-el gb-el-mt-specs">
+<!-- wp:generateblocks/text {"uniqueId":"mt-sp0","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-mt-sp0{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-mt-sp0"} -->
+<p class="gb-text gb-text-mt-sp0 gb-t-mt-sp0">Theatre {{post_meta key:_pw_capacity_theatre}} guests</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ch_mrrowc3","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_mrrowc3{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_mrrowc3"} -->
-<div class="gb-text gb-text-ch_mrrowc3 gb-t-ch_mrrowc3">{{post_meta key:_pw_capacity_boardroom}} guests</div>
+<!-- wp:generateblocks/text {"uniqueId":"mt-sp1","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-mt-sp1{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-mt-sp1"} -->
+<p class="gb-text gb-text-mt-sp1 gb-t-mt-sp1">{{post_meta key:_pw_area_sqm}} m² · {{post_terms taxonomy:pw_av_equipment}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ch_mrrowc4","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_mrrowc4{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_mrrowc4"} -->
-<div class="gb-text gb-text-ch_mrrowc4 gb-t-ch_mrrowc4">{{post_meta key:_pw_capacity_ushape}} guests</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ch_mrrowc5","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_mrrowc5{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_mrrowc5"} -->
-<div class="gb-text gb-text-ch_mrrowc5 gb-t-ch_mrrowc5">{{post_meta key:_pw_area_sqm}} m²</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ch_mrrowc6","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_mrrowc6{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_mrrowc6"} -->
-<div class="gb-text gb-text-ch_mrrowc6 gb-t-ch_mrrowc6">{{post_meta key:_pw_area_sqft}} ft²</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ch_mrrowc7","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_mrrowc7{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_mrrowc7"} -->
-<div class="gb-text gb-text-ch_mrrowc7 gb-t-ch_mrrowc7">{{post_meta key:_pw_natural_light}}</div>
+<!-- wp:generateblocks/text {"uniqueId":"mt-sp2","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-mt-sp2{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-mt-sp2"} -->
+<p class="gb-text gb-text-mt-sp2 gb-t-mt-sp2">Natural light: {{post_meta key:_pw_natural_light}}</p>
 <!-- /wp:generateblocks/text -->
 </div>
+<!-- /wp:generateblocks/element -->
+<!-- wp:generateblocks/text {"uniqueId":"mt-cta","tagName":"a","styles":{"display":"inline-block","marginTop":"auto","paddingTop":"12px","paddingRight":"22px","paddingBottom":"12px","paddingLeft":"22px","fontSize":"15px","fontWeight":"600","textDecoration":"none","color":"#ffffff","backgroundColor":"#1a1a1a","borderTopLeftRadius":"6px","borderTopRightRadius":"6px","borderBottomLeftRadius":"6px","borderBottomRightRadius":"6px"},"css":".gb-text-mt-cta{background-color:#1a1a1a;border-radius:6px;color:#fff;display:inline-block;font-size:15px;font-weight:600;margin-top:auto;padding:12px 22px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-mt-cta pw-hotel-cta"} -->
+<a class="gb-text gb-text-mt-cta gb-t-mt-cta pw-hotel-cta" href="{{post_permalink}}">View space</a>
+<!-- /wp:generateblocks/text -->
+</div>
+<!-- /wp:generateblocks/element -->
+</article>
 <!-- /wp:generateblocks/element -->
 </div>
 <!-- /wp:generateblocks/loop-item -->
 </div>
 <!-- /wp:generateblocks/looper -->
+</div>
+<!-- /wp:generateblocks/element -->
 <!-- wp:generateblocks/query-pagination /-->
 <!-- wp:generateblocks/query-no-results -->
-<!-- wp:generateblocks/text {"uniqueId":"mt-nr","tagName":"p","styles":{"marginBottom":"0px"},"css":".gb-text-mt-nr{margin-bottom:0px}","className":"gb-t-mt-nr"} -->
+<!-- wp:generateblocks/text {"uniqueId":"mt-nr","tagName":"p","styles":{"marginBottom":"0px","fontSize":"16px"},"css":".gb-text-mt-nr{font-size:16px;margin-bottom:0}","className":"gb-t-mt-nr"} -->
 <p class="gb-text gb-text-mt-nr gb-t-mt-nr">No meeting spaces.</p>
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
@@ -1307,62 +1300,58 @@ PW_ST_MEETING_ROOM,
 		'pw_experience' => <<<'PW_ST_EXPERIENCE'
 <!-- wp:generateblocks/query {"uniqueId":"exq","tagName":"div","query":{"post_type":["pw_experience"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"ex-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-ex-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-ex-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-ex-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-ex-grid"} -->
+<div class="gb-element-ex-grid gb-el gb-el-ex-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"ex-loop","tagName":"div","className":"gb-loop-ex-loop"} -->
 <div class="gb-looper-ex-loop gb-loop-ex-loop">
 <!-- wp:generateblocks/loop-item {"uniqueId":"ex-item","tagName":"div","className":"gb-li-ex-item"} -->
 <div class="gb-loop-item gb-loop-item-ex-item gb-li-ex-item">
-<!-- wp:generateblocks/element {"uniqueId":"exlsp","tagName":"div","styles":{"marginBottom":"32px","paddingBottom":"8px"},"css":".gb-element-exlsp{margin-bottom:32px;padding-bottom:8px}","className":"gb-el gb-el-exlsp"} -->
-<div class="gb-element-exlsp gb-el gb-el-exlsp"><!-- wp:generateblocks/text {"uniqueId":"ex_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600","display":"inline-block","textDecoration":"none"},"css":".gb-text-ex_t{margin-bottom:12px;font-size:18px;font-weight:600;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-ex_t"} -->
+<!-- wp:generateblocks/element {"uniqueId":"ex-card","tagName":"article","styles":{"overflow":"hidden","borderTopLeftRadius":"12px","borderTopRightRadius":"12px","borderBottomLeftRadius":"12px","borderBottomRightRadius":"12px","borderTopWidth":"1px","borderRightWidth":"1px","borderBottomWidth":"1px","borderLeftWidth":"1px","borderTopStyle":"solid","borderRightStyle":"solid","borderBottomStyle":"solid","borderLeftStyle":"solid","borderTopColor":"#e8e8e8","borderRightColor":"#e8e8e8","borderBottomColor":"#e8e8e8","borderLeftColor":"#e8e8e8","boxShadow":"0 8px 24px rgba(0,0,0,0.06)","backgroundColor":"#ffffff","height":"100%","display":"flex","flexDirection":"column"},"css":".gb-element-ex-card{background-color:#fff;border:1px solid #e8e8e8;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.06);display:flex;flex-direction:column;height:100%;overflow:hidden}","className":"pw-hotel-card gb-el gb-el-ex-card"} -->
+<article class="gb-element-ex-card gb-el gb-el-ex-card pw-hotel-card">
+<!-- wp:generateblocks/element {"uniqueId":"ex-card-media","tagName":"div","styles":{"overflow":"hidden","width":"100%","maxHeight":"220px"},"css":".gb-element-ex-card-media{max-height:220px;overflow:hidden;width:100%}","className":"gb-el gb-el-ex-card-media"} -->
+<div class="gb-element-ex-card-media gb-el gb-el-ex-card-media">
+<!-- wp:generateblocks/image {"uniqueId":"ex-fi","styles":{"display":"block","width":"100%","maxWidth":"100%","minHeight":"200px","marginBottom":"0px","objectFit":"cover"},"css":".gb-image-ex-fi{display:block;margin-bottom:0;max-width:100%;min-height:200px;object-fit:cover;width:100%}","dynamicImage":"featured-image","className":"gb-img-ex-fi"} -->
+<img class="gb-image gb-image-ex-fi gb-img-ex-fi" />
+<!-- /wp:generateblocks/image -->
+</div>
+<!-- /wp:generateblocks/element -->
+<!-- wp:generateblocks/element {"uniqueId":"ex-card-body","tagName":"div","styles":{"display":"flex","flexDirection":"column","flexGrow":"1","paddingTop":"24px","paddingRight":"24px","paddingBottom":"24px","paddingLeft":"24px"},"css":".gb-element-ex-card-body{display:flex;flex-direction:column;flex-grow:1;padding:24px}","className":"gb-el gb-el-ex-card-body"} -->
+<div class="gb-element-ex-card-body gb-el gb-el-ex-card-body">
+<!-- wp:generateblocks/text {"uniqueId":"ex_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"22px","fontWeight":"600","display":"inline-block","textDecoration":"none","lineHeight":"1.25"},"css":".gb-text-ex_t{display:inline-block;font-size:22px;font-weight:600;line-height:1.25;margin-bottom:12px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-ex_t"} -->
 <a class="gb-text gb-text-ex_t gb-t-ex_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ex_d","tagName":"p","styles":{"marginBottom":"12px"},"css":".gb-text-ex_d{margin-bottom:12px}","className":"gb-t-ex_d"} -->
-<p class="gb-text gb-text-ex_d gb-t-ex_d">{{post_meta key:_pw_description}}</p>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ex_ex","tagName":"p","styles":{"marginBottom":"12px"},"css":".gb-text-ex_ex{margin-bottom:12px}","className":"gb-t-ex_ex"} -->
+<!-- wp:generateblocks/text {"uniqueId":"ex_ex","tagName":"p","styles":{"marginBottom":"16px","fontSize":"16px","lineHeight":"1.55","color":"#4a4a4a"},"css":".gb-text-ex_ex{color:#4a4a4a;font-size:16px;line-height:1.55;margin-bottom:16px}","className":"gb-t-ex_ex"} -->
 <p class="gb-text gb-text-ex_ex gb-t-ex_ex">{{post_excerpt}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/element {"uniqueId":"exgr","tagName":"div","styles":{"display":"flex","flexDirection":"column","width":"100%"},"css":".gb-element-exgr{display:flex;flex-direction:column;width:100%}","className":"gb-el gb-el-exgr"} -->
-<div class="gb-element-exgr gb-el gb-el-exgr"><!-- wp:generateblocks/element {"uniqueId":"exrw0","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-exrw0{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-exrw0{grid-template-columns:1fr}}","className":"gb-el gb-el-exrw0"} -->
-<div class="gb-element-exrw0 gb-el gb-el-exrw0"><!-- wp:generateblocks/text {"uniqueId":"exlk0","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-exlk0{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-exlk0"} -->
-<div class="gb-text gb-text-exlk0 gb-t-exlk0">Duration</div>
+<!-- wp:generateblocks/element {"uniqueId":"ex-specs","tagName":"div","styles":{"display":"flex","flexDirection":"column","rowGap":"8px","marginBottom":"20px","width":"100%"},"css":".gb-element-ex-specs{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;width:100%}","className":"gb-el gb-el-ex-specs"} -->
+<div class="gb-element-ex-specs gb-el gb-el-ex-specs">
+<!-- wp:generateblocks/text {"uniqueId":"ex-sp0","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-ex-sp0{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-ex-sp0"} -->
+<p class="gb-text gb-text-ex-sp0 gb-t-ex-sp0">{{post_terms taxonomy:pw_experience_category}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"exvk0","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-exvk0{margin-bottom:0px;font-size:14px}","className":"gb-t-exvk0"} -->
-<div class="gb-text gb-text-exvk0 gb-t-exvk0">{{post_meta key:_pw_duration_hours}} h</div>
+<!-- wp:generateblocks/text {"uniqueId":"ex-sp1","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-ex-sp1{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-ex-sp1"} -->
+<p class="gb-text gb-text-ex-sp1 gb-t-ex-sp1">{{post_meta key:_pw_duration_hours}} hours</p>
 <!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"exrw1","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-exrw1{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-exrw1{grid-template-columns:1fr}}","className":"gb-el gb-el-exrw1"} -->
-<div class="gb-element-exrw1 gb-el gb-el-exrw1"><!-- wp:generateblocks/text {"uniqueId":"exlk1","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-exlk1{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-exlk1"} -->
-<div class="gb-text gb-text-exlk1 gb-t-exlk1">Price from</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"exvk1","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-exvk1{margin-bottom:0px;font-size:14px}","className":"gb-t-exvk1"} -->
-<div class="gb-text gb-text-exvk1 gb-t-exvk1">{{post_meta key:_pw_price_from}} __PW_PROPERTY_CURRENCY__</div>
+<!-- wp:generateblocks/text {"uniqueId":"ex-sp2","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-ex-sp2{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-ex-sp2"} -->
+<p class="gb-text gb-text-ex-sp2 gb-t-ex-sp2">From {{post_meta key:_pw_price_from}} __PW_PROPERTY_CURRENCY__</p>
 <!-- /wp:generateblocks/text -->
 </div>
 <!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"exrw2","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-exrw2{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-exrw2{grid-template-columns:1fr}}","className":"gb-el gb-el-exrw2"} -->
-<div class="gb-element-exrw2 gb-el gb-el-exrw2"><!-- wp:generateblocks/text {"uniqueId":"exlk2","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-exlk2{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-exlk2"} -->
-<div class="gb-text gb-text-exlk2 gb-t-exlk2">Complimentary</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"exvk2","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-exvk2{margin-bottom:0px;font-size:14px}","className":"gb-t-exvk2"} -->
-<div class="gb-text gb-text-exvk2 gb-t-exvk2">{{post_meta key:_pw_is_complimentary}}</div>
+<!-- wp:generateblocks/text {"uniqueId":"ex-cta","tagName":"a","styles":{"display":"inline-block","marginTop":"auto","paddingTop":"12px","paddingRight":"22px","paddingBottom":"12px","paddingLeft":"22px","fontSize":"15px","fontWeight":"600","textDecoration":"none","color":"#ffffff","backgroundColor":"#1a1a1a","borderTopLeftRadius":"6px","borderTopRightRadius":"6px","borderBottomLeftRadius":"6px","borderBottomRightRadius":"6px"},"css":".gb-text-ex-cta{background-color:#1a1a1a;border-radius:6px;color:#fff;display:inline-block;font-size:15px;font-weight:600;margin-top:auto;padding:12px 22px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-ex-cta pw-hotel-cta"} -->
+<a class="gb-text gb-text-ex-cta gb-t-ex-cta pw-hotel-cta" href="{{post_permalink}}">View experience</a>
 <!-- /wp:generateblocks/text -->
 </div>
 <!-- /wp:generateblocks/element -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/text {"uniqueId":"ex_b","tagName":"a","styles":{"marginBottom":"0px","display":"inline-block"},"css":".gb-text-ex_b{display:inline-block;margin-bottom:0px}","htmlAttributes":{"href":"{{post_meta key:_pw_booking_url}}"},"className":"gb-t-ex_b"} -->
-<a class="gb-text gb-text-ex_b gb-t-ex_b" href="{{post_meta key:_pw_booking_url}}">Book</a>
-<!-- /wp:generateblocks/text -->
-</div>
+</article>
 <!-- /wp:generateblocks/element -->
 </div>
 <!-- /wp:generateblocks/loop-item -->
 </div>
 <!-- /wp:generateblocks/looper -->
+</div>
+<!-- /wp:generateblocks/element -->
 <!-- wp:generateblocks/query-pagination /-->
 <!-- wp:generateblocks/query-no-results -->
-<!-- wp:generateblocks/text {"uniqueId":"ex-nr","tagName":"p","styles":{"marginBottom":"0px"},"css":".gb-text-ex-nr{margin-bottom:0px}","className":"gb-t-ex-nr"} -->
+<!-- wp:generateblocks/text {"uniqueId":"ex-nr","tagName":"p","styles":{"marginBottom":"0px","fontSize":"16px"},"css":".gb-text-ex-nr{font-size:16px;margin-bottom:0}","className":"gb-t-ex-nr"} -->
 <p class="gb-text gb-text-ex-nr gb-t-ex-nr">None found.</p>
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
@@ -1372,35 +1361,58 @@ PW_ST_EXPERIENCE,
 		'pw_nearby' => <<<'PW_ST_NEARBY'
 <!-- wp:generateblocks/query {"uniqueId":"nbq","tagName":"div","query":{"post_type":["pw_nearby"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"nb-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-nb-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-nb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-nb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-nb-grid"} -->
+<div class="gb-element-nb-grid gb-el gb-el-nb-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"nb-loop","tagName":"div","className":"gb-loop-nb-loop"} -->
 <div class="gb-looper-nb-loop gb-loop-nb-loop">
 <!-- wp:generateblocks/loop-item {"uniqueId":"nb-item","tagName":"div","className":"gb-li-nb-item"} -->
 <div class="gb-loop-item gb-loop-item-nb-item gb-li-nb-item">
-<!-- wp:generateblocks/element {"uniqueId":"ch_nrrow","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"repeat(5, minmax(5.5rem, 1fr))","columnGap":"10px","rowGap":"6px","alignItems":"start","paddingTop":"10px","paddingBottom":"10px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-ch_nrrow{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:10px;display:grid;grid-template-columns:repeat(5,minmax(5.5rem,1fr));padding:10px 0;row-gap:6px;width:100%}","className":"gb-el gb-el-ch_nrrow"} -->
-<div class="gb-element-ch_nrrow gb-el gb-el-ch_nrrow"><!-- wp:generateblocks/text {"uniqueId":"ch_nrrowc0","tagName":"a","styles":{"marginBottom":"0px","fontSize":"14px","display":"inline-block","textDecoration":"none"},"css":".gb-text-ch_nrrowc0{margin-bottom:0;font-size:14px;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-ch_nrrowc0"} -->
-<a class="gb-text gb-text-ch_nrrowc0 gb-t-ch_nrrowc0" href="{{post_permalink}}">{{post_title}}</a>
+<!-- wp:generateblocks/element {"uniqueId":"nb-card","tagName":"article","styles":{"overflow":"hidden","borderTopLeftRadius":"12px","borderTopRightRadius":"12px","borderBottomLeftRadius":"12px","borderBottomRightRadius":"12px","borderTopWidth":"1px","borderRightWidth":"1px","borderBottomWidth":"1px","borderLeftWidth":"1px","borderTopStyle":"solid","borderRightStyle":"solid","borderBottomStyle":"solid","borderLeftStyle":"solid","borderTopColor":"#e8e8e8","borderRightColor":"#e8e8e8","borderBottomColor":"#e8e8e8","borderLeftColor":"#e8e8e8","boxShadow":"0 8px 24px rgba(0,0,0,0.06)","backgroundColor":"#ffffff","height":"100%","display":"flex","flexDirection":"column"},"css":".gb-element-nb-card{background-color:#fff;border:1px solid #e8e8e8;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.06);display:flex;flex-direction:column;height:100%;overflow:hidden}","className":"pw-hotel-card gb-el gb-el-nb-card"} -->
+<article class="gb-element-nb-card gb-el gb-el-nb-card pw-hotel-card">
+<!-- wp:generateblocks/element {"uniqueId":"nb-card-media","tagName":"div","styles":{"overflow":"hidden","width":"100%","maxHeight":"220px"},"css":".gb-element-nb-card-media{max-height:220px;overflow:hidden;width:100%}","className":"gb-el gb-el-nb-card-media"} -->
+<div class="gb-element-nb-card-media gb-el gb-el-nb-card-media">
+<!-- wp:generateblocks/image {"uniqueId":"nb-fi","styles":{"display":"block","width":"100%","maxWidth":"100%","minHeight":"200px","marginBottom":"0px","objectFit":"cover"},"css":".gb-image-nb-fi{display:block;margin-bottom:0;max-width:100%;min-height:200px;object-fit:cover;width:100%}","dynamicImage":"featured-image","className":"gb-img-nb-fi"} -->
+<img class="gb-image gb-image-nb-fi gb-img-nb-fi" />
+<!-- /wp:generateblocks/image -->
+</div>
+<!-- /wp:generateblocks/element -->
+<!-- wp:generateblocks/element {"uniqueId":"nb-card-body","tagName":"div","styles":{"display":"flex","flexDirection":"column","flexGrow":"1","paddingTop":"24px","paddingRight":"24px","paddingBottom":"24px","paddingLeft":"24px"},"css":".gb-element-nb-card-body{display:flex;flex-direction:column;flex-grow:1;padding:24px}","className":"gb-el gb-el-nb-card-body"} -->
+<div class="gb-element-nb-card-body gb-el gb-el-nb-card-body">
+<!-- wp:generateblocks/text {"uniqueId":"nb_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"22px","fontWeight":"600","display":"inline-block","textDecoration":"none","lineHeight":"1.25"},"css":".gb-text-nb_t{display:inline-block;font-size:22px;font-weight:600;line-height:1.25;margin-bottom:12px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-nb_t"} -->
+<a class="gb-text gb-text-nb_t gb-t-nb_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ch_nrrowc1","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_nrrowc1{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_nrrowc1"} -->
-<div class="gb-text gb-text-ch_nrrowc1 gb-t-ch_nrrowc1">{{post_excerpt}}</div>
+<!-- wp:generateblocks/text {"uniqueId":"nb_e","tagName":"p","styles":{"marginBottom":"16px","fontSize":"16px","lineHeight":"1.55","color":"#4a4a4a"},"css":".gb-text-nb_e{color:#4a4a4a;font-size:16px;line-height:1.55;margin-bottom:16px}","className":"gb-t-nb_e"} -->
+<p class="gb-text gb-text-nb_e gb-t-nb_e">{{post_excerpt}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ch_nrrowc2","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_nrrowc2{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_nrrowc2"} -->
-<div class="gb-text gb-text-ch_nrrowc2 gb-t-ch_nrrowc2">{{post_meta key:_pw_distance_km}} km</div>
+<!-- wp:generateblocks/element {"uniqueId":"nb-specs","tagName":"div","styles":{"display":"flex","flexDirection":"column","rowGap":"8px","marginBottom":"20px","width":"100%"},"css":".gb-element-nb-specs{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;width:100%}","className":"gb-el gb-el-nb-specs"} -->
+<div class="gb-element-nb-specs gb-el gb-el-nb-specs">
+<!-- wp:generateblocks/text {"uniqueId":"nb-sp0","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-nb-sp0{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-nb-sp0"} -->
+<p class="gb-text gb-text-nb-sp0 gb-t-nb-sp0">{{post_terms taxonomy:pw_nearby_type}} · {{post_terms taxonomy:pw_transport_mode}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ch_nrrowc3","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ch_nrrowc3{margin-bottom:0px;font-size:14px}","className":"gb-t-ch_nrrowc3"} -->
-<div class="gb-text gb-text-ch_nrrowc3 gb-t-ch_nrrowc3">{{post_meta key:_pw_travel_time_min}} min</div>
+<!-- wp:generateblocks/text {"uniqueId":"nb-sp1","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-nb-sp1{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-nb-sp1"} -->
+<p class="gb-text gb-text-nb-sp1 gb-t-nb-sp1">{{post_meta key:_pw_distance_km}} km away</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ch_nrplink","tagName":"a","styles":{"marginBottom":"0px","display":"inline-block"},"css":".gb-text-ch_nrplink{display:inline-block;margin-bottom:0px;word-break:break-all}","htmlAttributes":{"href":"{{post_meta key:_pw_place_url}}"},"className":"gb-t-ch_nrplink"} -->
-<a class="gb-text gb-text-ch_nrplink gb-t-ch_nrplink" href="{{post_meta key:_pw_place_url}}">{{post_meta key:_pw_place_url}}</a>
+<!-- wp:generateblocks/text {"uniqueId":"nb-sp2","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-nb-sp2{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-nb-sp2"} -->
+<p class="gb-text gb-text-nb-sp2 gb-t-nb-sp2">{{post_meta key:_pw_travel_time_min}} min</p>
 <!-- /wp:generateblocks/text -->
 </div>
+<!-- /wp:generateblocks/element -->
+<!-- wp:generateblocks/text {"uniqueId":"nb-cta","tagName":"a","styles":{"display":"inline-block","marginTop":"auto","paddingTop":"12px","paddingRight":"22px","paddingBottom":"12px","paddingLeft":"22px","fontSize":"15px","fontWeight":"600","textDecoration":"none","color":"#ffffff","backgroundColor":"#1a1a1a","borderTopLeftRadius":"6px","borderTopRightRadius":"6px","borderBottomLeftRadius":"6px","borderBottomRightRadius":"6px"},"css":".gb-text-nb-cta{background-color:#1a1a1a;border-radius:6px;color:#fff;display:inline-block;font-size:15px;font-weight:600;margin-top:auto;padding:12px 22px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-nb-cta pw-hotel-cta"} -->
+<a class="gb-text gb-text-nb-cta gb-t-nb-cta pw-hotel-cta" href="{{post_permalink}}">View place</a>
+<!-- /wp:generateblocks/text -->
+</div>
+<!-- /wp:generateblocks/element -->
+</article>
 <!-- /wp:generateblocks/element -->
 </div>
 <!-- /wp:generateblocks/loop-item -->
 </div>
 <!-- /wp:generateblocks/looper -->
+</div>
+<!-- /wp:generateblocks/element -->
 <!-- wp:generateblocks/query-pagination /-->
 <!-- wp:generateblocks/query-no-results -->
-<!-- wp:generateblocks/text {"uniqueId":"nb-nr","tagName":"p","styles":{"marginBottom":"0px"},"css":".gb-text-nb-nr{margin-bottom:0px}","className":"gb-t-nb-nr"} -->
+<!-- wp:generateblocks/text {"uniqueId":"nb-nr","tagName":"p","styles":{"marginBottom":"0px","fontSize":"16px"},"css":".gb-text-nb-nr{font-size:16px;margin-bottom:0}","className":"gb-t-nb-nr"} -->
 <p class="gb-text gb-text-nb-nr gb-t-nb-nr">No nearby places.</p>
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
@@ -1410,77 +1422,58 @@ PW_ST_NEARBY,
 		'pw_event' => <<<'PW_ST_EVENT'
 <!-- wp:generateblocks/query {"uniqueId":"evq","tagName":"div","query":{"post_type":["pw_event"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"ev-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-ev-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-ev-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-ev-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-ev-grid"} -->
+<div class="gb-element-ev-grid gb-el gb-el-ev-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"ev-loop","tagName":"div","className":"gb-loop-ev-loop"} -->
 <div class="gb-looper-ev-loop gb-loop-ev-loop">
 <!-- wp:generateblocks/loop-item {"uniqueId":"ev-item","tagName":"div","className":"gb-li-ev-item"} -->
 <div class="gb-loop-item gb-loop-item-ev-item gb-li-ev-item">
-<!-- wp:generateblocks/element {"uniqueId":"evlsp","tagName":"div","styles":{"marginBottom":"32px","paddingBottom":"8px"},"css":".gb-element-evlsp{margin-bottom:32px;padding-bottom:8px}","className":"gb-el gb-el-evlsp"} -->
-<div class="gb-element-evlsp gb-el gb-el-evlsp"><!-- wp:generateblocks/text {"uniqueId":"ev_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600","display":"inline-block","textDecoration":"none"},"css":".gb-text-ev_t{margin-bottom:12px;font-size:18px;font-weight:600;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-ev_t"} -->
+<!-- wp:generateblocks/element {"uniqueId":"ev-card","tagName":"article","styles":{"overflow":"hidden","borderTopLeftRadius":"12px","borderTopRightRadius":"12px","borderBottomLeftRadius":"12px","borderBottomRightRadius":"12px","borderTopWidth":"1px","borderRightWidth":"1px","borderBottomWidth":"1px","borderLeftWidth":"1px","borderTopStyle":"solid","borderRightStyle":"solid","borderBottomStyle":"solid","borderLeftStyle":"solid","borderTopColor":"#e8e8e8","borderRightColor":"#e8e8e8","borderBottomColor":"#e8e8e8","borderLeftColor":"#e8e8e8","boxShadow":"0 8px 24px rgba(0,0,0,0.06)","backgroundColor":"#ffffff","height":"100%","display":"flex","flexDirection":"column"},"css":".gb-element-ev-card{background-color:#fff;border:1px solid #e8e8e8;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.06);display:flex;flex-direction:column;height:100%;overflow:hidden}","className":"pw-hotel-card gb-el gb-el-ev-card"} -->
+<article class="gb-element-ev-card gb-el gb-el-ev-card pw-hotel-card">
+<!-- wp:generateblocks/element {"uniqueId":"ev-card-media","tagName":"div","styles":{"overflow":"hidden","width":"100%","maxHeight":"220px"},"css":".gb-element-ev-card-media{max-height:220px;overflow:hidden;width:100%}","className":"gb-el gb-el-ev-card-media"} -->
+<div class="gb-element-ev-card-media gb-el gb-el-ev-card-media">
+<!-- wp:generateblocks/image {"uniqueId":"ev-fi","styles":{"display":"block","width":"100%","maxWidth":"100%","minHeight":"200px","marginBottom":"0px","objectFit":"cover"},"css":".gb-image-ev-fi{display:block;margin-bottom:0;max-width:100%;min-height:200px;object-fit:cover;width:100%}","dynamicImage":"featured-image","className":"gb-img-ev-fi"} -->
+<img class="gb-image gb-image-ev-fi gb-img-ev-fi" />
+<!-- /wp:generateblocks/image -->
+</div>
+<!-- /wp:generateblocks/element -->
+<!-- wp:generateblocks/element {"uniqueId":"ev-card-body","tagName":"div","styles":{"display":"flex","flexDirection":"column","flexGrow":"1","paddingTop":"24px","paddingRight":"24px","paddingBottom":"24px","paddingLeft":"24px"},"css":".gb-element-ev-card-body{display:flex;flex-direction:column;flex-grow:1;padding:24px}","className":"gb-el gb-el-ev-card-body"} -->
+<div class="gb-element-ev-card-body gb-el gb-el-ev-card-body">
+<!-- wp:generateblocks/text {"uniqueId":"ev_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"22px","fontWeight":"600","display":"inline-block","textDecoration":"none","lineHeight":"1.25"},"css":".gb-text-ev_t{display:inline-block;font-size:22px;font-weight:600;line-height:1.25;margin-bottom:12px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-ev_t"} -->
 <a class="gb-text gb-text-ev_t gb-t-ev_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ev_e","tagName":"p","styles":{"marginBottom":"12px"},"css":".gb-text-ev_e{margin-bottom:12px}","className":"gb-t-ev_e"} -->
+<!-- wp:generateblocks/text {"uniqueId":"ev_e","tagName":"p","styles":{"marginBottom":"16px","fontSize":"16px","lineHeight":"1.55","color":"#4a4a4a"},"css":".gb-text-ev_e{color:#4a4a4a;font-size:16px;line-height:1.55;margin-bottom:16px}","className":"gb-t-ev_e"} -->
 <p class="gb-text gb-text-ev_e gb-t-ev_e">{{post_excerpt}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/element {"uniqueId":"evgr","tagName":"div","styles":{"display":"flex","flexDirection":"column","width":"100%"},"css":".gb-element-evgr{display:flex;flex-direction:column;width:100%}","className":"gb-el gb-el-evgr"} -->
-<div class="gb-element-evgr gb-el gb-el-evgr"><!-- wp:generateblocks/element {"uniqueId":"evrw0","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-evrw0{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-evrw0{grid-template-columns:1fr}}","className":"gb-el gb-el-evrw0"} -->
-<div class="gb-element-evrw0 gb-el gb-el-evrw0"><!-- wp:generateblocks/text {"uniqueId":"evlk0","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-evlk0{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-evlk0"} -->
-<div class="gb-text gb-text-evlk0 gb-t-evlk0">Start (ISO 8601)</div>
+<!-- wp:generateblocks/element {"uniqueId":"ev-specs","tagName":"div","styles":{"display":"flex","flexDirection":"column","rowGap":"8px","marginBottom":"20px","width":"100%"},"css":".gb-element-ev-specs{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;width:100%}","className":"gb-el gb-el-ev-specs"} -->
+<div class="gb-element-ev-specs gb-el gb-el-ev-specs">
+<!-- wp:generateblocks/text {"uniqueId":"ev-sp0","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-ev-sp0{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-ev-sp0"} -->
+<p class="gb-text gb-text-ev-sp0 gb-t-ev-sp0">Starts {{post_meta key:_pw_start_datetime_iso8601}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"evvk0","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-evvk0{margin-bottom:0px;font-size:14px}","className":"gb-t-evvk0"} -->
-<div class="gb-text gb-text-evvk0 gb-t-evvk0">{{post_meta key:_pw_start_datetime_iso8601}}</div>
+<!-- wp:generateblocks/text {"uniqueId":"ev-sp1","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-ev-sp1{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-ev-sp1"} -->
+<p class="gb-text gb-text-ev-sp1 gb-t-ev-sp1">Ends {{post_meta key:_pw_end_datetime_iso8601}}</p>
 <!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"evrw1","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-evrw1{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-evrw1{grid-template-columns:1fr}}","className":"gb-el gb-el-evrw1"} -->
-<div class="gb-element-evrw1 gb-el gb-el-evrw1"><!-- wp:generateblocks/text {"uniqueId":"evlk1","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-evlk1{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-evlk1"} -->
-<div class="gb-text gb-text-evlk1 gb-t-evlk1">End (ISO 8601)</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"evvk1","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-evvk1{margin-bottom:0px;font-size:14px}","className":"gb-t-evvk1"} -->
-<div class="gb-text gb-text-evvk1 gb-t-evvk1">{{post_meta key:_pw_end_datetime_iso8601}}</div>
+<!-- wp:generateblocks/text {"uniqueId":"ev-sp2","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-ev-sp2{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-ev-sp2"} -->
+<p class="gb-text gb-text-ev-sp2 gb-t-ev-sp2">{{post_meta key:_pw_capacity}} guests · from {{post_meta key:_pw_price_from}} __PW_PROPERTY_CURRENCY__</p>
 <!-- /wp:generateblocks/text -->
 </div>
 <!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"evrw2","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-evrw2{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-evrw2{grid-template-columns:1fr}}","className":"gb-el gb-el-evrw2"} -->
-<div class="gb-element-evrw2 gb-el gb-el-evrw2"><!-- wp:generateblocks/text {"uniqueId":"evlk2","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-evlk2{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-evlk2"} -->
-<div class="gb-text gb-text-evlk2 gb-t-evlk2">Capacity</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"evvk2","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-evvk2{margin-bottom:0px;font-size:14px}","className":"gb-t-evvk2"} -->
-<div class="gb-text gb-text-evvk2 gb-t-evvk2">{{post_meta key:_pw_capacity}} guests</div>
+<!-- wp:generateblocks/text {"uniqueId":"ev-cta","tagName":"a","styles":{"display":"inline-block","marginTop":"auto","paddingTop":"12px","paddingRight":"22px","paddingBottom":"12px","paddingLeft":"22px","fontSize":"15px","fontWeight":"600","textDecoration":"none","color":"#ffffff","backgroundColor":"#1a1a1a","borderTopLeftRadius":"6px","borderTopRightRadius":"6px","borderBottomLeftRadius":"6px","borderBottomRightRadius":"6px"},"css":".gb-text-ev-cta{background-color:#1a1a1a;border-radius:6px;color:#fff;display:inline-block;font-size:15px;font-weight:600;margin-top:auto;padding:12px 22px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-ev-cta pw-hotel-cta"} -->
+<a class="gb-text gb-text-ev-cta gb-t-ev-cta pw-hotel-cta" href="{{post_permalink}}">View event</a>
 <!-- /wp:generateblocks/text -->
 </div>
 <!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"evrw3","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-evrw3{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-evrw3{grid-template-columns:1fr}}","className":"gb-el gb-el-evrw3"} -->
-<div class="gb-element-evrw3 gb-el gb-el-evrw3"><!-- wp:generateblocks/text {"uniqueId":"evlk3","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-evlk3{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-evlk3"} -->
-<div class="gb-text gb-text-evlk3 gb-t-evlk3">Price from</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"evvk3","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-evvk3{margin-bottom:0px;font-size:14px}","className":"gb-t-evvk3"} -->
-<div class="gb-text gb-text-evvk3 gb-t-evvk3">{{post_meta key:_pw_price_from}} __PW_PROPERTY_CURRENCY__</div>
-<!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"evrw5","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-evrw5{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-evrw5{grid-template-columns:1fr}}","className":"gb-el gb-el-evrw5"} -->
-<div class="gb-element-evrw5 gb-el gb-el-evrw5"><!-- wp:generateblocks/text {"uniqueId":"evlk5","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-evlk5{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-evlk5"} -->
-<div class="gb-text gb-text-evlk5 gb-t-evlk5">Status</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"evvk5","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-evvk5{margin-bottom:0px;font-size:14px}","className":"gb-t-evvk5"} -->
-<div class="gb-text gb-text-evvk5 gb-t-evvk5">{{post_meta key:_pw_event_status}}</div>
-<!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/text {"uniqueId":"ev_b","tagName":"a","styles":{"marginBottom":"0px","display":"inline-block"},"css":".gb-text-ev_b{display:inline-block;margin-bottom:0px}","htmlAttributes":{"href":"{{post_meta key:_pw_booking_url}}"},"className":"gb-t-ev_b"} -->
-<a class="gb-text gb-text-ev_b gb-t-ev_b" href="{{post_meta key:_pw_booking_url}}">Booking</a>
-<!-- /wp:generateblocks/text -->
-</div>
+</article>
 <!-- /wp:generateblocks/element -->
 </div>
 <!-- /wp:generateblocks/loop-item -->
 </div>
 <!-- /wp:generateblocks/looper -->
+</div>
+<!-- /wp:generateblocks/element -->
 <!-- wp:generateblocks/query-pagination /-->
 <!-- wp:generateblocks/query-no-results -->
-<!-- wp:generateblocks/text {"uniqueId":"ev-nr","tagName":"p","styles":{"marginBottom":"0px"},"css":".gb-text-ev-nr{margin-bottom:0px}","className":"gb-t-ev-nr"} -->
+<!-- wp:generateblocks/text {"uniqueId":"ev-nr","tagName":"p","styles":{"marginBottom":"0px","fontSize":"16px"},"css":".gb-text-ev-nr{font-size:16px;margin-bottom:0}","className":"gb-t-ev-nr"} -->
 <p class="gb-text gb-text-ev-nr gb-t-ev-nr">None found.</p>
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
@@ -1490,86 +1483,58 @@ PW_ST_EVENT,
 		'pw_offer' => <<<'PW_ST_OFFER'
 <!-- wp:generateblocks/query {"uniqueId":"ofq","tagName":"div","query":{"post_type":["pw_offer"],"posts_per_page":10,"orderby":"title","order":"asc","_pwNote":"pagination controlled by WordPress Reading settings (Blog pages show at most)"},"className":"pw-gb-scope-property"} -->
 <div class="pw-gb-scope-property">
+<!-- wp:generateblocks/element {"uniqueId":"of-grid","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"1fr","columnGap":"24px","rowGap":"24px","width":"100%"},"css":".gb-element-of-grid{display:grid;grid-template-columns:1fr;column-gap:24px;row-gap:24px;width:100%}@media(min-width:640px){.gb-element-of-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1000px){.gb-element-of-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}","className":"pw-hotel-card-grid gb-el gb-el-of-grid"} -->
+<div class="gb-element-of-grid gb-el gb-el-of-grid pw-hotel-card-grid">
 <!-- wp:generateblocks/looper {"uniqueId":"of-loop","tagName":"div","className":"gb-loop-of-loop"} -->
 <div class="gb-looper-of-loop gb-loop-of-loop">
 <!-- wp:generateblocks/loop-item {"uniqueId":"of-item","tagName":"div","className":"gb-li-of-item"} -->
 <div class="gb-loop-item gb-loop-item-of-item gb-li-of-item">
-<!-- wp:generateblocks/element {"uniqueId":"oflsp","tagName":"div","styles":{"marginBottom":"32px","paddingBottom":"8px"},"css":".gb-element-oflsp{margin-bottom:32px;padding-bottom:8px}","className":"gb-el gb-el-oflsp"} -->
-<div class="gb-element-oflsp gb-el gb-el-oflsp"><!-- wp:generateblocks/text {"uniqueId":"of_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"18px","fontWeight":"600","display":"inline-block","textDecoration":"none"},"css":".gb-text-of_t{margin-bottom:12px;font-size:18px;font-weight:600;display:inline-block;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-of_t"} -->
+<!-- wp:generateblocks/element {"uniqueId":"of-card","tagName":"article","styles":{"overflow":"hidden","borderTopLeftRadius":"12px","borderTopRightRadius":"12px","borderBottomLeftRadius":"12px","borderBottomRightRadius":"12px","borderTopWidth":"1px","borderRightWidth":"1px","borderBottomWidth":"1px","borderLeftWidth":"1px","borderTopStyle":"solid","borderRightStyle":"solid","borderBottomStyle":"solid","borderLeftStyle":"solid","borderTopColor":"#e8e8e8","borderRightColor":"#e8e8e8","borderBottomColor":"#e8e8e8","borderLeftColor":"#e8e8e8","boxShadow":"0 8px 24px rgba(0,0,0,0.06)","backgroundColor":"#ffffff","height":"100%","display":"flex","flexDirection":"column"},"css":".gb-element-of-card{background-color:#fff;border:1px solid #e8e8e8;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.06);display:flex;flex-direction:column;height:100%;overflow:hidden}","className":"pw-hotel-card gb-el gb-el-of-card"} -->
+<article class="gb-element-of-card gb-el gb-el-of-card pw-hotel-card">
+<!-- wp:generateblocks/element {"uniqueId":"of-card-media","tagName":"div","styles":{"overflow":"hidden","width":"100%","maxHeight":"220px"},"css":".gb-element-of-card-media{max-height:220px;overflow:hidden;width:100%}","className":"gb-el gb-el-of-card-media"} -->
+<div class="gb-element-of-card-media gb-el gb-el-of-card-media">
+<!-- wp:generateblocks/image {"uniqueId":"of-fi","styles":{"display":"block","width":"100%","maxWidth":"100%","minHeight":"200px","marginBottom":"0px","objectFit":"cover"},"css":".gb-image-of-fi{display:block;margin-bottom:0;max-width:100%;min-height:200px;object-fit:cover;width:100%}","dynamicImage":"featured-image","className":"gb-img-of-fi"} -->
+<img class="gb-image gb-image-of-fi gb-img-of-fi" />
+<!-- /wp:generateblocks/image -->
+</div>
+<!-- /wp:generateblocks/element -->
+<!-- wp:generateblocks/element {"uniqueId":"of-card-body","tagName":"div","styles":{"display":"flex","flexDirection":"column","flexGrow":"1","paddingTop":"24px","paddingRight":"24px","paddingBottom":"24px","paddingLeft":"24px"},"css":".gb-element-of-card-body{display:flex;flex-direction:column;flex-grow:1;padding:24px}","className":"gb-el gb-el-of-card-body"} -->
+<div class="gb-element-of-card-body gb-el gb-el-of-card-body">
+<!-- wp:generateblocks/text {"uniqueId":"of_t","tagName":"a","styles":{"marginBottom":"12px","fontSize":"22px","fontWeight":"600","display":"inline-block","textDecoration":"none","lineHeight":"1.25"},"css":".gb-text-of_t{display:inline-block;font-size:22px;font-weight:600;line-height:1.25;margin-bottom:12px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-of_t"} -->
 <a class="gb-text gb-text-of_t gb-t-of_t" href="{{post_permalink}}">{{post_title}}</a>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"of_e","tagName":"p","styles":{"marginBottom":"12px"},"css":".gb-text-of_e{margin-bottom:12px}","className":"gb-t-of_e"} -->
+<!-- wp:generateblocks/text {"uniqueId":"of_e","tagName":"p","styles":{"marginBottom":"16px","fontSize":"16px","lineHeight":"1.55","color":"#4a4a4a"},"css":".gb-text-of_e{color:#4a4a4a;font-size:16px;line-height:1.55;margin-bottom:16px}","className":"gb-t-of_e"} -->
 <p class="gb-text gb-text-of_e gb-t-of_e">{{post_excerpt}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/element {"uniqueId":"ofgr","tagName":"div","styles":{"display":"flex","flexDirection":"column","width":"100%"},"css":".gb-element-ofgr{display:flex;flex-direction:column;width:100%}","className":"gb-el gb-el-ofgr"} -->
-<div class="gb-element-ofgr gb-el gb-el-ofgr"><!-- wp:generateblocks/element {"uniqueId":"ofrw0","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-ofrw0{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-ofrw0{grid-template-columns:1fr}}","className":"gb-el gb-el-ofrw0"} -->
-<div class="gb-element-ofrw0 gb-el gb-el-ofrw0"><!-- wp:generateblocks/text {"uniqueId":"oflk0","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-oflk0{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-oflk0"} -->
-<div class="gb-text gb-text-oflk0 gb-t-oflk0">Offer type</div>
+<!-- wp:generateblocks/element {"uniqueId":"of-specs","tagName":"div","styles":{"display":"flex","flexDirection":"column","rowGap":"8px","marginBottom":"20px","width":"100%"},"css":".gb-element-of-specs{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;width:100%}","className":"gb-el gb-el-of-specs"} -->
+<div class="gb-element-of-specs gb-el gb-el-of-specs">
+<!-- wp:generateblocks/text {"uniqueId":"of-sp0","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-of-sp0{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-of-sp0"} -->
+<p class="gb-text gb-text-of-sp0 gb-t-of-sp0">{{post_meta key:_pw_offer_type}}</p>
 <!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ofvk0","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ofvk0{margin-bottom:0px;font-size:14px}","className":"gb-t-ofvk0"} -->
-<div class="gb-text gb-text-ofvk0 gb-t-ofvk0">{{post_meta key:_pw_offer_type}}</div>
+<!-- wp:generateblocks/text {"uniqueId":"of-sp1","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-of-sp1{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-of-sp1"} -->
+<p class="gb-text gb-text-of-sp1 gb-t-of-sp1">{{post_meta key:_pw_valid_from}} – {{post_meta key:_pw_valid_to}}</p>
 <!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"ofrw1","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-ofrw1{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-ofrw1{grid-template-columns:1fr}}","className":"gb-el gb-el-ofrw1"} -->
-<div class="gb-element-ofrw1 gb-el gb-el-ofrw1"><!-- wp:generateblocks/text {"uniqueId":"oflk1","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-oflk1{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-oflk1"} -->
-<div class="gb-text gb-text-oflk1 gb-t-oflk1">Valid from</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ofvk1","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ofvk1{margin-bottom:0px;font-size:14px}","className":"gb-t-ofvk1"} -->
-<div class="gb-text gb-text-ofvk1 gb-t-ofvk1">{{post_meta key:_pw_valid_from}}</div>
+<!-- wp:generateblocks/text {"uniqueId":"of-sp2","tagName":"p","styles":{"marginBottom":"0px","fontSize":"15px","fontWeight":"600"},"css":".gb-text-of-sp2{font-size:15px;font-weight:600;margin-bottom:0}","className":"gb-t-of-sp2"} -->
+<p class="gb-text gb-text-of-sp2 gb-t-of-sp2">{{post_meta key:_pw_discount_value}} ({{post_meta key:_pw_discount_type}}) · min {{post_meta key:_pw_minimum_stay_nights}} nights</p>
 <!-- /wp:generateblocks/text -->
 </div>
 <!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"ofrw2","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-ofrw2{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-ofrw2{grid-template-columns:1fr}}","className":"gb-el gb-el-ofrw2"} -->
-<div class="gb-element-ofrw2 gb-el gb-el-ofrw2"><!-- wp:generateblocks/text {"uniqueId":"oflk2","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-oflk2{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-oflk2"} -->
-<div class="gb-text gb-text-oflk2 gb-t-oflk2">Valid to</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ofvk2","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ofvk2{margin-bottom:0px;font-size:14px}","className":"gb-t-ofvk2"} -->
-<div class="gb-text gb-text-ofvk2 gb-t-ofvk2">{{post_meta key:_pw_valid_to}}</div>
+<!-- wp:generateblocks/text {"uniqueId":"of-cta","tagName":"a","styles":{"display":"inline-block","marginTop":"auto","paddingTop":"12px","paddingRight":"22px","paddingBottom":"12px","paddingLeft":"22px","fontSize":"15px","fontWeight":"600","textDecoration":"none","color":"#ffffff","backgroundColor":"#1a1a1a","borderTopLeftRadius":"6px","borderTopRightRadius":"6px","borderBottomLeftRadius":"6px","borderBottomRightRadius":"6px"},"css":".gb-text-of-cta{background-color:#1a1a1a;border-radius:6px;color:#fff;display:inline-block;font-size:15px;font-weight:600;margin-top:auto;padding:12px 22px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"{{post_permalink}}"}],"className":"gb-t-of-cta pw-hotel-cta"} -->
+<a class="gb-text gb-text-of-cta gb-t-of-cta pw-hotel-cta" href="{{post_permalink}}">View offer</a>
 <!-- /wp:generateblocks/text -->
 </div>
 <!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"ofrw3","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-ofrw3{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-ofrw3{grid-template-columns:1fr}}","className":"gb-el gb-el-ofrw3"} -->
-<div class="gb-element-ofrw3 gb-el gb-el-ofrw3"><!-- wp:generateblocks/text {"uniqueId":"oflk3","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-oflk3{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-oflk3"} -->
-<div class="gb-text gb-text-oflk3 gb-t-oflk3">Discount</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ofvk3","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ofvk3{margin-bottom:0px;font-size:14px}","className":"gb-t-ofvk3"} -->
-<div class="gb-text gb-text-ofvk3 gb-t-ofvk3">{{post_meta key:_pw_discount_value}} ({{post_meta key:_pw_discount_type}})</div>
-<!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"ofrw4","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-ofrw4{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-ofrw4{grid-template-columns:1fr}}","className":"gb-el gb-el-ofrw4"} -->
-<div class="gb-element-ofrw4 gb-el gb-el-ofrw4"><!-- wp:generateblocks/text {"uniqueId":"oflk4","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-oflk4{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-oflk4"} -->
-<div class="gb-text gb-text-oflk4 gb-t-oflk4">Min. nights</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ofvk4","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ofvk4{margin-bottom:0px;font-size:14px}","className":"gb-t-ofvk4"} -->
-<div class="gb-text gb-text-ofvk4 gb-t-ofvk4">{{post_meta key:_pw_minimum_stay_nights}} nights</div>
-<!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/element {"uniqueId":"ofrw5","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-ofrw5{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media (max-width:640px){.gb-element-ofrw5{grid-template-columns:1fr}}","className":"gb-el gb-el-ofrw5"} -->
-<div class="gb-element-ofrw5 gb-el gb-el-ofrw5"><!-- wp:generateblocks/text {"uniqueId":"oflk5","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-oflk5{margin-bottom:0px;font-size:14px;font-weight:600}","className":"gb-t-oflk5"} -->
-<div class="gb-text gb-text-oflk5 gb-t-oflk5">Featured</div>
-<!-- /wp:generateblocks/text -->
-<!-- wp:generateblocks/text {"uniqueId":"ofvk5","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-ofvk5{margin-bottom:0px;font-size:14px}","className":"gb-t-ofvk5"} -->
-<div class="gb-text gb-text-ofvk5 gb-t-ofvk5">{{post_meta key:_pw_is_featured}}</div>
-<!-- /wp:generateblocks/text -->
-</div>
-<!-- /wp:generateblocks/element -->
-</div>
-<!-- /wp:generateblocks/element -->
-<!-- wp:generateblocks/text {"uniqueId":"of_b","tagName":"a","styles":{"marginBottom":"0px","display":"inline-block"},"css":".gb-text-of_b{display:inline-block;margin-bottom:0px}","htmlAttributes":{"href":"{{post_meta key:_pw_booking_url}}"},"className":"gb-t-of_b"} -->
-<a class="gb-text gb-text-of_b gb-t-of_b" href="{{post_meta key:_pw_booking_url}}">Book / details</a>
-<!-- /wp:generateblocks/text -->
-</div>
+</article>
 <!-- /wp:generateblocks/element -->
 </div>
 <!-- /wp:generateblocks/loop-item -->
 </div>
 <!-- /wp:generateblocks/looper -->
+</div>
+<!-- /wp:generateblocks/element -->
 <!-- wp:generateblocks/query-pagination /-->
 <!-- wp:generateblocks/query-no-results -->
-<!-- wp:generateblocks/text {"uniqueId":"of-nr","tagName":"p","styles":{"marginBottom":"0px"},"css":".gb-text-of-nr{margin-bottom:0px}","className":"gb-t-of-nr"} -->
+<!-- wp:generateblocks/text {"uniqueId":"of-nr","tagName":"p","styles":{"marginBottom":"0px","fontSize":"16px"},"css":".gb-text-of-nr{font-size:16px;margin-bottom:0}","className":"gb-t-of-nr"} -->
 <p class="gb-text gb-text-of-nr gb-t-of-nr">None found.</p>
 <!-- /wp:generateblocks/text -->
 <!-- /wp:generateblocks/query-no-results -->
@@ -1590,12 +1555,12 @@ PW_ST_OFFER,
  * ──────────────────────────────────────────────────────────────────────── */
 
 function _pw_gb_row( string $uid, string $label, string $value ): string {
-	return '<!-- wp:generateblocks/element {"uniqueId":"' . $uid . '","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(36%, 12rem)) 1fr","columnGap":"14px","alignItems":"start","paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0","width":"100%"},"css":".gb-element-' . $uid . '{align-items:start;border-bottom:1px solid #e0e0e0;column-gap:14px;display:grid;grid-template-columns:minmax(0,min(36%,12rem)) 1fr;padding:8px 0;width:100%}@media(max-width:640px){.gb-element-' . $uid . '{grid-template-columns:1fr}}","className":"gb-el gb-el-' . $uid . '"} -->' . "\n"
+	return '<!-- wp:generateblocks/element {"uniqueId":"' . $uid . '","tagName":"div","styles":{"display":"grid","gridTemplateColumns":"minmax(0, min(40%, 14rem)) 1fr","columnGap":"16px","alignItems":"start","paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#ececec","width":"100%"},"css":".gb-element-' . $uid . '{align-items:start;border-bottom:1px solid #ececec;column-gap:16px;display:grid;grid-template-columns:minmax(0,min(40%,14rem)) 1fr;padding:12px 0;width:100%}@media(max-width:640px){.gb-element-' . $uid . '{grid-template-columns:1fr}}","className":"gb-el gb-el-' . $uid . '"} -->' . "\n"
 		. '<div class="gb-element-' . $uid . ' gb-el gb-el-' . $uid . '">'
-		. '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . 'l","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"14px"},"css":".gb-text-' . $uid . 'l{margin-bottom:0;font-size:14px;font-weight:600}","className":"gb-t-' . $uid . 'l"} -->' . "\n"
+		. '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . 'l","tagName":"div","styles":{"marginBottom":"0px","fontWeight":"600","fontSize":"15px","color":"#5c5c5c"},"css":".gb-text-' . $uid . 'l{color:#5c5c5c;margin-bottom:0;font-size:15px;font-weight:600}","className":"gb-t-' . $uid . 'l"} -->' . "\n"
 		. '<div class="gb-text gb-text-' . $uid . 'l gb-t-' . $uid . 'l">' . $label . '</div>' . "\n"
 		. '<!-- /wp:generateblocks/text -->' . "\n"
-		. '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . 'v","tagName":"div","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-' . $uid . 'v{margin-bottom:0;font-size:14px}","className":"gb-t-' . $uid . 'v"} -->' . "\n"
+		. '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . 'v","tagName":"div","styles":{"marginBottom":"0px","fontSize":"16px","lineHeight":"1.55"},"css":".gb-text-' . $uid . 'v{line-height:1.55;margin-bottom:0;font-size:16px}","className":"gb-t-' . $uid . 'v"} -->' . "\n"
 		. '<div class="gb-text gb-text-' . $uid . 'v gb-t-' . $uid . 'v">' . $value . '</div>' . "\n"
 		. '<!-- /wp:generateblocks/text -->' . "\n"
 		. '</div>' . "\n"
@@ -1603,34 +1568,53 @@ function _pw_gb_row( string $uid, string $label, string $value ): string {
 }
 
 function _pw_gb_h( string $uid, string $text, string $tag = 'h2' ): string {
-	$fs = $tag === 'h1' ? '28px' : '20px';
+	$fs = $tag === 'h1' ? '36px' : '26px';
 	$fw = $tag === 'h1' ? '700' : '600';
-	return '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . '","tagName":"' . $tag . '","styles":{"marginBottom":"12px","fontSize":"' . $fs . '","fontWeight":"' . $fw . '"},"css":".gb-text-' . $uid . '{margin-bottom:12px;font-size:' . $fs . ';font-weight:' . $fw . '}","className":"gb-t-' . $uid . '"} -->' . "\n"
+	$mb = $tag === 'h1' ? '16px' : '16px';
+	return '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . '","tagName":"' . $tag . '","styles":{"marginBottom":"' . $mb . '","fontSize":"' . $fs . '","fontWeight":"' . $fw . '","lineHeight":"1.2"},"css":".gb-text-' . $uid . '{line-height:1.2;margin-bottom:' . $mb . ';font-size:' . $fs . ';font-weight:' . $fw . '}","className":"gb-t-' . $uid . '"} -->' . "\n"
 		. '<' . $tag . ' class="gb-text gb-text-' . $uid . ' gb-t-' . $uid . '">' . $text . '</' . $tag . '>' . "\n"
 		. '<!-- /wp:generateblocks/text -->';
 }
 
 function _pw_gb_p( string $uid, string $text ): string {
-	return '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . '","tagName":"p","styles":{"marginBottom":"12px","fontSize":"14px"},"css":".gb-text-' . $uid . '{margin-bottom:12px;font-size:14px}","className":"gb-t-' . $uid . '"} -->' . "\n"
+	return '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . '","tagName":"p","styles":{"marginBottom":"16px","fontSize":"17px","lineHeight":"1.6"},"css":".gb-text-' . $uid . '{line-height:1.6;margin-bottom:16px;font-size:17px}","className":"gb-t-' . $uid . '"} -->' . "\n"
 		. '<p class="gb-text gb-text-' . $uid . ' gb-t-' . $uid . '">' . $text . '</p>' . "\n"
 		. '<!-- /wp:generateblocks/text -->';
 }
 
 function _pw_gb_link( string $uid, string $text, string $href ): string {
-	return '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . '","tagName":"a","styles":{"marginBottom":"4px","display":"inline-block","marginRight":"16px"},"css":".gb-text-' . $uid . '{display:inline-block;margin-bottom:4px;margin-right:16px}","htmlAttributes":[{"key":"href","value":"' . $href . '"}],"className":"gb-t-' . $uid . '"} -->' . "\n"
+	return '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . '","tagName":"a","styles":{"marginBottom":"8px","display":"inline-block","marginRight":"20px","fontSize":"16px","textDecoration":"underline"},"css":".gb-text-' . $uid . '{display:inline-block;font-size:16px;margin-bottom:8px;margin-right:20px;text-decoration:underline}","htmlAttributes":[{"key":"href","value":"' . $href . '"}],"className":"gb-t-' . $uid . '"} -->' . "\n"
 		. '<a class="gb-text gb-text-' . $uid . ' gb-t-' . $uid . '" href="' . $href . '">' . $text . '</a>' . "\n"
 		. '<!-- /wp:generateblocks/text -->';
 }
 
 function _pw_gb_img( string $uid ): string {
-	return '<!-- wp:generateblocks/image {"uniqueId":"' . $uid . '","styles":{"display":"block","height":"auto","maxWidth":"100%","marginBottom":"24px"},"css":".gb-image-' . $uid . '{display:block;height:auto;max-width:100%;margin-bottom:24px}","dynamicImage":"featured-image","className":"gb-img-' . $uid . '"} -->' . "\n"
+	return '<!-- wp:generateblocks/image {"uniqueId":"' . $uid . '","styles":{"display":"block","height":"auto","maxWidth":"100%","marginBottom":"32px"},"css":".gb-image-' . $uid . '{display:block;height:auto;max-width:100%;margin-bottom:32px}","dynamicImage":"featured-image","className":"gb-img-' . $uid . '"} -->' . "\n"
 		. '<img class="gb-image gb-image-' . $uid . ' gb-img-' . $uid . '" />' . "\n"
 		. '<!-- /wp:generateblocks/image -->';
 }
 
+function _pw_gb_hero_img( string $uid ): string {
+	return '<!-- wp:generateblocks/image {"uniqueId":"' . $uid . '","styles":{"display":"block","width":"100%","maxWidth":"100%","minHeight":"280px","marginBottom":"0px","objectFit":"cover"},"css":".gb-image-' . $uid . '{display:block;margin-bottom:0;max-width:100%;min-height:280px;object-fit:cover;width:100%}","dynamicImage":"featured-image","className":"gb-img-' . $uid . ' pw-hotel-hero-img"} -->' . "\n"
+		. '<img class="gb-image gb-image-' . $uid . ' gb-img-' . $uid . ' pw-hotel-hero-img" />' . "\n"
+		. '<!-- /wp:generateblocks/image -->';
+}
+
+function _pw_gb_cta_button( string $uid, string $text, string $href ): string {
+	return '<!-- wp:generateblocks/text {"uniqueId":"' . $uid . '","tagName":"a","styles":{"display":"inline-block","marginTop":"8px","marginBottom":"8px","paddingTop":"12px","paddingRight":"24px","paddingBottom":"12px","paddingLeft":"24px","fontSize":"16px","fontWeight":"600","textDecoration":"none","color":"#ffffff","backgroundColor":"#1a1a1a","borderTopLeftRadius":"6px","borderTopRightRadius":"6px","borderBottomLeftRadius":"6px","borderBottomRightRadius":"6px"},"css":".gb-text-' . $uid . '{background-color:#1a1a1a;border-radius:6px;color:#fff;display:inline-block;font-size:16px;font-weight:600;margin-bottom:8px;margin-top:8px;padding:12px 24px;text-decoration:none}","htmlAttributes":[{"key":"href","value":"' . $href . '"}],"className":"gb-t-' . $uid . ' pw-hotel-cta"} -->' . "\n"
+		. '<a class="gb-text gb-text-' . $uid . ' gb-t-' . $uid . ' pw-hotel-cta" href="' . $href . '">' . $text . '</a>' . "\n"
+		. '<!-- /wp:generateblocks/text -->';
+}
+
+function _pw_gb_needs_shortcode_placeholder( string $slug ): string {
+	return '<!-- wp:html -->' . "\n"
+		. '<!-- ' . $slug . ': needs shortcode -->' . "\n"
+		. '<!-- /wp:html -->';
+}
+
 function _pw_gb_section( string $uid, string $inner ): string {
-	return '<!-- wp:generateblocks/element {"uniqueId":"' . $uid . '","tagName":"section","styles":{"marginTop":"32px"},"css":".gb-element-' . $uid . '{margin-top:32px}","className":"gb-el gb-el-' . $uid . '"} -->' . "\n"
-		. '<section class="gb-element-' . $uid . ' gb-el gb-el-' . $uid . '">' . "\n"
+	return '<!-- wp:generateblocks/element {"uniqueId":"' . $uid . '","tagName":"section","styles":{"marginTop":"48px"},"css":".gb-element-' . $uid . '{margin-top:48px}","className":"gb-el gb-el-' . $uid . ' pw-hotel-section"} -->' . "\n"
+		. '<section class="gb-element-' . $uid . ' gb-el gb-el-' . $uid . ' pw-hotel-section">' . "\n"
 		. $inner . "\n"
 		. '</section>' . "\n"
 		. '<!-- /wp:generateblocks/element -->';
@@ -1735,46 +1719,42 @@ function _pw_markup_property_singular(): string {
 /* ── Room singular ─────────────────────────────────────────────────────── */
 
 function _pw_markup_room_singular(): string {
+	$hero = _pw_gb_hero_img( 'rms-hero' ) . "\n"
+		. '<!-- wp:generateblocks/element {"uniqueId":"rms-hero-copy","tagName":"div","styles":{"paddingTop":"32px","paddingBottom":"24px"},"css":".gb-element-rms-hero-copy{padding:32px 0 24px}","className":"pw-hotel-hero gb-el gb-el-rms-hero-copy"} -->' . "\n"
+		. '<div class="gb-element-rms-hero-copy gb-el gb-el-rms-hero-copy pw-hotel-hero">' . "\n"
+		. _pw_gb_h( 'rms-h1', '{{post_title}}', 'h1' ) . "\n"
+		. _pw_gb_p( 'rms-ex', '{{post_excerpt}}' ) . "\n"
+		. _pw_gb_cta_button( 'rms-bkurl', 'Book this room', '{{post_meta key:_pw_booking_url}}' ) . "\n"
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/element -->';
+
+	$facts = _pw_gb_section(
+		'rms-facts',
+		_pw_gb_h( 'rms-fh', 'Room details', 'h2' ) . "\n"
+		. _pw_gb_row( 'rms-r0', 'From', '{{post_meta key:_pw_rate_from}} __PW_PROPERTY_CURRENCY__' ) . "\n"
+		. _pw_gb_row( 'rms-r1', 'To', '{{post_meta key:_pw_rate_to}} __PW_PROPERTY_CURRENCY__' ) . "\n"
+		. _pw_gb_row( 'rms-r2', 'Sleeps', '{{post_meta key:_pw_max_occupancy}}' ) . "\n"
+		. _pw_gb_row( 'rms-r3', 'Max adults', '{{post_meta key:_pw_max_adults}}' ) . "\n"
+		. _pw_gb_row( 'rms-r4', 'Max children', '{{post_meta key:_pw_max_children}}' ) . "\n"
+		. _pw_gb_row( 'rms-r5', 'Size (m²)', '{{post_meta key:_pw_size_sqm}}' ) . "\n"
+		. _pw_gb_row( 'rms-r6', 'Size (ft²)', '{{post_meta key:_pw_size_sqft}}' ) . "\n"
+		. _pw_gb_row( 'rms-r7', 'Extra beds', '{{post_meta key:_pw_max_extra_beds}}' ) . "\n"
+		. _pw_gb_row( 'rms-r8', 'Bed type', '{{post_terms taxonomy:pw_bed_type}}' ) . "\n"
+		. _pw_gb_row( 'rms-r9', 'View', '{{post_terms taxonomy:pw_view_type}}' )
+	);
+
 	$rates = _pw_gb_section(
 		'rms-rates',
 		_pw_gb_h( 'rms-rh', 'Rate plans', 'h2' ) . "\n"
-		. '<!-- wp:generateblocks/query {"uniqueId":"rms-rtq","tagName":"div","query":{"post_type":["pw_room_type"],"queryType":"post_meta","metaKey":"_pw_rates","posts_per_page":100},"className":"gb-el gb-el-rms-rtq"} -->' . "\n"
-		. '<div class="gb-el gb-el-rms-rtq">'
-		. '<!-- wp:generateblocks/looper {"uniqueId":"rms-rtlp","tagName":"div","className":"gb-loop-rms-rtlp"} -->' . "\n"
-		. '<div class="gb-looper-rms-rtlp gb-loop-rms-rtlp">'
-		. '<!-- wp:generateblocks/loop-item {"uniqueId":"rms-rtli","tagName":"div","styles":{"paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-rms-rtli{padding:8px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-rms-rtli"} -->' . "\n"
-		. '<div class="gb-loop-item gb-loop-item-rms-rtli gb-li-rms-rtli">'
-		. _pw_gb_row( 'rms-rl', 'Label', '{{loop_item key:rate_label}}' ) . "\n"
-		. _pw_gb_row( 'rms-rtp', 'Type', '{{loop_item key:rate_type}}' ) . "\n"
-		. _pw_gb_row( 'rms-rp', 'Price', '{{loop_item key:price}} __PW_PROPERTY_CURRENCY__' ) . "\n"
-		. _pw_gb_row( 'rms-rvf', 'Valid from', '{{loop_item key:valid_from}}' ) . "\n"
-		. _pw_gb_row( 'rms-rvt', 'Valid to', '{{loop_item key:valid_to}}' )
-		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/loop-item -->'
-		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/looper -->'
-		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/query -->'
+		. _pw_gb_needs_shortcode_placeholder( 'pw_rates' )
 	);
+
 	$gallery = _pw_gb_section(
 		'rms-gal',
 		_pw_gb_h( 'rms-gh', 'Gallery', 'h2' ) . "\n"
-		. '<!-- wp:generateblocks/query {"uniqueId":"rms-gq","tagName":"div","query":{"post_type":["pw_room_type"],"queryType":"post_meta","metaKey":"_pw_gallery","posts_per_page":100},"className":"gb-el gb-el-rms-gq"} -->' . "\n"
-		. '<div class="gb-el gb-el-rms-gq">'
-		. '<!-- wp:generateblocks/looper {"uniqueId":"rms-glp","tagName":"div","className":"gb-loop-rms-glp"} -->' . "\n"
-		. '<div class="gb-looper-rms-glp gb-loop-rms-glp">'
-		. '<!-- wp:generateblocks/loop-item {"uniqueId":"rms-gli","tagName":"div","styles":{"marginBottom":"12px"},"css":".gb-loop-item-rms-gli{margin-bottom:12px}","className":"gb-li-rms-gli"} -->' . "\n"
-		. '<div class="gb-loop-item gb-loop-item-rms-gli gb-li-rms-gli">'
-		. '<!-- wp:generateblocks/text {"uniqueId":"rms-gid","tagName":"p","styles":{"marginBottom":"0px","fontSize":"14px"},"css":".gb-text-rms-gid{margin-bottom:0;font-size:14px}","className":"gb-t-rms-gid"} -->' . "\n"
-		. '<p class="gb-text gb-text-rms-gid gb-t-rms-gid">Attachment ID: {{loop_item}}</p>' . "\n"
-		. '<!-- /wp:generateblocks/text -->'
-		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/loop-item -->'
-		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/looper -->'
-		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/query -->'
+		. _pw_gb_needs_shortcode_placeholder( 'pw_gallery' )
 	);
+
 	$contacts = _pw_gb_section(
 		'rms-ct',
 		_pw_gb_h( 'rms-ch', 'Property contacts', 'h2' ) . "\n"
@@ -1782,7 +1762,7 @@ function _pw_markup_room_singular(): string {
 		. '<div class="pw-gb-scope-property pw-gb-contact-filter-property">'
 		. '<!-- wp:generateblocks/looper {"uniqueId":"rms-ctlp","tagName":"div","className":"gb-loop-rms-ctlp"} -->' . "\n"
 		. '<div class="gb-looper-rms-ctlp gb-loop-rms-ctlp">'
-		. '<!-- wp:generateblocks/loop-item {"uniqueId":"rms-ctli","tagName":"div","styles":{"paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-rms-ctli{padding:12px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-rms-ctli"} -->' . "\n"
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"rms-ctli","tagName":"div","styles":{"paddingTop":"16px","paddingBottom":"16px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#ececec"},"css":".gb-loop-item-rms-ctli{border-bottom:1px solid #ececec;padding:16px 0}","className":"gb-li-rms-ctli"} -->' . "\n"
 		. '<div class="gb-loop-item gb-loop-item-rms-ctli gb-li-rms-ctli">'
 		. _pw_gb_row( 'rms-c0', 'Label', '{{post_meta key:_pw_label}}' ) . "\n"
 		. _pw_gb_row( 'rms-c1', 'Phone', '{{post_meta key:_pw_phone}}' ) . "\n"
@@ -1795,65 +1775,66 @@ function _pw_markup_room_singular(): string {
 		. '<!-- /wp:generateblocks/query -->'
 	);
 
-	return _pw_gb_img( 'rms-img' ) . "\n"
-		. _pw_gb_h( 'rms-h1', '{{post_title}}', 'h1' ) . "\n"
-		. _pw_gb_p( 'rms-ex', '{{post_excerpt}}' ) . "\n"
-		. _pw_gb_link( 'rms-bkurl', 'Book this room', '{{post_meta key:_pw_booking_url}}' ) . "\n"
-		. _pw_gb_row( 'rms-r0', 'Rate from', '{{post_meta key:_pw_rate_from}} __PW_PROPERTY_CURRENCY__' ) . "\n"
-		. _pw_gb_row( 'rms-r1', 'Rate to', '{{post_meta key:_pw_rate_to}} __PW_PROPERTY_CURRENCY__' ) . "\n"
-		. _pw_gb_row( 'rms-r2', 'Max occupancy', '{{post_meta key:_pw_max_occupancy}}' ) . "\n"
-		. _pw_gb_row( 'rms-r3', 'Max adults', '{{post_meta key:_pw_max_adults}}' ) . "\n"
-		. _pw_gb_row( 'rms-r4', 'Max children', '{{post_meta key:_pw_max_children}}' ) . "\n"
-		. _pw_gb_row( 'rms-r5', 'Size (sqm)', '{{post_meta key:_pw_size_sqm}}' ) . "\n"
-		. _pw_gb_row( 'rms-r6', 'Size (sqft)', '{{post_meta key:_pw_size_sqft}}' ) . "\n"
-		. _pw_gb_row( 'rms-r7', 'Max extra beds', '{{post_meta key:_pw_max_extra_beds}}' ) . "\n"
-		. _pw_gb_row( 'rms-r8', 'Bed type', '{{post_terms taxonomy:pw_bed_type}}' ) . "\n"
-		. _pw_gb_row( 'rms-r9', 'View type', '{{post_terms taxonomy:pw_view_type}}' ) . "\n"
+	$content = _pw_gb_section(
+		'rms-story',
+		_pw_gb_h( 'rms-sh', 'About this room', 'h2' ) . "\n"
+		. _pw_gb_p( 'rms-ct', '{{post_content}}' )
+	);
+
+	return $hero . "\n"
+		. $facts . "\n"
 		. $rates . "\n"
-		. _pw_gb_p( 'rms-ct', '{{post_content}}' ) . "\n"
+		. $content . "\n"
 		. $gallery . "\n"
 		. $contacts . "\n"
-		. _pw_gb_link( 'rms-bk', "\xE2\x86\x90 Back to Rooms", '{{pw_current_section_listing_url}}' );
+		. _pw_gb_link( 'rms-bk', "\xE2\x86\x90 Back to rooms", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Restaurant singular ───────────────────────────────────────────────── */
 
 function _pw_markup_restaurant_singular(): string {
+	$hero = _pw_gb_hero_img( 'rsts-hero' ) . "\n"
+		. '<!-- wp:generateblocks/element {"uniqueId":"rsts-hero-copy","tagName":"div","styles":{"paddingTop":"32px","paddingBottom":"24px"},"css":".gb-element-rsts-hero-copy{padding:32px 0 24px}","className":"pw-hotel-hero gb-el gb-el-rsts-hero-copy"} -->' . "\n"
+		. '<div class="gb-element-rsts-hero-copy gb-el gb-el-rsts-hero-copy pw-hotel-hero">' . "\n"
+		. _pw_gb_h( 'rsts-h1', '{{post_title}}', 'h1' ) . "\n"
+		. _pw_gb_p( 'rsts-ex', '{{post_excerpt}}' ) . "\n"
+		. _pw_gb_cta_button( 'rsts-res', 'Reserve a table', '{{post_meta key:_pw_reservation_url}}' ) . "\n"
+		. _pw_gb_link( 'rsts-mu', 'View menu', '{{post_meta key:_pw_menu_url}}' ) . "\n"
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/element -->';
+
+	$facts = _pw_gb_section(
+		'rsts-facts',
+		_pw_gb_h( 'rsts-fh', 'At a glance', 'h2' ) . "\n"
+		. _pw_gb_row( 'rsts-r0', 'Cuisine', '{{post_meta key:_pw_cuisine_type}}' ) . "\n"
+		. _pw_gb_row( 'rsts-r1', 'Location', '{{post_meta key:_pw_location}}' ) . "\n"
+		. _pw_gb_row( 'rsts-r2', 'Seats', '{{post_meta key:_pw_seating_capacity}}' ) . "\n"
+		. _pw_gb_row( 'rsts-r3', 'Meal periods', '{{post_terms taxonomy:pw_meal_period}}' )
+	);
+
 	$hours = _pw_gb_section(
 		'rsts-hrs',
 		_pw_gb_h( 'rsts-hh', 'Hours', 'h2' ) . "\n"
-		. '<!-- wp:generateblocks/query {"uniqueId":"rsts-hrsq","tagName":"div","query":{"post_type":["pw_restaurant"],"queryType":"post_meta","metaKey":"_pw_operating_hours","posts_per_page":100},"className":"gb-el gb-el-rsts-hrsq"} -->' . "\n"
-		. '<div class="gb-el gb-el-rsts-hrsq">'
-		. '<!-- wp:generateblocks/looper {"uniqueId":"rsts-hrlp","tagName":"div","className":"gb-loop-rsts-hrlp"} -->' . "\n"
-		. '<div class="gb-looper-rsts-hrlp gb-loop-rsts-hrlp">'
-		. '<!-- wp:generateblocks/loop-item {"uniqueId":"rsts-hrli","tagName":"div","styles":{"paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-rsts-hrli{padding:8px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-rsts-hrli"} -->' . "\n"
-		. '<div class="gb-loop-item gb-loop-item-rsts-hrli gb-li-rsts-hrli">'
-		. _pw_gb_row( 'rsts-hl', 'Session', '{{loop_item key:label}}' ) . "\n"
-		. _pw_gb_row( 'rsts-ho', 'Open', '{{loop_item key:open_time}}' ) . "\n"
-		. _pw_gb_row( 'rsts-hc', 'Close', '{{loop_item key:close_time}}' )
-		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/loop-item -->'
-		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/looper -->'
-		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/query -->'
+		. _pw_gb_needs_shortcode_placeholder( 'pw_operating_hours' )
 	);
 
-	return _pw_gb_img( 'rsts-img' ) . "\n"
-		. _pw_gb_h( 'rsts-h1', '{{post_title}}', 'h1' ) . "\n"
-		. _pw_gb_p( 'rsts-ex', '{{post_excerpt}}' ) . "\n"
-		. _pw_gb_link( 'rsts-res', 'Reserve a table', '{{post_meta key:_pw_reservation_url}}' ) . "\n"
-		. _pw_gb_row( 'rsts-r0', 'Cuisine type', '{{post_meta key:_pw_cuisine_type}}' ) . "\n"
-		. _pw_gb_row( 'rsts-r1', 'Location', '{{post_meta key:_pw_location}}' ) . "\n"
-		. _pw_gb_row( 'rsts-r2', 'Seating capacity', '{{post_meta key:_pw_seating_capacity}}' ) . "\n"
-		. _pw_gb_row( 'rsts-r4', 'Menu URL', '{{post_meta key:_pw_menu_url}}' ) . "\n"
-		. $hours . "\n"
-		. _pw_gb_p( 'rsts-ct', '{{post_content}}' ) . "\n"
-		. '<!-- wp:generateblocks/query {"uniqueId":"rsts-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-outlet"} -->' . "\n"
+	$gallery = _pw_gb_section(
+		'rsts-gal',
+		_pw_gb_h( 'rsts-gh', 'Gallery', 'h2' ) . "\n"
+		. _pw_gb_needs_shortcode_placeholder( 'pw_gallery' )
+	);
+
+	$content = _pw_gb_section(
+		'rsts-story',
+		_pw_gb_h( 'rsts-sh', 'About', 'h2' ) . "\n"
+		. _pw_gb_p( 'rsts-ct', '{{post_content}}' )
+	);
+
+	$contacts = '<!-- wp:generateblocks/query {"uniqueId":"rsts-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-outlet"} -->' . "\n"
 		. '<div class="pw-gb-scope-property pw-gb-contact-filter-outlet">'
 		. '<!-- wp:generateblocks/looper {"uniqueId":"rsts-ctlp","tagName":"div","className":"gb-loop-rsts-ctlp"} -->' . "\n"
 		. '<div class="gb-looper-rsts-ctlp gb-loop-rsts-ctlp">'
-		. '<!-- wp:generateblocks/loop-item {"uniqueId":"rsts-ctli","tagName":"div","styles":{"paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-rsts-ctli{padding:12px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-rsts-ctli"} -->' . "\n"
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"rsts-ctli","tagName":"div","styles":{"paddingTop":"16px","paddingBottom":"16px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#ececec"},"css":".gb-loop-item-rsts-ctli{border-bottom:1px solid #ececec;padding:16px 0}","className":"gb-li-rsts-ctli"} -->' . "\n"
 		. '<div class="gb-loop-item gb-loop-item-rsts-ctli gb-li-rsts-ctli">'
 		. _pw_gb_row( 'rsts-c0', 'Label', '{{post_meta key:_pw_label}}' ) . "\n"
 		. _pw_gb_row( 'rsts-c1', 'Phone', '{{post_meta key:_pw_phone}}' ) . "\n"
@@ -1863,47 +1844,61 @@ function _pw_markup_restaurant_singular(): string {
 		. '</div>' . "\n"
 		. '<!-- /wp:generateblocks/looper -->'
 		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/query -->' . "\n"
-		. _pw_gb_link( 'rsts-bk', "\xE2\x86\x90 Back to Restaurants", '{{pw_current_section_listing_url}}' );
+		. '<!-- /wp:generateblocks/query -->';
+
+	return $hero . "\n"
+		. $facts . "\n"
+		. $hours . "\n"
+		. $content . "\n"
+		. $gallery . "\n"
+		. _pw_gb_section( 'rsts-ct', _pw_gb_h( 'rsts-ch', 'Contacts', 'h2' ) . "\n" . $contacts ) . "\n"
+		. _pw_gb_link( 'rsts-bk', "\xE2\x86\x90 Back to restaurants", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Spa singular ──────────────────────────────────────────────────────── */
 
 function _pw_markup_spa_singular(): string {
+	$hero = _pw_gb_hero_img( 'spas-hero' ) . "\n"
+		. '<!-- wp:generateblocks/element {"uniqueId":"spas-hero-copy","tagName":"div","styles":{"paddingTop":"32px","paddingBottom":"24px"},"css":".gb-element-spas-hero-copy{padding:32px 0 24px}","className":"pw-hotel-hero gb-el gb-el-spas-hero-copy"} -->' . "\n"
+		. '<div class="gb-element-spas-hero-copy gb-el gb-el-spas-hero-copy pw-hotel-hero">' . "\n"
+		. _pw_gb_h( 'spas-h1', '{{post_title}}', 'h1' ) . "\n"
+		. _pw_gb_p( 'spas-ex', '{{post_excerpt}}' ) . "\n"
+		. _pw_gb_cta_button( 'spas-bkurl', 'Book spa', '{{post_meta key:_pw_booking_url}}' ) . "\n"
+		. _pw_gb_link( 'spas-mu', 'Spa menu', '{{post_meta key:_pw_menu_url}}' ) . "\n"
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/element -->';
+
+	$facts = _pw_gb_section(
+		'spas-facts',
+		_pw_gb_h( 'spas-fh', 'At a glance', 'h2' ) . "\n"
+		. _pw_gb_row( 'spas-r0', 'Minimum age', '{{post_meta key:_pw_min_age}}' ) . "\n"
+		. _pw_gb_row( 'spas-r1', 'Treatment rooms', '{{post_meta key:_pw_number_of_treatment_rooms}}' ) . "\n"
+		. _pw_gb_row( 'spas-r2', 'Treatments', '{{post_terms taxonomy:pw_treatment_type}}' )
+	);
+
 	$hours = _pw_gb_section(
 		'spas-hrs',
 		_pw_gb_h( 'spas-hh', 'Hours', 'h2' ) . "\n"
-		. '<!-- wp:generateblocks/query {"uniqueId":"spas-hrsq","tagName":"div","query":{"post_type":["pw_spa"],"queryType":"post_meta","metaKey":"_pw_operating_hours","posts_per_page":100},"className":"gb-el gb-el-spas-hrsq"} -->' . "\n"
-		. '<div class="gb-el gb-el-spas-hrsq">'
-		. '<!-- wp:generateblocks/looper {"uniqueId":"spas-hrlp","tagName":"div","className":"gb-loop-spas-hrlp"} -->' . "\n"
-		. '<div class="gb-looper-spas-hrlp gb-loop-spas-hrlp">'
-		. '<!-- wp:generateblocks/loop-item {"uniqueId":"spas-hrli","tagName":"div","styles":{"paddingTop":"8px","paddingBottom":"8px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-spas-hrli{padding:8px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-spas-hrli"} -->' . "\n"
-		. '<div class="gb-loop-item gb-loop-item-spas-hrli gb-li-spas-hrli">'
-		. _pw_gb_row( 'spas-hl', 'Session', '{{loop_item key:label}}' ) . "\n"
-		. _pw_gb_row( 'spas-ho', 'Open', '{{loop_item key:open_time}}' ) . "\n"
-		. _pw_gb_row( 'spas-hc', 'Close', '{{loop_item key:close_time}}' )
-		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/loop-item -->'
-		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/looper -->'
-		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/query -->'
+		. _pw_gb_needs_shortcode_placeholder( 'pw_operating_hours' )
 	);
 
-	return _pw_gb_img( 'spas-img' ) . "\n"
-		. _pw_gb_h( 'spas-h1', '{{post_title}}', 'h1' ) . "\n"
-		. _pw_gb_p( 'spas-ex', '{{post_excerpt}}' ) . "\n"
-		. _pw_gb_link( 'spas-bkurl', 'Book spa', '{{post_meta key:_pw_booking_url}}' ) . "\n"
-		. _pw_gb_row( 'spas-r0', 'Minimum age', '{{post_meta key:_pw_min_age}}' ) . "\n"
-		. _pw_gb_row( 'spas-r1', 'Treatment rooms', '{{post_meta key:_pw_number_of_treatment_rooms}}' ) . "\n"
-		. _pw_gb_row( 'spas-r3', 'Menu URL', '{{post_meta key:_pw_menu_url}}' ) . "\n"
-		. $hours . "\n"
-		. _pw_gb_p( 'spas-ct', '{{post_content}}' ) . "\n"
-		. '<!-- wp:generateblocks/query {"uniqueId":"spas-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-outlet"} -->' . "\n"
+	$gallery = _pw_gb_section(
+		'spas-gal',
+		_pw_gb_h( 'spas-gh', 'Gallery', 'h2' ) . "\n"
+		. _pw_gb_needs_shortcode_placeholder( 'pw_gallery' )
+	);
+
+	$content = _pw_gb_section(
+		'spas-story',
+		_pw_gb_h( 'spas-sh', 'About', 'h2' ) . "\n"
+		. _pw_gb_p( 'spas-ct', '{{post_content}}' )
+	);
+
+	$contacts = '<!-- wp:generateblocks/query {"uniqueId":"spas-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-outlet"} -->' . "\n"
 		. '<div class="pw-gb-scope-property pw-gb-contact-filter-outlet">'
 		. '<!-- wp:generateblocks/looper {"uniqueId":"spas-ctlp","tagName":"div","className":"gb-loop-spas-ctlp"} -->' . "\n"
 		. '<div class="gb-looper-spas-ctlp gb-loop-spas-ctlp">'
-		. '<!-- wp:generateblocks/loop-item {"uniqueId":"spas-ctli","tagName":"div","styles":{"paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-spas-ctli{padding:12px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-spas-ctli"} -->' . "\n"
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"spas-ctli","tagName":"div","styles":{"paddingTop":"16px","paddingBottom":"16px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#ececec"},"css":".gb-loop-item-spas-ctli{border-bottom:1px solid #ececec;padding:16px 0}","className":"gb-li-spas-ctli"} -->' . "\n"
 		. '<div class="gb-loop-item gb-loop-item-spas-ctli gb-li-spas-ctli">'
 		. _pw_gb_row( 'spas-c0', 'Label', '{{post_meta key:_pw_label}}' ) . "\n"
 		. _pw_gb_row( 'spas-c1', 'Phone', '{{post_meta key:_pw_phone}}' ) . "\n"
@@ -1913,63 +1908,125 @@ function _pw_markup_spa_singular(): string {
 		. '</div>' . "\n"
 		. '<!-- /wp:generateblocks/looper -->'
 		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/query -->' . "\n"
-		. _pw_gb_link( 'spas-bk', "\xE2\x86\x90 Back to Spas", '{{pw_current_section_listing_url}}' );
+		. '<!-- /wp:generateblocks/query -->';
+
+	return $hero . "\n"
+		. $facts . "\n"
+		. $hours . "\n"
+		. $content . "\n"
+		. $gallery . "\n"
+		. _pw_gb_section( 'spas-ct', _pw_gb_h( 'spas-ch', 'Contacts', 'h2' ) . "\n" . $contacts ) . "\n"
+		. _pw_gb_link( 'spas-bk', "\xE2\x86\x90 Back to spas", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Meeting room singular ─────────────────────────────────────────────── */
 
 function _pw_markup_meeting_singular(): string {
-	return _pw_gb_img( 'mts-img' ) . "\n"
+	$hero = _pw_gb_hero_img( 'mts-hero' ) . "\n"
+		. '<!-- wp:generateblocks/element {"uniqueId":"mts-hero-copy","tagName":"div","styles":{"paddingTop":"32px","paddingBottom":"24px"},"css":".gb-element-mts-hero-copy{padding:32px 0 24px}","className":"pw-hotel-hero gb-el gb-el-mts-hero-copy"} -->' . "\n"
+		. '<div class="gb-element-mts-hero-copy gb-el gb-el-mts-hero-copy pw-hotel-hero">' . "\n"
 		. _pw_gb_h( 'mts-h1', '{{post_title}}', 'h1' ) . "\n"
 		. _pw_gb_p( 'mts-ex', '{{post_excerpt}}' ) . "\n"
-		. _pw_gb_row( 'mts-r0', 'Theatre capacity',   '{{post_meta key:_pw_capacity_theatre}}' )   . "\n"
-		. _pw_gb_row( 'mts-r1', 'Classroom capacity',  '{{post_meta key:_pw_capacity_classroom}}' ) . "\n"
-		. _pw_gb_row( 'mts-r2', 'Boardroom capacity',  '{{post_meta key:_pw_capacity_boardroom}}' ) . "\n"
-		. _pw_gb_row( 'mts-r3', 'U-shape capacity',    '{{post_meta key:_pw_capacity_ushape}}' )    . "\n"
-		. _pw_gb_row( 'mts-r4', 'Area (sqm)',          '{{post_meta key:_pw_area_sqm}}' )           . "\n"
-		. _pw_gb_row( 'mts-r5', 'Area (sqft)',         '{{post_meta key:_pw_area_sqft}}' )          . "\n"
-		. _pw_gb_row( 'mts-r6', 'Natural light',       '{{post_meta key:_pw_natural_light}}' )      . "\n"
-		. _pw_gb_p( 'mts-ct', '{{post_content}}' ) . "\n"
-		. _pw_gb_section(
-			'mts-enq',
-			_pw_gb_h( 'mts-eh', 'Enquiries', 'h2' ) . "\n"
-			. '<!-- wp:generateblocks/query {"uniqueId":"mts-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-outlet"} -->' . "\n"
-			. '<div class="pw-gb-scope-property pw-gb-contact-filter-outlet">'
-			. '<!-- wp:generateblocks/looper {"uniqueId":"mts-ctlp","tagName":"div","className":"gb-loop-mts-ctlp"} -->' . "\n"
-			. '<div class="gb-looper-mts-ctlp gb-loop-mts-ctlp">'
-			. '<!-- wp:generateblocks/loop-item {"uniqueId":"mts-ctli","tagName":"div","styles":{"paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-mts-ctli{padding:12px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-mts-ctli"} -->' . "\n"
-			. '<div class="gb-loop-item gb-loop-item-mts-ctli gb-li-mts-ctli">'
-			. _pw_gb_row( 'mts-c0', 'Label', '{{post_meta key:_pw_label}}' ) . "\n"
-			. _pw_gb_row( 'mts-c1', 'Phone', '{{post_meta key:_pw_phone}}' ) . "\n"
-			. _pw_gb_row( 'mts-c2', 'Email', '{{post_meta key:_pw_email}}' )
-			. '</div>' . "\n"
-			. '<!-- /wp:generateblocks/loop-item -->'
-			. '</div>' . "\n"
-			. '<!-- /wp:generateblocks/looper -->'
-			. '</div>' . "\n"
-			. '<!-- /wp:generateblocks/query -->'
-		) . "\n"
-		. _pw_gb_link( 'mts-bk', "\xE2\x86\x90 Back to Meetings", '{{pw_current_section_listing_url}}' );
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/element -->';
+
+	$facts = _pw_gb_section(
+		'mts-facts',
+		_pw_gb_h( 'mts-fh', 'Capacity and size', 'h2' ) . "\n"
+		. _pw_gb_row( 'mts-r0', 'Theatre', '{{post_meta key:_pw_capacity_theatre}}' ) . "\n"
+		. _pw_gb_row( 'mts-r1', 'Classroom', '{{post_meta key:_pw_capacity_classroom}}' ) . "\n"
+		. _pw_gb_row( 'mts-r2', 'Boardroom', '{{post_meta key:_pw_capacity_boardroom}}' ) . "\n"
+		. _pw_gb_row( 'mts-r3', 'U-shape', '{{post_meta key:_pw_capacity_ushape}}' ) . "\n"
+		. _pw_gb_row( 'mts-r4', 'Area (m²)', '{{post_meta key:_pw_area_sqm}}' ) . "\n"
+		. _pw_gb_row( 'mts-r5', 'Area (ft²)', '{{post_meta key:_pw_area_sqft}}' ) . "\n"
+		. _pw_gb_row( 'mts-r6', 'Pre-function (m²)', '{{post_meta key:_pw_prefunction_area_sqm}}' ) . "\n"
+		. _pw_gb_row( 'mts-r7', 'Pre-function (ft²)', '{{post_meta key:_pw_prefunction_area_sqft}}' ) . "\n"
+		. _pw_gb_row( 'mts-r8', 'Natural light', '{{post_meta key:_pw_natural_light}}' ) . "\n"
+		. _pw_gb_row( 'mts-r9', 'AV', '{{post_terms taxonomy:pw_av_equipment}}' )
+	);
+
+	$floor = _pw_gb_section(
+		'mts-plan',
+		_pw_gb_h( 'mts-ph', 'Floor plan', 'h2' ) . "\n"
+		. _pw_gb_needs_shortcode_placeholder( 'pw_floor_plan' )
+	);
+
+	$gallery = _pw_gb_section(
+		'mts-gal',
+		_pw_gb_h( 'mts-gh', 'Gallery', 'h2' ) . "\n"
+		. _pw_gb_needs_shortcode_placeholder( 'pw_gallery' )
+	);
+
+	$content = _pw_gb_section(
+		'mts-story',
+		_pw_gb_h( 'mts-sh', 'About this space', 'h2' ) . "\n"
+		. _pw_gb_p( 'mts-ct', '{{post_content}}' )
+	);
+
+	$contacts = '<!-- wp:generateblocks/query {"uniqueId":"mts-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-outlet"} -->' . "\n"
+		. '<div class="pw-gb-scope-property pw-gb-contact-filter-outlet">'
+		. '<!-- wp:generateblocks/looper {"uniqueId":"mts-ctlp","tagName":"div","className":"gb-loop-mts-ctlp"} -->' . "\n"
+		. '<div class="gb-looper-mts-ctlp gb-loop-mts-ctlp">'
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"mts-ctli","tagName":"div","styles":{"paddingTop":"16px","paddingBottom":"16px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#ececec"},"css":".gb-loop-item-mts-ctli{border-bottom:1px solid #ececec;padding:16px 0}","className":"gb-li-mts-ctli"} -->' . "\n"
+		. '<div class="gb-loop-item gb-loop-item-mts-ctli gb-li-mts-ctli">'
+		. _pw_gb_row( 'mts-c0', 'Label', '{{post_meta key:_pw_label}}' ) . "\n"
+		. _pw_gb_row( 'mts-c1', 'Phone', '{{post_meta key:_pw_phone}}' ) . "\n"
+		. _pw_gb_row( 'mts-c2', 'Email', '{{post_meta key:_pw_email}}' )
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/loop-item -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/looper -->'
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/query -->';
+
+	return $hero . "\n"
+		. $facts . "\n"
+		. $floor . "\n"
+		. $gallery . "\n"
+		. $content . "\n"
+		. _pw_gb_section( 'mts-enq', _pw_gb_h( 'mts-eh', 'Enquiries', 'h2' ) . "\n" . $contacts ) . "\n"
+		. _pw_gb_link( 'mts-bk', "\xE2\x86\x90 Back to meetings", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Experience singular ───────────────────────────────────────────────── */
 
 function _pw_markup_experience_singular(): string {
-	return _pw_gb_img( 'exs-img' ) . "\n"
+	$hero = _pw_gb_hero_img( 'exs-hero' ) . "\n"
+		. '<!-- wp:generateblocks/element {"uniqueId":"exs-hero-copy","tagName":"div","styles":{"paddingTop":"32px","paddingBottom":"24px"},"css":".gb-element-exs-hero-copy{padding:32px 0 24px}","className":"pw-hotel-hero gb-el gb-el-exs-hero-copy"} -->' . "\n"
+		. '<div class="gb-element-exs-hero-copy gb-el gb-el-exs-hero-copy pw-hotel-hero">' . "\n"
 		. _pw_gb_h( 'exs-h1', '{{post_title}}', 'h1' ) . "\n"
 		. _pw_gb_p( 'exs-ex', '{{post_excerpt}}' ) . "\n"
 		. _pw_gb_p( 'exs-dsc', '{{post_meta key:_pw_description}}' ) . "\n"
-		. _pw_gb_row( 'exs-r0', 'Duration (hours)',   '{{post_meta key:_pw_duration_hours}}' )   . "\n"
-		. _pw_gb_row( 'exs-r1', 'Price from',         '{{post_meta key:_pw_price_from}} __PW_PROPERTY_CURRENCY__' ) . "\n"
-		. _pw_gb_row( 'exs-r2', 'Complimentary',      '{{post_meta key:_pw_is_complimentary}}' ) . "\n"
-		. _pw_gb_row( 'exs-r3', 'Booking URL',        '{{post_meta key:_pw_booking_url}}' )      . "\n"
-		. _pw_gb_p( 'exs-ct', '{{post_content}}' ) . "\n"
-		. '<!-- wp:generateblocks/query {"uniqueId":"exs-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-outlet"} -->' . "\n"
+		. _pw_gb_cta_button( 'exs-bk', 'Book this experience', '{{post_meta key:_pw_booking_url}}' ) . "\n"
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/element -->';
+
+	$facts = _pw_gb_section(
+		'exs-facts',
+		_pw_gb_h( 'exs-fh', 'Details', 'h2' ) . "\n"
+		. _pw_gb_row( 'exs-r0', 'Duration (hours)', '{{post_meta key:_pw_duration_hours}}' ) . "\n"
+		. _pw_gb_row( 'exs-r1', 'From', '{{post_meta key:_pw_price_from}} __PW_PROPERTY_CURRENCY__' ) . "\n"
+		. _pw_gb_row( 'exs-r2', 'Complimentary', '{{post_meta key:_pw_is_complimentary}}' ) . "\n"
+		. _pw_gb_row( 'exs-r3', 'Category', '{{post_terms taxonomy:pw_experience_category}}' )
+	);
+
+	$gallery = _pw_gb_section(
+		'exs-gal',
+		_pw_gb_h( 'exs-gh', 'Gallery', 'h2' ) . "\n"
+		. _pw_gb_needs_shortcode_placeholder( 'pw_gallery' )
+	);
+
+	$content = _pw_gb_section(
+		'exs-story',
+		_pw_gb_h( 'exs-sh', 'More information', 'h2' ) . "\n"
+		. _pw_gb_p( 'exs-ct', '{{post_content}}' )
+	);
+
+	$contacts = '<!-- wp:generateblocks/query {"uniqueId":"exs-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-outlet"} -->' . "\n"
 		. '<div class="pw-gb-scope-property pw-gb-contact-filter-outlet">'
 		. '<!-- wp:generateblocks/looper {"uniqueId":"exs-ctlp","tagName":"div","className":"gb-loop-exs-ctlp"} -->' . "\n"
 		. '<div class="gb-looper-exs-ctlp gb-loop-exs-ctlp">'
-		. '<!-- wp:generateblocks/loop-item {"uniqueId":"exs-ctli","tagName":"div","styles":{"paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-exs-ctli{padding:12px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-exs-ctli"} -->' . "\n"
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"exs-ctli","tagName":"div","styles":{"paddingTop":"16px","paddingBottom":"16px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#ececec"},"css":".gb-loop-item-exs-ctli{border-bottom:1px solid #ececec;padding:16px 0}","className":"gb-li-exs-ctli"} -->' . "\n"
 		. '<div class="gb-loop-item gb-loop-item-exs-ctli gb-li-exs-ctli">'
 		. _pw_gb_row( 'exs-c0', 'Label', '{{post_meta key:_pw_label}}' ) . "\n"
 		. _pw_gb_row( 'exs-c1', 'Phone', '{{post_meta key:_pw_phone}}' ) . "\n"
@@ -1979,30 +2036,59 @@ function _pw_markup_experience_singular(): string {
 		. '</div>' . "\n"
 		. '<!-- /wp:generateblocks/looper -->'
 		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/query -->' . "\n"
-		. _pw_gb_link( 'exs-bk', "\xE2\x86\x90 Back to Experiences", '{{pw_current_section_listing_url}}' );
+		. '<!-- /wp:generateblocks/query -->';
+
+	return $hero . "\n"
+		. $facts . "\n"
+		. $gallery . "\n"
+		. $content . "\n"
+		. _pw_gb_section( 'exs-ct', _pw_gb_h( 'exs-ch', 'Contacts', 'h2' ) . "\n" . $contacts ) . "\n"
+		. _pw_gb_link( 'exs-bk', "\xE2\x86\x90 Back to experiences", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Event singular ────────────────────────────────────────────────────── */
 
 function _pw_markup_event_singular(): string {
-	return _pw_gb_img( 'evs-img' ) . "\n"
+	$hero = _pw_gb_hero_img( 'evs-hero' ) . "\n"
+		. '<!-- wp:generateblocks/element {"uniqueId":"evs-hero-copy","tagName":"div","styles":{"paddingTop":"32px","paddingBottom":"24px"},"css":".gb-element-evs-hero-copy{padding:32px 0 24px}","className":"pw-hotel-hero gb-el gb-el-evs-hero-copy"} -->' . "\n"
+		. '<div class="gb-element-evs-hero-copy gb-el gb-el-evs-hero-copy pw-hotel-hero">' . "\n"
 		. _pw_gb_h( 'evs-h1', '{{post_title}}', 'h1' ) . "\n"
 		. _pw_gb_p( 'evs-ex', '{{post_excerpt}}' ) . "\n"
 		. _pw_gb_p( 'evs-dsc', '{{post_meta key:_pw_description}}' ) . "\n"
-		. _pw_gb_row( 'evs-r0', 'Start (ISO 8601)',    '{{post_meta key:_pw_start_datetime_iso8601}}' ) . "\n"
-		. _pw_gb_row( 'evs-r1', 'End (ISO 8601)',      '{{post_meta key:_pw_end_datetime_iso8601}}' )  . "\n"
-		. _pw_gb_row( 'evs-r2', 'Capacity',            '{{post_meta key:_pw_capacity}}' )              . "\n"
-		. _pw_gb_row( 'evs-r3', 'Price from',          '{{post_meta key:_pw_price_from}} __PW_PROPERTY_CURRENCY__' ) . "\n"
-		. _pw_gb_row( 'evs-r4', 'Status',              '{{post_meta key:_pw_event_status}}' )          . "\n"
-		. _pw_gb_row( 'evs-r5', 'Attendance mode',     '{{post_meta key:_pw_event_attendance_mode}}' ) . "\n"
-		. _pw_gb_row( 'evs-r6', 'Booking URL',         '{{post_meta key:_pw_booking_url}}' )           . "\n"
-		. _pw_gb_p( 'evs-ct', '{{post_content}}' ) . "\n"
-		. '<!-- wp:generateblocks/query {"uniqueId":"evs-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-property"} -->' . "\n"
+		. _pw_gb_cta_button( 'evs-bkurl', 'Book or register', '{{post_meta key:_pw_booking_url}}' ) . "\n"
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/element -->';
+
+	$facts = _pw_gb_section(
+		'evs-facts',
+		_pw_gb_h( 'evs-fh', 'Event details', 'h2' ) . "\n"
+		. _pw_gb_row( 'evs-r0', 'Starts', '{{post_meta key:_pw_start_datetime_iso8601}}' ) . "\n"
+		. _pw_gb_row( 'evs-r1', 'Ends', '{{post_meta key:_pw_end_datetime_iso8601}}' ) . "\n"
+		. _pw_gb_row( 'evs-r2', 'Capacity', '{{post_meta key:_pw_capacity}}' ) . "\n"
+		. _pw_gb_row( 'evs-r3', 'From', '{{post_meta key:_pw_price_from}} __PW_PROPERTY_CURRENCY__' ) . "\n"
+		. _pw_gb_row( 'evs-r4', 'Status', '{{post_meta key:_pw_event_status}}' ) . "\n"
+		. _pw_gb_row( 'evs-r5', 'Attendance', '{{post_meta key:_pw_event_attendance_mode}}' ) . "\n"
+		. _pw_gb_row( 'evs-r6', 'Type', '{{post_terms taxonomy:pw_event_type}}' ) . "\n"
+		. _pw_gb_row( 'evs-r7', 'Organiser', '{{post_terms taxonomy:pw_event_organiser}}' )
+	);
+
+	$gallery = _pw_gb_section(
+		'evs-gal',
+		_pw_gb_h( 'evs-gh', 'Gallery', 'h2' ) . "\n"
+		. _pw_gb_needs_shortcode_placeholder( 'pw_gallery' )
+	);
+
+	$content = _pw_gb_section(
+		'evs-story',
+		_pw_gb_h( 'evs-sh', 'More information', 'h2' ) . "\n"
+		. _pw_gb_p( 'evs-ct', '{{post_content}}' )
+	);
+
+	$contacts = '<!-- wp:generateblocks/query {"uniqueId":"evs-ctq","tagName":"div","query":{"post_type":["pw_contact"],"posts_per_page":10,"orderby":"title","order":"asc"},"className":"pw-gb-scope-property pw-gb-contact-filter-property"} -->' . "\n"
 		. '<div class="pw-gb-scope-property pw-gb-contact-filter-property">'
 		. '<!-- wp:generateblocks/looper {"uniqueId":"evs-ctlp","tagName":"div","className":"gb-loop-evs-ctlp"} -->' . "\n"
 		. '<div class="gb-looper-evs-ctlp gb-loop-evs-ctlp">'
-		. '<!-- wp:generateblocks/loop-item {"uniqueId":"evs-ctli","tagName":"div","styles":{"paddingTop":"12px","paddingBottom":"12px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#e0e0e0"},"css":".gb-loop-item-evs-ctli{padding:12px 0;border-bottom:1px solid #e0e0e0}","className":"gb-li-evs-ctli"} -->' . "\n"
+		. '<!-- wp:generateblocks/loop-item {"uniqueId":"evs-ctli","tagName":"div","styles":{"paddingTop":"16px","paddingBottom":"16px","borderBottomWidth":"1px","borderBottomStyle":"solid","borderBottomColor":"#ececec"},"css":".gb-loop-item-evs-ctli{border-bottom:1px solid #ececec;padding:16px 0}","className":"gb-li-evs-ctli"} -->' . "\n"
 		. '<div class="gb-loop-item gb-loop-item-evs-ctli gb-li-evs-ctli">'
 		. _pw_gb_row( 'evs-c0', 'Label', '{{post_meta key:_pw_label}}' ) . "\n"
 		. _pw_gb_row( 'evs-c1', 'Phone', '{{post_meta key:_pw_phone}}' ) . "\n"
@@ -2012,40 +2098,85 @@ function _pw_markup_event_singular(): string {
 		. '</div>' . "\n"
 		. '<!-- /wp:generateblocks/looper -->'
 		. '</div>' . "\n"
-		. '<!-- /wp:generateblocks/query -->' . "\n"
-		. _pw_gb_link( 'evs-bk', "\xE2\x86\x90 Back to Events", '{{pw_current_section_listing_url}}' );
+		. '<!-- /wp:generateblocks/query -->';
+
+	return $hero . "\n"
+		. $facts . "\n"
+		. $gallery . "\n"
+		. $content . "\n"
+		. _pw_gb_section( 'evs-ct', _pw_gb_h( 'evs-ch', 'Contacts', 'h2' ) . "\n" . $contacts ) . "\n"
+		. _pw_gb_link( 'evs-bk', "\xE2\x86\x90 Back to events", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Offer singular ────────────────────────────────────────────────────── */
 
 function _pw_markup_offer_singular(): string {
-	return _pw_gb_h( 'ofs-h1', '{{post_title}}', 'h1' ) . "\n"
+	$hero = _pw_gb_hero_img( 'ofs-hero' ) . "\n"
+		. '<!-- wp:generateblocks/element {"uniqueId":"ofs-hero-copy","tagName":"div","styles":{"paddingTop":"32px","paddingBottom":"24px"},"css":".gb-element-ofs-hero-copy{padding:32px 0 24px}","className":"pw-hotel-hero gb-el gb-el-ofs-hero-copy"} -->' . "\n"
+		. '<div class="gb-element-ofs-hero-copy gb-el gb-el-ofs-hero-copy pw-hotel-hero">' . "\n"
+		. _pw_gb_h( 'ofs-h1', '{{post_title}}', 'h1' ) . "\n"
 		. _pw_gb_p( 'ofs-ex', '{{post_excerpt}}' ) . "\n"
-		. _pw_gb_row( 'ofs-r0', 'Offer type',        '{{post_meta key:_pw_offer_type}}' )          . "\n"
-		. _pw_gb_row( 'ofs-r1', 'Valid from',         '{{post_meta key:_pw_valid_from}}' )          . "\n"
-		. _pw_gb_row( 'ofs-r2', 'Valid to',           '{{post_meta key:_pw_valid_to}}' )            . "\n"
-		. _pw_gb_row( 'ofs-r3', 'Discount type',      '{{post_meta key:_pw_discount_type}}' )       . "\n"
-		. _pw_gb_row( 'ofs-r4', 'Discount value',     '{{post_meta key:_pw_discount_value}}' )      . "\n"
-		. _pw_gb_row( 'ofs-r5', 'Min. stay nights',   '{{post_meta key:_pw_minimum_stay_nights}}' ) . "\n"
-		. _pw_gb_row( 'ofs-r6', 'Featured',           '{{post_meta key:_pw_is_featured}}' )         . "\n"
-		. _pw_gb_row( 'ofs-r7', 'Booking URL',        '{{post_meta key:_pw_booking_url}}' )         . "\n"
-		. _pw_gb_p( 'ofs-ct', '{{post_content}}' ) . "\n"
-		. _pw_gb_link( 'ofs-bk', "\xE2\x86\x90 Back to Offers", '{{pw_current_section_listing_url}}' );
+		. _pw_gb_cta_button( 'ofs-bkurl', 'Book this offer', '{{post_meta key:_pw_booking_url}}' ) . "\n"
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/element -->';
+
+	$facts = _pw_gb_section(
+		'ofs-facts',
+		_pw_gb_h( 'ofs-fh', 'Offer details', 'h2' ) . "\n"
+		. _pw_gb_row( 'ofs-r0', 'Type', '{{post_meta key:_pw_offer_type}}' ) . "\n"
+		. _pw_gb_row( 'ofs-r1', 'Valid from', '{{post_meta key:_pw_valid_from}}' ) . "\n"
+		. _pw_gb_row( 'ofs-r2', 'Valid to', '{{post_meta key:_pw_valid_to}}' ) . "\n"
+		. _pw_gb_row( 'ofs-r3', 'Discount type', '{{post_meta key:_pw_discount_type}}' ) . "\n"
+		. _pw_gb_row( 'ofs-r4', 'Discount value', '{{post_meta key:_pw_discount_value}}' ) . "\n"
+		. _pw_gb_row( 'ofs-r5', 'Minimum stay (nights)', '{{post_meta key:_pw_minimum_stay_nights}}' ) . "\n"
+		. _pw_gb_row( 'ofs-r6', 'Featured', '{{post_meta key:_pw_is_featured}}' )
+	);
+
+	$content = _pw_gb_section(
+		'ofs-story',
+		_pw_gb_h( 'ofs-sh', 'Terms and details', 'h2' ) . "\n"
+		. _pw_gb_p( 'ofs-ct', '{{post_content}}' )
+	);
+
+	return $hero . "\n"
+		. $facts . "\n"
+		. $content . "\n"
+		. _pw_gb_link( 'ofs-bk', "\xE2\x86\x90 Back to offers", '{{pw_current_section_listing_url}}' );
 }
 
 /* ── Nearby place singular ─────────────────────────────────────────────── */
 
 function _pw_markup_nearby_singular(): string {
-	return _pw_gb_img( 'pls-img' ) . "\n"
+	$hero = _pw_gb_hero_img( 'pls-hero' ) . "\n"
+		. '<!-- wp:generateblocks/element {"uniqueId":"pls-hero-copy","tagName":"div","styles":{"paddingTop":"32px","paddingBottom":"24px"},"css":".gb-element-pls-hero-copy{padding:32px 0 24px}","className":"pw-hotel-hero gb-el gb-el-pls-hero-copy"} -->' . "\n"
+		. '<div class="gb-element-pls-hero-copy gb-el gb-el-pls-hero-copy pw-hotel-hero">' . "\n"
 		. _pw_gb_h( 'pls-h1', '{{post_title}}', 'h1' ) . "\n"
 		. _pw_gb_p( 'pls-ex', '{{post_excerpt}}' ) . "\n"
-		. _pw_gb_row( 'pls-r0', 'Distance (km)',    '{{post_meta key:_pw_distance_km}}' )    . "\n"
+		. _pw_gb_cta_button( 'pls-dir', 'Get directions', '{{post_meta key:_pw_place_url}}' ) . "\n"
+		. '</div>' . "\n"
+		. '<!-- /wp:generateblocks/element -->';
+
+	$facts = _pw_gb_section(
+		'pls-facts',
+		_pw_gb_h( 'pls-fh', 'Getting there', 'h2' ) . "\n"
+		. _pw_gb_row( 'pls-r0', 'Distance (km)', '{{post_meta key:_pw_distance_km}}' ) . "\n"
 		. _pw_gb_row( 'pls-r1', 'Travel time (min)', '{{post_meta key:_pw_travel_time_min}}' ) . "\n"
-		. _pw_gb_row( 'pls-r2', 'Latitude',          '{{post_meta key:_pw_lat}}' )             . "\n"
-		. _pw_gb_row( 'pls-r3', 'Longitude',         '{{post_meta key:_pw_lng}}' )             . "\n"
-		. _pw_gb_row( 'pls-r4', 'Place URL',         '{{post_meta key:_pw_place_url}}' )       . "\n"
-		. _pw_gb_p( 'pls-ct', '{{post_content}}' ) . "\n"
-		. _pw_gb_link( 'pls-bk', "\xE2\x86\x90 Back to Places Nearby", '{{pw_current_section_listing_url}}' );
+		. _pw_gb_row( 'pls-r2', 'Place type', '{{post_terms taxonomy:pw_nearby_type}}' ) . "\n"
+		. _pw_gb_row( 'pls-r3', 'How to get there', '{{post_terms taxonomy:pw_transport_mode}}' ) . "\n"
+		. _pw_gb_row( 'pls-r4', 'Latitude', '{{post_meta key:_pw_lat}}' ) . "\n"
+		. _pw_gb_row( 'pls-r5', 'Longitude', '{{post_meta key:_pw_lng}}' )
+	);
+
+	$content = _pw_gb_section(
+		'pls-story',
+		_pw_gb_h( 'pls-sh', 'About this place', 'h2' ) . "\n"
+		. _pw_gb_p( 'pls-ct', '{{post_content}}' )
+	);
+
+	return $hero . "\n"
+		. $facts . "\n"
+		. $content . "\n"
+		. _pw_gb_link( 'pls-bk', "\xE2\x86\x90 Back to places nearby", '{{pw_current_section_listing_url}}' );
 }
 
 /**

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Portico Webworks Hotel Website Manager
  * Description: Portico Webworks plugin.
- * Version: 0.8.40
+ * Version: 0.8.41
  * Requires at least: 6.9.4
  * Requires PHP: 8.3
  * Author: Portico Webworks
@@ -24,7 +24,7 @@ if ( is_readable( $pw_fatal_log ) ) {
 }
 
 define('PW_PLUGIN_FILE', __FILE__);
-define('PW_VERSION', '0.8.40');
+define('PW_VERSION', '0.8.41');
 define('PW_SAMPLE_DATA_GITHUB_OWNER', 'azharumar');
 define('PW_SAMPLE_DATA_GITHUB_REPO', 'portico_webworks_plugin');
 

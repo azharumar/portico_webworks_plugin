@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.41] - 2026-03-25
+
+### Changed
+- **GP starter markup** (`includes/page-installer.php`): guest-facing card-grid archives and hero-led singles; larger type via `_pw_gb_*` helpers; `_pw_gb_cta_button` for primary actions; HTML comment placeholders for `pw_rates`, `pw_gallery`, `pw_operating_hours`, and meeting `pw_floor_plan` (shortcode/TBD); removed GenerateBlocks `post_meta` loops for rates, gallery, and hours.
+
 ## [0.8.40] - 2026-03-25
 
 ### Added
