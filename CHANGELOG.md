@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.45] - 2026-03-25
+
+### Fixed
+- Fix `includes/page-installer.php` fatal error: duplicate function declarations from duplicated code blocks.
+
 ## [0.8.44] - 2026-03-25
 
 ### Fixed

@@ -307,6 +307,7 @@ function pw_handle_admin_post_pw_run_page_installer() {
 	exit;
 }
 
+if ( ! function_exists( 'pw_register_page_installer_meta' ) ) {
 if ( ! defined( 'PW_FACT_SHEET_PAGE_SLUG' ) ) {
 	define( 'PW_FACT_SHEET_PAGE_SLUG', 'fact-sheet' );
 }
@@ -1781,3 +1782,4 @@ function pw_handle_admin_post_pw_run_page_installer() {
 }
 
 add_action( 'admin_post_pw_run_page_installer', 'pw_handle_admin_post_pw_run_page_installer' );
+}
