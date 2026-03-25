@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.44] - 2026-03-25
+
+### Fixed
+- Fix `includes/page-installer.php` parse error caused by stray `<?php` tags.
+
 ## [0.8.43] - 2026-03-25
 
 ### Changed
