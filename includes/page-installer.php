@@ -307,9 +307,6 @@ function pw_handle_admin_post_pw_run_page_installer() {
 	exit;
 }
 
-<?php
-defined( 'ABSPATH' ) || exit;
-
 if ( ! defined( 'PW_FACT_SHEET_PAGE_SLUG' ) ) {
 	define( 'PW_FACT_SHEET_PAGE_SLUG', 'fact-sheet' );
 }
@@ -615,8 +612,6 @@ function pw_handle_admin_post_pw_run_page_installer() {
 	wp_safe_redirect( wp_get_referer() ?: admin_url( 'admin.php?page=' . urlencode( pw_admin_page_slug() ) ) );
 	exit;
 }
-
-<?php
 /**
  * Idempotent installer for plugin-managed pages and GeneratePress Elements (_pw_generated).
  */
