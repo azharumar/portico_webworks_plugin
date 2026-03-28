@@ -10,16 +10,7 @@ Admin UI uses **CMB2** for most child-CPT meta boxes and **custom metaboxes** fo
 
 **`pw_property` viewability:** In single-property mode the post type is not publicly queryable, but an `is_post_type_viewable` filter (`includes/property-post-type.php`) still returns true so the block editor and builders (e.g. GenerateBlocks) can resolve the type.
 
-**Installer-managed Fact Sheet page:** `pw_get_required_pages()` in `includes/page-installer.php` requires one WordPress **page** per scope: requested slug `PW_FACT_SHEET_PAGE_SLUG` (`fact-sheet`), `_pw_generated` = `1`, `_pw_static_url_segment` = `fact-sheet` (URL segment for `property-rewrites.php` when WordPress uniquifies `post_name`), `_pw_property_id` = `0` in **single** mode or the property ID in **multi** mode. On first create only, `post_content` is filled from `gb-pro-markup-samples.html` (`pw_get_fact_sheet_starter_markup()`); existing pages are never overwritten. **Install Missing Structure** / publishing a property runs `pw_run_page_installer()` idempotently.
-
-### Sample data marker (internal)
-
-| Key                    | Scope        | Notes                                                                 |
-| ---------------------- | ------------ | --------------------------------------------------------------------- |
-| `_pw_is_sample_data`   | Post meta    | Constant `PW_IS_SAMPLE_DATA_META_KEY`. Set to `1` on content created by the Sample Data installer. Registered for all plugin CPTs, `post`, and `page`. **REST:** `show_in_rest: true`; `auth_callback` requires `edit_post` on that post. |
-| `_pw_is_sample_data`   | Term meta    | Same key constant. Set when the installer **creates** a term (existing terms are not tagged). Registered for plugin taxonomies, `category`, and `post_tag`. **REST:** `show_in_rest: true`; `auth_callback` requires `edit_term`. |
-
-**Sample data pack (releases):** The multi-property dataset and demo images live in `sample-data-pack/` in the repository. The main plugin release ZIP **excludes** that folder to keep the download small. The matching GitHub release also publishes **`portico_webworks_plugin-sample-data.zip`**; `manifest.json` inside the pack must match `PW_VERSION`. **Portico Webworks → Data → Sample content** downloads the ZIP (HTTPS URL, default built from the **Update** tab GitHub releases URL or `PW_SAMPLE_DATA_GITHUB_OWNER` / `PW_SAMPLE_DATA_GITHUB_REPO` in `portico_webworks_plugin.php`), extracts it under uploads, loads `bootstrap.php`, and runs the installer. A full git checkout includes `sample-data-pack/` locally so no download is required in development. Successful install flushes rewrite rules and refreshes **Portico primary** nav custom-link URLs. **Remove sample data** also deletes attachments referenced by `_thumbnail_id`, `_pw_gallery`, and `_pw_og_image` on flagged posts.
+**Data tab:** **Portico Webworks → Data** (`includes/admin-data-tab.php`) — site structure panel (when present), import/export (when `pw_render_import_export_section()` is defined), **Reinstall default taxonomy terms**, **Remove all plugin data**.
 
 ---
 
@@ -499,11 +490,9 @@ Canonical lists live in `includes/taxonomy-seeds.php` (`pw_get_taxonomy_seed_ter
 
 **Fresh activation:** `pw_apply_install_defaults()` (`portico_webworks_plugin.php`) sets option `pw_seed_taxonomies` to `1`. On `init` at priority `999`, the plugin runs `pw_seed_taxonomy_terms()`, deletes `pw_seed_taxonomies`, and sets `pw_taxonomy_seed_prompt_status` to `auto_completed`.
 
-**Existing sites (upgrade):** If `pw_install_defaults_applied` is set and `pw_taxonomy_seed_prompt_status` is empty, `admin_init` sets it to `pending` and an admin notice offers **Add default terms** / **Dismiss** (`admin_post_pw_accept_taxonomy_seed` / `pw_dismiss_taxonomy_seed`). Accept runs the same seeder and sets status to `completed`. The Sample Data admin UI can re-run `pw_seed_taxonomy_terms()` via `admin_post_pw_reseed_taxonomies` (`includes/sample-data.php`).
+**Existing sites (upgrade):** If `pw_install_defaults_applied` is set and `pw_taxonomy_seed_prompt_status` is empty, `admin_init` sets it to `pending` and an admin notice offers **Add default terms** / **Dismiss** (`admin_post_pw_accept_taxonomy_seed` / `pw_dismiss_taxonomy_seed`). Accept runs the same seeder and sets status to `completed`. The **Data** tab can re-run `pw_seed_taxonomy_terms()` via `admin_post_pw_reseed_taxonomies` (`includes/admin-data-tab.php`).
 
-**Taxonomies seeded (all optional names in code):** `pw_property_type`, `pw_policy_type`, `pw_bed_type`, `pw_view_type`, `pw_meal_period`, `pw_treatment_type`, `pw_av_equipment`, `pw_feature_group`, `pw_nearby_type`, `pw_transport_mode`, `pw_experience_category`, `pw_event_type`.
-
-The **Sample Data** installer (`sample-data-pack/sample-data-multi-install.php`, loaded after the pack is fetched or from the local `sample-data-pack/` folder) merges in the full `pw_get_taxonomy_seed_terms()` arrays for `pw_property_type` and `pw_policy_type`, then ensures additional demo-only names; it assigns **Hotel** / **Resort** on the two demo properties. Canonical term tables and demo-term notes: `[TAXONOMY-SEED-VALUES.md](TAXONOMY-SEED-VALUES.md)`.
+**Taxonomies seeded (all optional names in code):** `pw_property_type`, `pw_policy_type`, `pw_bed_type`, `pw_view_type`, `pw_meal_period`, `pw_treatment_type`, `pw_av_equipment`, `pw_feature_group`, `pw_nearby_type`, `pw_transport_mode`, `pw_experience_category`, `pw_event_type`. Canonical term tables: `[TAXONOMY-SEED-VALUES.md](TAXONOMY-SEED-VALUES.md)`.
 
 #### Not seeded automatically
 

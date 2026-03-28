@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Portico Webworks Hotel Website Manager
  * Description: Portico Webworks plugin.
- * Version: 0.8.45
+ * Version: 0.8.46
  * Requires at least: 6.9.4
  * Requires PHP: 8.3
  * Author: Portico Webworks
@@ -25,10 +25,8 @@ if ( is_readable( $pw_fatal_log ) ) {
 
 define( 'PW_PLUGIN_FILE', __FILE__ );
 define( 'PW_PLUGIN_DIR', plugin_dir_path( PW_PLUGIN_FILE ) );
-define( 'PW_VERSION', '0.8.45' );
+define( 'PW_VERSION', '0.8.46' );
 require_once PW_PLUGIN_DIR . 'includes/template-functions.php';
-define('PW_SAMPLE_DATA_GITHUB_OWNER', 'azharumar');
-define('PW_SAMPLE_DATA_GITHUB_REPO', 'portico_webworks_plugin');
 
 function pw_apply_install_defaults() {
 	if (get_option('pw_install_defaults_applied', 0)) {
@@ -74,7 +72,6 @@ if ( ! is_readable( $pw_cmb2_init ) ) {
 
 require_once $pw_cmb2_init;
 add_filter( 'cmb2_menus', '__return_empty_array' );
-require_once __DIR__ . '/includes/cmb2-rrule-field.php';
 
 require_once __DIR__ . '/includes/github-plugin-update.php';
 require_once __DIR__ . '/includes/permalink-config.php';
@@ -94,26 +91,18 @@ add_action(
 );
 require_once __DIR__ . '/includes/nav-menus.php';
 require_once __DIR__ . '/includes/property-helpers.php';
-require_once __DIR__ . '/includes/page-installer.php';
 require_once __DIR__ . '/includes/admin-page.php';
 
-add_action( 'transition_post_status', 'pw_on_property_published', 10, 3 );
 require_once __DIR__ . '/includes/currency-data.php';
 require_once __DIR__ . '/includes/property-post-type.php';
 require_once __DIR__ . '/includes/property-rewrites.php';
 require_once __DIR__ . '/includes/property-facet-definitions.php';
 require_once __DIR__ . '/includes/child-post-types.php';
 require_once __DIR__ . '/includes/contact-resolver.php';
-require_once __DIR__ . '/includes/contact-post-type.php';
 require_once __DIR__ . '/includes/admin-list-columns.php';
-require_once __DIR__ . '/includes/contact-metabox.php';
 require_once __DIR__ . '/includes/taxonomy-seeds.php';
 require_once __DIR__ . '/includes/child-post-type-metaboxes.php';
-require_once __DIR__ . '/includes/import-export.php';
-require_once __DIR__ . '/includes/sample-data-meta.php';
-require_once __DIR__ . '/includes/sample-data-pack-loader.php';
-require_once __DIR__ . '/includes/sample-data.php';
-require_once __DIR__ . '/includes/admin-permalinks.php';
+require_once __DIR__ . '/includes/admin-data-tab.php';
 require_once __DIR__ . '/includes/backward-compat.php';
 require_once __DIR__ . '/includes/property-profile.php';
 require_once __DIR__ . '/includes/admin-assets.php';

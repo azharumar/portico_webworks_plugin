@@ -218,14 +218,8 @@ On install / “Add default terms” / “Reinstall default taxonomy terms”, `
 
 | Item | Reason |
 |------|--------|
-| `pw_event_organiser` | Property- and brand-specific; sample data creates e.g. “Portico Demo Events” ad hoc |
+| `pw_event_organiser` | Property- and brand-specific; add terms as needed per property |
 
 ---
-
-## Sample data installer — extra terms
-
-`sample-data-pack/sample-data-multi-install.php` (loaded when the sample data pack is installed) calls `pw_get_taxonomy_seed_terms()` so **all** rows above exist, then ensures **additional** names used only in the demo (e.g. “City View”, “LED Screen”, “Metro”, “Sunday Brunch”, “Beach Event”). Those extra names are **not** removed when you reinstall seeds; they are created as needed and may be tagged as sample data when not matching a seed name (see `pw_sample_ensure_term()` in `includes/sample-data.php`).
-
-Demo properties are assigned **`pw_property_type`**: Bengaluru → **Hotel**, Goa → **Resort** (both are seed values).
 
 Contacts are **`pw_contact` posts**, not property meta — see `DATA-STRUCTURE.md` and `includes/contact-resolver.php`.

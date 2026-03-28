@@ -405,22 +405,7 @@ Plugin-managed. General property-level FAQs. Outlet-scoped FAQs are embedded wit
 
 ---
 
-### 6.2 Fact sheet (`/fact-sheet`)
-
-Plugin-managed page. Created by `pw_run_page_installer()`. Starter markup from `gb-pro-markup-samples.html`.
-
-| Section | Purpose | Content source |
-|---|---|---|
-| Page header | Property name + "Fact sheet" | `wp-core` (post title of `pw_property`) |
-| Property overview | Location, category, year opened, total rooms, total outlets | `plugin-meta`: `_pw_city`, `_pw_country`, `_pw_year_established`, `_pw_total_rooms`, `_pw_star_rating`; `plugin-tax`: `pw_property_type` |
-| Rooms summary table | Room types, count, size range, occupancy | `plugin-query`: loop on `pw_room_type`; `plugin-meta`: `_pw_size_sqm`, `_pw_max_occupancy` |
-| Facilities summary | F&B, spa, pool, meeting rooms — brief per category | `plugin-query`: counts from `pw_restaurant`, `pw_spa`, `pw_meeting_room`; `plugin-meta`: `_pw_pools` |
-| Contact details | Reservations phone, email, address | `plugin-meta`: `pw_contact` resolution; `computed` from `_pw_address_*` fields |
-| Download CTA | PDF version for travel agents and press | `new-meta`: `_pw_fact_sheet_pdf` (attachment ID); rendered as download link if set |
-
----
-
-### 6.3 Contact (`/contact`)
+### 6.2 Contact (`/contact`)
 
 | Section | Purpose | Content source |
 |---|---|---|
@@ -433,7 +418,7 @@ Plugin-managed page. Created by `pw_run_page_installer()`. Starter markup from `
 
 ---
 
-### 6.4 About (`/about`)
+### 6.3 About (`/about`)
 
 | Section | Purpose | Content source |
 |---|---|---|
@@ -447,7 +432,7 @@ Plugin-managed page. Created by `pw_run_page_installer()`. Starter markup from `
 
 ---
 
-### 6.5 Privacy policy (`/privacy-policy`)
+### 6.4 Privacy policy (`/privacy-policy`)
 
 | Section | Purpose | Content source |
 |---|---|---|
@@ -455,7 +440,7 @@ Plugin-managed page. Created by `pw_run_page_installer()`. Starter markup from `
 
 ---
 
-### 6.6 Terms and conditions (`/terms`)
+### 6.5 Terms and conditions (`/terms`)
 
 | Section | Purpose | Content source |
 |---|---|---|
@@ -463,7 +448,7 @@ Plugin-managed page. Created by `pw_run_page_installer()`. Starter markup from `
 
 ---
 
-### 6.7 Cookie policy (`/cookie-policy`)
+### 6.6 Cookie policy (`/cookie-policy`)
 
 | Section | Purpose | Content source |
 |---|---|---|
@@ -506,8 +491,6 @@ Fields not yet in the data model. Grouped by CPT.
 | `_pw_faq_page_intro` | string | Intro line for `/faq` |
 | `_pw_video_embed_url` | string | Property video URL (YouTube or Vimeo). Used on `/gallery` |
 | `_pw_gallery_categories` | repeatable group | Fields: `category_label`, `attachment_ids`. Used for filtered gallery tabs |
-| `_pw_fact_sheet_pdf` | integer | Attachment ID of downloadable fact sheet PDF |
-
 ### `pw_restaurant`
 
 | Meta key | Type | Notes |
@@ -584,7 +567,7 @@ add_filter( 'pw_cta_label', function( $label, $post_type, $post_id ) {
 
 **FAQ placement:** Property-wide FAQs live at `/faq`. Outlet-specific FAQs (restaurant, spa, meeting room) are embedded within the relevant outlet singular using `_pw_connected_to` connections on `pw_faq`. Both use the same CPT.
 
-**Policies page:** Should be added to `pw_run_page_installer()` with slug `policies`, alongside `fact-sheet`.
+**Policies page:** Add as a normal WordPress Page with slug `policies` when needed.
 
 **Section intro fields:** All `_pw_*_section_intro` and `_pw_*_section_title` fields on `pw_property` are optional overrides. If empty, the section header falls back to the filtered string default from `includes/template-strings.php`. The site does not break if these fields are unpopulated.
 

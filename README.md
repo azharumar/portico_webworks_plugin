@@ -69,7 +69,7 @@ Individual pages for places of interest near your hotel — landmarks, restauran
 A curated local area guide that helps guests plan their stay and positions your hotel as the expert on the destination.
 
 **Custom static pages**
-Add any page you need — fact sheet, photo gallery, wedding brochure, press kit — directly from WordPress, with no developer required.
+Add any page you need — photo gallery, wedding brochure, press kit — directly from WordPress, with no developer required.
 
 ### Search engine optimisation
 

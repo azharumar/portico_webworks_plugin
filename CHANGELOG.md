@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.46] - 2026-03-28
+
+### Removed
+- **Fact sheet / page installer:** `includes/page-installer.php` (constants `PW_FACT_SHEET_PAGE_SLUG`, registered page meta `_pw_generated`, `_pw_static_url_segment`, `_pw_section_cpt`), bootstrap `require_once`; fact-sheet static URL fallback in `includes/property-rewrites.php`.
+- **Sample data pack:** `sample-data-pack/` dataset and demo media; `includes/sample-data-pack-loader.php`; `assets/admin-sample-install.js`; GitHub release asset `portico_webworks_plugin-sample-data.zip` and related workflow steps; `PW_SAMPLE_DATA_GITHUB_OWNER` / `PW_SAMPLE_DATA_GITHUB_REPO`; Data tab **Install sample data** / ZIP URL UI and streaming install. `pw_sync_portico_nav_menus_after_sample_install()` removed from `includes/nav-menus.php`; `sync-version.ps1` no longer updates `sample-data-pack/manifest.json`.
+- **`includes/sample-data-meta.php`** and **`includes/sample-data.php`**: `_pw_is_sample_data` post/term meta registration, sample purge/list UI, and install-lock hooks. **Data** tab logic lives in **`includes/admin-data-tab.php`** (structure, optional import/export, taxonomy reseed, purge-all only).
+- **`tools/`** scripts used to regenerate GenerateBlocks starter markup from `gb-pro-markup-samples.html`: `generate-gb-fact-sheet-markup.py`, `_extract-gb-starter.mjs`, `_build-starter-php.mjs`, `_inline-starter-markup.mjs`, `_merge-page-installer-markup.mjs`, `_audit-uniqueids.mjs`.
+
+### Changed
+- `DATA-STRUCTURE.md` and `TAXONOMY-SEED-VALUES.md`: drop sample-pack / demo-installer / `_pw_is_sample_data` prose; document **Data** tab via `admin-data-tab.php`.
+
+### Fixed
+- **Data tab load path:** `includes/admin-data-tab.php` is present again (taxonomy reseed, purge-all, accordion UI, optional `pw_render_page_structure_admin_panel` / `pw_render_import_export_section`); removed a stray **`includes/sample-data.php`** that was still in the tree while the main plugin only required `admin-data-tab.php`, and that still depended on removed sample-meta helpers.
+
 ## [0.8.45] - 2026-03-25
 
 ### Fixed
@@ -91,7 +105,7 @@
 - **Fact Sheet page installer**: `pw_get_required_pages()` creates idempotent generated pages (`fact-sheet`, `_pw_generated`) per property scope; starter block markup from `gb-pro-markup-samples.html` on first insert only (`PW_FACT_SHEET_PAGE_SLUG`, `pw_get_fact_sheet_starter_markup()`)
 
 ### Fixed
-- **GenerateBlocks `pw_property` query + `pw-gb-scope-property`**: `pw_filter_generateblocks_query_loop_property_scope()` scopes `pw_property` loops with `post__in` on the front end; skips mutating the query in admin/REST so the block editor is not broken by a bogus `_pw_property_id` meta clause. Root Fact Sheet query block includes `className` `pw-gb-scope-property` in `gb-pro-markup-samples.html` / `tools/generate-gb-fact-sheet-markup.py`
+- **GenerateBlocks `pw_property` query + `pw-gb-scope-property`**: `pw_filter_generateblocks_query_loop_property_scope()` scopes `pw_property` loops with `post__in` on the front end; skips mutating the query in admin/REST so the block editor is not broken by a bogus `_pw_property_id` meta clause. Root Fact Sheet query block includes `className` `pw-gb-scope-property` in `gb-pro-markup-samples.html`
 - **Multi-property Fact Sheet URLs vs unique page slugs**: page meta `_pw_static_url_segment` + static-page resolver and `pw_find_generated_page()` fallback so each property keeps URL `/{property}/fact-sheet` even when WordPress stores uniquified `post_name` (e.g. `fact-sheet-2`)
 
 ### Changed
@@ -277,7 +291,7 @@
 - **Contacts**: removed property repeatable `_pw_contacts` / `pw_property_contacts`; `pw_get_property_profile()['contacts']` uses `pw_resolve_contact( 'property', 0, $id )` (TODO comments for audit)
 - **Sample data**: `pw_contact` rows for demo properties; installer merges full **`pw_property_type`** and **`pw_policy_type`** seed lists from `pw_get_taxonomy_seed_terms()`, assigns **Hotel** / **Resort** on the two demo properties; Data tab copy updated
 - **`pw_contact`** in import/export, sample-data meta registration, purge post-type list, admin CMB2 styling scope, `DATA-STRUCTURE.md`, **`TAXONOMY-SEED-VALUES.md`** (canonical mirror of seeds + demo-term notes)
-- **Fact sheet markup** (`tools/generate-gb-fact-sheet-markup.py`, `gb-pro-markup-samples.html`): Contacts section queries `pw_contact` with scoped classes and `_pw_label` / channel meta
+- **Fact sheet markup** (`gb-pro-markup-samples.html`): Contacts section queries `pw_contact` with scoped classes and `_pw_label` / channel meta
 
 ### Removed
 - **Meeting rooms**: removed per-outlet sales phone, mobile, WhatsApp, and email meta (CMB2, REST registration, sample data, GB samples / generator)

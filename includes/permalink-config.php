@@ -10,16 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array<string, array{plural: string, singular: string}>
  */
 function pw_default_section_bases() {
-	return [
-		'pw_room_type'    => [ 'plural' => 'rooms', 'singular' => 'room' ],
-		'pw_restaurant'   => [ 'plural' => 'restaurants', 'singular' => 'restaurant' ],
-		'pw_spa'          => [ 'plural' => 'spas', 'singular' => 'spa' ],
-		'pw_meeting_room' => [ 'plural' => 'meetings', 'singular' => 'meeting' ],
-		'pw_experience'   => [ 'plural' => 'experiences', 'singular' => 'experience' ],
-		'pw_event'        => [ 'plural' => 'events', 'singular' => 'event' ],
-		'pw_offer'        => [ 'plural' => 'offers', 'singular' => 'offer' ],
-		'pw_nearby'       => [ 'plural' => 'places', 'singular' => 'place' ],
-	];
+	return [];
 }
 
 /**
@@ -28,16 +19,7 @@ function pw_default_section_bases() {
  * @return list<string>
  */
 function pw_url_section_cpts() {
-	return [
-		'pw_room_type',
-		'pw_restaurant',
-		'pw_spa',
-		'pw_meeting_room',
-		'pw_experience',
-		'pw_event',
-		'pw_offer',
-		'pw_nearby',
-	];
+	return [];
 }
 
 /**

@@ -12,10 +12,6 @@ function pw_admin_settings_url() {
 	return admin_url('admin.php?page=' . rawurlencode(pw_admin_page_slug()) . '&tab=settings');
 }
 
-function pw_admin_permalinks_url() {
-	return admin_url( 'admin.php?page=' . rawurlencode( pw_admin_page_slug() ) . '&tab=permalinks' );
-}
-
 function pw_admin_data_url() {
 	return admin_url( 'admin.php?page=' . rawurlencode( pw_admin_page_slug() ) . '&tab=data' );
 }
@@ -25,27 +21,21 @@ function pw_admin_update_url() {
 }
 
 /**
- * Order: General, Permalinks, other registered tabs (e.g. Data, Dependencies), Update, About.
+ * Order: General, other registered tabs (e.g. Data, Dependencies), Update, About.
  */
 function pw_order_admin_tabs( $tabs ) {
 	if ( ! is_array( $tabs ) || $tabs === [] ) {
 		return $tabs;
 	}
-	$settings_key   = 'settings';
-	$permalinks_key = 'permalinks';
-	$update_key     = 'update';
-	$about_key      = 'about';
-	$general        = [];
-	$permalinks     = [];
-	$update         = [];
-	$about          = [];
+	$settings_key = 'settings';
+	$update_key   = 'update';
+	$about_key    = 'about';
+	$general      = [];
+	$update       = [];
+	$about        = [];
 	if ( isset( $tabs[ $settings_key ] ) ) {
 		$general[ $settings_key ] = $tabs[ $settings_key ];
 		unset( $tabs[ $settings_key ] );
-	}
-	if ( isset( $tabs[ $permalinks_key ] ) ) {
-		$permalinks[ $permalinks_key ] = $tabs[ $permalinks_key ];
-		unset( $tabs[ $permalinks_key ] );
 	}
 	if ( isset( $tabs[ $update_key ] ) ) {
 		$update[ $update_key ] = $tabs[ $update_key ];
@@ -55,7 +45,7 @@ function pw_order_admin_tabs( $tabs ) {
 		$about[ $about_key ] = $tabs[ $about_key ];
 		unset( $tabs[ $about_key ] );
 	}
-	return array_merge( $general, $permalinks, $tabs, $update, $about );
+	return array_merge( $general, $tabs, $update, $about );
 }
 
 add_filter('plugin_action_links_' . plugin_basename(PW_PLUGIN_FILE), function ($links) {
@@ -141,25 +131,6 @@ add_action('admin_menu', function () {
 		'manage_options',
 		'post-new.php?post_type=pw_property'
 	);
-
-	pw_add_menu_divider( 'Property Content', 'property-content' );
-
-	add_submenu_page( pw_admin_page_slug(), 'Room Types',    'Room Types',    'manage_options', 'edit.php?post_type=pw_room_type' );
-	add_submenu_page( pw_admin_page_slug(), 'Features',      'Features',      'manage_options', 'edit.php?post_type=pw_feature' );
-	add_submenu_page( pw_admin_page_slug(), 'Restaurants',   'Restaurants',   'manage_options', 'edit.php?post_type=pw_restaurant' );
-	add_submenu_page( pw_admin_page_slug(), 'Spas',          'Spas',          'manage_options', 'edit.php?post_type=pw_spa' );
-	add_submenu_page( pw_admin_page_slug(), 'Meeting Rooms', 'Meeting Rooms', 'manage_options', 'edit.php?post_type=pw_meeting_room' );
-	add_submenu_page( pw_admin_page_slug(), 'Contacts',      'Contacts',      'manage_options', 'edit.php?post_type=pw_contact' );
-	add_submenu_page( pw_admin_page_slug(), 'Amenities',     'Amenities',     'manage_options', 'edit.php?post_type=pw_amenity' );
-	add_submenu_page( pw_admin_page_slug(), 'Policies',      'Policies',      'manage_options', 'edit.php?post_type=pw_policy' );
-
-	pw_add_menu_divider( 'Marketing', 'marketing' );
-
-	add_submenu_page( pw_admin_page_slug(), 'Offers',      'Offers',      'manage_options', 'edit.php?post_type=pw_offer' );
-	add_submenu_page( pw_admin_page_slug(), 'Experiences', 'Experiences', 'manage_options', 'edit.php?post_type=pw_experience' );
-	add_submenu_page( pw_admin_page_slug(), 'Events',      'Events',      'manage_options', 'edit.php?post_type=pw_event' );
-	add_submenu_page( pw_admin_page_slug(), 'Nearby',      'Nearby',      'manage_options', 'edit.php?post_type=pw_nearby' );
-	add_submenu_page( pw_admin_page_slug(), 'FAQs',        'FAQs',        'manage_options', 'edit.php?post_type=pw_faq' );
 }, 30);
 
 function pw_title() {
@@ -179,69 +150,6 @@ add_action(
 		if ( get_transient( 'pw_settings_mode_changed_notice' ) ) {
 			delete_transient( 'pw_settings_mode_changed_notice' );
 			echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html__( 'Property mode was updated. Rewrite rules were flushed. Update internal links if URLs changed.', 'portico-webworks' ) . '</p></div>';
-		}
-		$err = get_transient( 'pw_settings_section_base_error' );
-		if ( $err ) {
-			delete_transient( 'pw_settings_section_base_error' );
-			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html( (string) $err ) . '</p></div>';
-		}
-	}
-);
-
-add_action(
-	'admin_notices',
-	static function () {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-		$last = get_transient( 'pw_installer_last_run' );
-		if ( is_array( $last ) ) {
-			delete_transient( 'pw_installer_last_run' );
-			$pt    = isset( $last['property_title'] ) ? (string) $last['property_title'] : '';
-			$pages = admin_url( 'edit.php?post_type=page' );
-			echo '<div class="notice notice-success is-dismissible"><p>';
-			echo esc_html(
-				sprintf(
-					/* translators: %s: property title */
-					__( 'Property "%s" was published. Site structure (pages) was updated where needed.', 'portico-webworks' ),
-					$pt !== '' ? $pt : __( '(untitled)', 'portico-webworks' )
-				)
-			);
-			echo ' <a href="' . esc_url( $pages ) . '">' . esc_html__( 'Pages', 'portico-webworks' ) . '</a>';
-			echo '</p></div>';
-		}
-		$ran = isset( $_GET['pw_installer_ran'] ) ? sanitize_text_field( wp_unslash( $_GET['pw_installer_ran'] ) ) : '';
-		if ( $ran === '1' ) {
-			$res = get_transient( 'pw_installer_manual_results' );
-			delete_transient( 'pw_installer_manual_results' );
-			if ( is_array( $res ) ) {
-				$c    = (int) ( $res['created'] ?? 0 );
-				$u    = (int) ( $res['updated'] ?? 0 );
-				$uc   = (int) ( $res['unchanged'] ?? 0 );
-				$cf   = (int) ( $res['conflict'] ?? 0 );
-				$msgs = isset( $res['conflict_messages'] ) && is_array( $res['conflict_messages'] ) ? $res['conflict_messages'] : [];
-				$class = $cf > 0 ? 'notice-warning' : 'notice-success';
-				echo '<div class="notice ' . esc_attr( $class ) . ' is-dismissible"><p>';
-				echo esc_html(
-					sprintf(
-						/* translators: 1: created count, 2: updated, 3: unchanged, 4: conflicts */
-						__( 'Structure installer finished: %1$d created, %2$d updated, %3$d unchanged, %4$d conflicts.', 'portico-webworks' ),
-						$c,
-						$u,
-						$uc,
-						$cf
-					)
-				);
-				echo '</p>';
-				if ( $msgs !== [] ) {
-					echo '<ul style="list-style:disc;margin-left:1.5em;">';
-					foreach ( $msgs as $m ) {
-						echo '<li>' . esc_html( (string) $m ) . '</li>';
-					}
-					echo '</ul>';
-				}
-				echo '</div>';
-			}
 		}
 	}
 );
@@ -319,10 +227,6 @@ function pw_handle_settings_save() {
 
 	update_option( 'pw_settings', $settings );
 
-	if ( $mode !== $existing['pw_property_mode'] ) {
-		pw_run_page_installer_all_scopes();
-	}
-
 	if ( $need_flush ) {
 		set_transient( 'pw_flush_rewrites', 1, 120 );
 	}
@@ -349,71 +253,6 @@ add_action(
 	}
 );
 add_action('admin_post_pw_save_settings', 'pw_handle_settings_save');
-
-/**
- * Site structure tables + installer (Data tab); not inside another form.
- */
-function pw_render_page_structure_admin_panel() {
-	echo '<p class="description">' . esc_html__( 'Installer-managed static pages (Fact Sheet per property scope). Starter block markup for section archives is no longer installed by this plugin.', 'portico-webworks' ) . '</p>';
-	echo '<details class="pw-page-structure"><summary style="cursor:pointer;font-weight:600;margin-top:0.5em;">' . esc_html__( 'Required pages', 'portico-webworks' ) . '</summary>';
-
-	$pages_list_url = admin_url( 'edit.php?post_type=page' );
-
-	echo '<p class="description" style="margin-top:0.75em;"><strong>' . esc_html__( 'Pages', 'portico-webworks' ) . '</strong></p>';
-	echo '<table class="widefat striped pw-page-structure-table" style="margin-top:0.5em;"><thead><tr>';
-	echo '<th>' . esc_html__( 'Page', 'portico-webworks' ) . '</th>';
-	echo '<th>' . esc_html__( 'Slug', 'portico-webworks' ) . '</th>';
-	echo '<th>' . esc_html__( 'Scope', 'portico-webworks' ) . '</th>';
-	echo '<th>' . esc_html__( 'Status', 'portico-webworks' ) . '</th>';
-	echo '</tr></thead><tbody>';
-	$page_rows = pw_get_page_structure_display_rows();
-	if ( $page_rows === [] ) {
-		echo '<tr><td colspan="4">' . esc_html__( 'No installer-managed pages.', 'portico-webworks' ) . '</td></tr>';
-	} else {
-		foreach ( $page_rows as $pr ) {
-			$slug      = sanitize_title( $pr['slug'] ?? '' );
-			$pid_scope = (int) ( $pr['property_id'] ?? 0 );
-			$gen       = pw_find_generated_page( $slug, $pid_scope );
-			if ( $gen instanceof WP_Post ) {
-				$elink  = get_edit_post_link( $gen->ID, 'raw' );
-				$status = '<span style="color:#007017;">' . esc_html__( 'Exists', 'portico-webworks' ) . '</span>';
-				if ( is_string( $elink ) && $elink !== '' ) {
-					$status .= ' <a href="' . esc_url( $elink ) . '">' . esc_html__( 'Edit', 'portico-webworks' ) . '</a>';
-				}
-			} else {
-				$by_path = get_page_by_path( $slug, OBJECT, 'page' );
-				if ( $by_path instanceof WP_Post && get_post_meta( $by_path->ID, '_pw_generated', true ) !== '1' ) {
-					$elink  = get_edit_post_link( $by_path->ID, 'raw' );
-					$status = '<span style="color:#b32d2e;">' . esc_html__( 'Conflict', 'portico-webworks' ) . '</span>';
-					if ( is_string( $elink ) && $elink !== '' ) {
-						$status .= ' <a href="' . esc_url( $elink ) . '">' . esc_html__( 'View page', 'portico-webworks' ) . '</a>';
-					}
-				} else {
-					$status = '<span style="color:#996800;">' . esc_html__( 'Missing', 'portico-webworks' ) . '</span>';
-				}
-			}
-			$title = isset( $pr['title'] ) ? (string) $pr['title'] : $slug;
-			$scope = isset( $pr['property_label'] ) ? (string) $pr['property_label'] : '';
-			echo '<tr>';
-			echo '<td>' . esc_html( $title ) . '</td>';
-			echo '<td><code>' . esc_html( $slug ) . '</code></td>';
-			echo '<td>' . esc_html( $scope ) . '</td>';
-			echo '<td>' . wp_kses_post( $status ) . '</td>';
-			echo '</tr>';
-		}
-	}
-	echo '</tbody></table>';
-
-	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin-top:1em;">';
-	echo '<input type="hidden" name="action" value="pw_run_page_installer" />';
-	wp_nonce_field( 'pw_run_page_installer' );
-	submit_button( esc_attr__( 'Install Missing Structure', 'portico-webworks' ), 'secondary', 'pw-run-page-installer', false );
-	echo '</form>';
-	echo '<p class="description">' . esc_html__( 'Creates missing pages; aligns page slugs with current URL settings. Existing content is not overwritten.', 'portico-webworks' ) . ' ';
-	echo '<a href="' . esc_url( $pages_list_url ) . '">' . esc_html__( 'All pages', 'portico-webworks' ) . '</a>';
-	echo '</p>';
-	echo '</details>';
-}
 
 function pw_render_root_page() {
 	if (!current_user_can('manage_options')) {
@@ -557,13 +396,10 @@ function pw_render_root_page() {
 		echo '<div id="pw-mode-switch-warning-multi" class="notice notice-warning inline" style="display:none;margin:1em 0;"><p>' . esc_html__( 'Switching from multi-property to single-property mode will break all existing property-prefixed URLs. There is no automatic redirect mapping. Ensure this is intentional before saving.', 'portico-webworks' ) . '</p></div>';
 		echo '<div id="pw-mode-switch-warning-single" class="notice notice-warning inline" style="display:none;margin:1em 0;"><p>' . esc_html__( 'Switching to multi-property mode will break all existing URLs that do not include a property slug prefix. There is no automatic redirect mapping. Ensure this is intentional before saving.', 'portico-webworks' ) . '</p></div>';
 
-		echo '<p class="description" style="margin-top:1em;">' . esc_html__( 'URL segments, section bases, and listing pages are configured under the Permalinks tab.', 'portico-webworks' ) . ' ';
-		echo '<a href="' . esc_url( pw_admin_permalinks_url() ) . '">' . esc_html__( 'Open Permalinks', 'portico-webworks' ) . '</a>';
 		if ( current_user_can( 'update_plugins' ) ) {
-			echo ' ' . esc_html__( 'Plugin updates from GitHub are under the Update tab.', 'portico-webworks' ) . ' ';
-			echo '<a href="' . esc_url( pw_admin_update_url() ) . '">' . esc_html__( 'Open Update', 'portico-webworks' ) . '</a>';
+			echo '<p class="description" style="margin-top:1em;">' . esc_html__( 'Plugin updates from GitHub are under the Update tab.', 'portico-webworks' ) . ' ';
+			echo '<a href="' . esc_url( pw_admin_update_url() ) . '">' . esc_html__( 'Open Update', 'portico-webworks' ) . '</a></p>';
 		}
-		echo '</p>';
 
 		submit_button( esc_attr__( 'Save General', 'portico-webworks' ), 'primary', 'pw-save-settings' );
 		echo '</form>';

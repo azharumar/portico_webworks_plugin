@@ -90,7 +90,7 @@ No property slug in any URL. Property context auto-resolved from plugin settings
 /place/cubbon-park
 
 # Static pages — wildcard, resolved after all section and outlet rules
-/fact-sheet
+/press-kit
 /gallery
 /contact
 /{any-page-slug}
@@ -135,7 +135,7 @@ Property slug sits directly at root for property-specific URLs.
 /leela-residency/place/cubbon-park
 
 # Static pages under property — wildcard, resolved after all section and outlet rules
-/leela-residency/fact-sheet
+/leela-residency/press-kit
 /leela-residency/gallery
 /leela-residency/{any-page-slug}
 ```
@@ -341,12 +341,12 @@ The fallback global lookup is sufficient. The property-scoped query runs first r
 
 ### Adding a static page under a property
 
-1. Create a WordPress Page with the desired slug (e.g. `fact-sheet`)
+1. Create a WordPress Page with the desired slug (e.g. `press-kit`)
 2. Set `_pw_property_id` on the page to the relevant property post ID
 3. Done — no plugin settings, no rewrite rule registration, no cache flush required
 
 ```
-/leela-residency/fact-sheet         → Page slug: fact-sheet, _pw_property_id: {leela-residency ID}
+/leela-residency/press-kit         → Page slug: press-kit, _pw_property_id: {leela-residency ID}
 /leela-residency/gallery            → Page slug: gallery, _pw_property_id: {leela-residency ID}
 /seawind-resort/gallery             → Page slug: gallery, _pw_property_id: {seawind-resort ID}
 ```
@@ -479,7 +479,7 @@ PASS  /offer/advance-purchase     → outlet singular (pw_offer, slug: advance-p
 PASS  /places                     → section listing page (pw_places archive)
 PASS  /place/cubbon-park          → outlet singular (pw_places, slug: cubbon-park)
 PASS  /hotel                      → 301 to /hotels  (listing enabled; pw_property archive)
-PASS  /fact-sheet                 → static page wildcard (Page slug: fact-sheet)
+PASS  /press-kit                 → static page wildcard (Page slug: press-kit)
 PASS  /gallery                    → static page wildcard (Page slug: gallery)
 PASS  /nonexistent-page           → 404
 ```
@@ -511,7 +511,7 @@ PASS  /leela-residency/room?utm_source=email        → 301 to /leela-residency/
 PASS  /leela-residency/restaurants                  → section listing page
 PASS  /leela-residency/restaurant/olive-tree        → outlet singular
 PASS  /leela-residency/restaurant                   → 301 to /leela-residency/restaurants
-PASS  /leela-residency/fact-sheet                   → static page (scoped to leela-residency)
+PASS  /leela-residency/press-kit                   → static page (scoped to leela-residency)
 PASS  /seawind-resort/gallery                       → static page (scoped to seawind-resort)
 PASS  /leela-residency/gallery                      → static page (scoped to leela-residency,
                                                         NOT seawind-resort's gallery page)
@@ -578,7 +578,7 @@ PASS  pw_property post with slug 'restaurants'  → blocked, validation error sh
 PASS  WordPress Page with slug 'rooms'          → blocked, validation error shown
 PASS  WordPress Page with slug 'hotels'         → blocked, validation error shown
 PASS  pw_property post with slug 'leela-residency' → allowed (not a reserved slug)
-PASS  WordPress Page with slug 'fact-sheet'     → allowed (not a reserved slug)
+PASS  WordPress Page with slug 'press-kit'     → allowed (not a reserved slug)
 PASS  Changing plural base to 'suites' when pw_property post slug 'suites' exists
         → settings save blocked, conflict listed
 ```
@@ -600,7 +600,7 @@ KNOWN FAIL  Single→Multi switch: /rooms
             Before switch: resolves to section listing page
             After switch:  404 — same reason
 
-KNOWN FAIL  Single→Multi switch: /fact-sheet
+KNOWN FAIL  Single→Multi switch: /press-kit
             Before switch: resolves to static page with property context
             After switch:  404 or wrong page — property context lost
 ```

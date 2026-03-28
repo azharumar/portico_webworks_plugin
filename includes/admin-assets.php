@@ -53,43 +53,9 @@ add_action(
 	20
 );
 
-add_action(
-	'admin_enqueue_scripts',
-	static function () {
-		if ( ! defined( 'PW_PLUGIN_FILE' ) ) {
-			return;
-		}
-		$screen = get_current_screen();
-		if (
-			! $screen ||
-			$screen->base !== 'post' ||
-			! in_array( $screen->post_type, pw_url_section_cpts(), true )
-		) {
-			return;
-		}
-		wp_enqueue_script(
-			'pw-admin-outlet-permalink',
-			plugins_url( 'assets/admin-outlet-permalink.js', PW_PLUGIN_FILE ),
-			[ 'wp-dom-ready', 'wp-api-fetch', 'wp-data' ],
-			defined( 'PW_VERSION' ) ? PW_VERSION : '1',
-			true
-		);
-		$rest_base = pw_get_cpt_rest_base( $screen->post_type );
-		wp_localize_script(
-			'pw-admin-outlet-permalink',
-			'pwOutletPermalink',
-			[
-				'postId'   => (int) get_the_ID(),
-				'restBase' => $rest_base,
-			]
-		);
-	},
-	25
-);
-
 add_action('admin_enqueue_scripts', function ($hook_suffix) {
 	$screen = get_current_screen();
-	$pw_cpts = [ 'pw_feature', 'pw_room_type', 'pw_restaurant', 'pw_spa', 'pw_meeting_room', 'pw_amenity', 'pw_policy', 'pw_faq', 'pw_offer', 'pw_nearby', 'pw_experience', 'pw_event', 'pw_property', 'pw_contact' ];
+	$pw_cpts = [ 'pw_property' ];
 	$is_pw_cpt = $screen && in_array( $screen->post_type ?? '', $pw_cpts, true );
 	$is_pw_tax = $screen && ( $screen->taxonomy ?? '' ) !== '' && strpos( $screen->taxonomy, 'pw_' ) === 0;
 
@@ -117,29 +83,6 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 			true
 		);
 	}
-	if ( $tab === 'data' && defined( 'PW_PLUGIN_FILE' ) ) {
-		wp_enqueue_script(
-			'pw-admin-sample-install',
-			plugins_url( 'assets/admin-sample-install.js', PW_PLUGIN_FILE ),
-			[],
-			defined( 'PW_VERSION' ) ? PW_VERSION : '1',
-			true
-		);
-		$expect = function_exists( 'pw_sample_install_allowed_post_message_origin' )
-			? pw_sample_install_allowed_post_message_origin()
-			: '*';
-		wp_localize_script(
-			'pw-admin-sample-install',
-			'pwSampleInstall',
-			[
-				'expectOrigin' => $expect,
-				'strings'      => [
-					'starting' => __( 'Starting…', 'portico-webworks' ),
-				],
-			]
-		);
-	}
-
 	wp_enqueue_style(
 		'pw-admin-fonts',
 		'https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap',
@@ -280,51 +223,6 @@ add_action('admin_enqueue_scripts', function ($hook_suffix) {
 			defined( 'PW_VERSION' ) ? PW_VERSION : '0',
 			true
 		);
-	}
-});
-
-add_action('admin_footer', function () {
-	$screen = get_current_screen();
-	if ($screen && $screen->id === 'pw_room_type') {
-		?>
-		<script>
-		(function () {
-		  var maxOcc      = document.querySelector('#_pw_max_occupancy');
-		  var maxAdults   = document.querySelector('#_pw_max_adults');
-		  var maxChildren = document.querySelector('#_pw_max_children');
-
-		  if (!maxOcc || !maxAdults || !maxChildren) return;
-
-		  var errorEl = document.createElement('p');
-		  errorEl.style.cssText = 'color:#b32d15;font-weight:600;margin-top:6px;display:none';
-		  errorEl.textContent = 'Max adults + max children must not exceed max occupancy.';
-		  maxChildren.closest('td') && maxChildren.closest('td').appendChild(errorEl);
-
-		  function validate() {
-		    var occ      = parseInt(maxOcc.value, 10) || 0;
-		    var adults   = parseInt(maxAdults.value, 10) || 0;
-		    var children = parseInt(maxChildren.value, 10) || 0;
-		    var invalid  = (adults + children) > occ && occ > 0;
-		    errorEl.style.display = invalid ? '' : 'none';
-		    return !invalid;
-		  }
-
-		  [maxOcc, maxAdults, maxChildren].forEach(function (el) {
-		    el.addEventListener('input', validate);
-		  });
-
-		  var form = document.getElementById('post');
-		  if (form) {
-		    form.addEventListener('submit', function (e) {
-		      if (!validate()) {
-		        e.preventDefault();
-		        maxAdults.scrollIntoView({ behavior: 'smooth', block: 'center' });
-		      }
-		    });
-		  }
-		})();
-		</script>
-		<?php
 	}
 });
 

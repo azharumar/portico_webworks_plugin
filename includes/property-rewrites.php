@@ -420,29 +420,6 @@ function pw_url_front_controller() {
 				]
 			);
 		}
-		if ( empty( $pages ) && $scope > 0 && defined( 'PW_FACT_SHEET_PAGE_SLUG' ) && $static === PW_FACT_SHEET_PAGE_SLUG ) {
-			$pages = get_posts(
-				[
-					'post_type'      => 'page',
-					'post_status'    => 'publish',
-					'posts_per_page' => 1,
-					'meta_query'     => [
-						[
-							'key'   => '_pw_property_id',
-							'value' => $scope,
-						],
-						[
-							'key'   => '_pw_generated',
-							'value' => '1',
-						],
-						[
-							'key'   => '_pw_static_url_segment',
-							'value' => $static,
-						],
-					],
-				]
-			);
-		}
 		if ( empty( $pages ) ) {
 			$page = get_page_by_path( $static, OBJECT, 'page' );
 			if ( ! $page instanceof WP_Post || $page->post_status !== 'publish' ) {
