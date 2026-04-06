@@ -12,6 +12,10 @@ function pw_admin_dependencies_url() {
 	return admin_url( 'admin.php?page=' . rawurlencode( pw_admin_page_slug() ) . '&tab=dependencies' );
 }
 
+function pw_admin_update_url() {
+	return admin_url( 'admin.php?page=' . rawurlencode( pw_admin_page_slug() ) . '&tab=update' );
+}
+
 function pw_logo_url() {
 	return plugins_url( 'logo.svg', PW_PLUGIN_FILE );
 }
@@ -91,13 +95,19 @@ function pw_order_admin_tabs( $tabs ) {
 	if ( ! is_array( $tabs ) || $tabs === [] ) {
 		return $tabs;
 	}
-	$about_key = 'about';
-	$about     = [];
+	$about_key  = 'about';
+	$update_key = 'update';
+	$about      = [];
+	$update     = [];
 	if ( isset( $tabs[ $about_key ] ) ) {
 		$about[ $about_key ] = $tabs[ $about_key ];
 		unset( $tabs[ $about_key ] );
 	}
-	return array_merge( $tabs, $about );
+	if ( isset( $tabs[ $update_key ] ) ) {
+		$update[ $update_key ] = $tabs[ $update_key ];
+		unset( $tabs[ $update_key ] );
+	}
+	return array_merge( $tabs, $update, $about );
 }
 
 function pw_render_root_page() {

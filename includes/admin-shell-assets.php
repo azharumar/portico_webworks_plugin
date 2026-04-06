@@ -49,9 +49,25 @@ add_action(
   .pw-admin .pw-header{flex-direction:column;align-items:flex-start}
   .pw-admin .pw-card{max-width:none}
 }
+.pw-admin .pw-github-release-notes{max-height:20em;overflow:auto;margin-top:0.25em;padding:0.75em 1em;font-size:13px;line-height:1.45;word-break:break-word;background:var(--card2);border:1px solid var(--border);border-radius:8px}
+.pw-admin .pw-github-release-notes > *:first-child{margin-top:0}
+.pw-admin .pw-github-release-notes > *:last-child{margin-bottom:0}
+.pw-admin .pw-github-release-notes p{margin:.5em 0}
+.pw-admin .pw-github-release-notes ol,.pw-admin .pw-github-release-notes ul{margin:.5em 0;padding-left:1.35em}
+.pw-admin .pw-github-release-notes h1,.pw-admin .pw-github-release-notes h2,.pw-admin .pw-github-release-notes h3,.pw-admin .pw-github-release-notes h4,.pw-admin .pw-github-release-notes h5,.pw-admin .pw-github-release-notes h6{font-weight:700;margin:.75em 0 .35em;line-height:1.25}
+.pw-admin .pw-github-release-notes h1{font-size:1.08em}
+.pw-admin .pw-github-release-notes h2{font-size:1.05em}
+.pw-admin .pw-github-release-notes h3{font-size:1.02em}
+.pw-admin .pw-github-release-notes code{font-family:Consolas,Monaco,monospace;font-size:12px;padding:.1em .35em;background:rgba(0,0,0,.06);border-radius:4px}
+.pw-admin .pw-github-release-notes pre{font-family:Consolas,Monaco,monospace;font-size:12px;padding:.6em .75em;overflow:auto;background:rgba(0,0,0,.06);border-radius:6px;border:1px solid var(--border);line-height:1.4}
+.pw-admin .pw-github-release-notes pre code{padding:0;background:0 0;border-radius:0;font-size:inherit}
+.pw-admin .pw-github-release-notes a{color:var(--primary)}
+.pw-admin .pw-github-release-notes table{border-collapse:collapse;width:100%;margin:.5em 0;font-size:12px}
+.pw-admin .pw-github-release-notes td,.pw-admin .pw-github-release-notes th{border:1px solid var(--border);padding:.35em .5em;text-align:left;vertical-align:top}
+.pw-admin .pw-github-release-notes blockquote{margin:.5em 0;padding-left:.75em;border-left:3px solid var(--border);color:var(--muted)}
 ";
 
-		wp_register_style( 'pw-admin', false, array( 'pw-admin-fonts' ), '0.9.0' );
+		wp_register_style( 'pw-admin', false, array( 'pw-admin-fonts' ), defined( 'PW_VERSION' ) ? PW_VERSION : '1' );
 		wp_enqueue_style( 'pw-admin' );
 		wp_add_inline_style( 'pw-admin', $css );
 	}

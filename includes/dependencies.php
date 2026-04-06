@@ -31,6 +31,16 @@ function pw_get_dependencies() {
 			'required'   => true,
 		),
 		array(
+			'name'          => 'Portico Webworks Starter Theme',
+			'slug'          => 'portico_webworks_starter_theme',
+			'type'          => 'theme',
+			'source'        => 'github_release',
+			'releases_url'  => 'https://github.com/azharumar/portico_webworks_starter_theme/releases',
+			'github_asset'  => PW_STARTER_THEME_RELEASE_ZIP,
+			'file'          => '',
+			'required'      => true,
+		),
+		array(
 			'name'       => 'Activity Log',
 			'slug'       => 'aryo-activity-log',
 			'type'       => 'plugin',
@@ -187,7 +197,13 @@ add_action('pw_render_tab_dependencies', function () {
 		$status = pw_dep_status($dep);
 		$badge_color = $status === PW_DEP_ACTIVE ? '#1e8e3e' : ($status === PW_DEP_INSTALLED ? '#e8a200' : '#b32d15');
 		$badge_label = $status === PW_DEP_ACTIVE ? 'Active' : ($status === PW_DEP_INSTALLED ? 'Installed' : 'Not Installed');
-		$source_label = $dep['source'] === 'bundled' ? 'Bundled ZIP' : 'WordPress.org';
+		if ( $dep['source'] === 'bundled' ) {
+			$source_label = 'Bundled ZIP';
+		} elseif ( $dep['source'] === 'github_release' ) {
+			$source_label = 'GitHub release';
+		} else {
+			$source_label = 'WordPress.org';
+		}
 
 		echo '<tr data-pw-dep="' . esc_attr($dep['slug']) . '">';
 		echo '<td><strong>' . esc_html($dep['name']) . '</strong></td>';
@@ -208,7 +224,7 @@ add_action('pw_render_tab_dependencies', function () {
 		} else {
 			$can = ($dep['type'] === 'theme') ? ($can_theme && $can_install) : $can_install;
 			if ($can) {
-				if ($dep['source'] === 'bundled' && !empty($dep['zip']) && !file_exists($dep['zip'])) {
+				if ( $dep['source'] === 'bundled' && ! empty( $dep['zip'] ) && ! file_exists( $dep['zip'] ) ) {
 					echo '<span style="color:#b32d15;font-size:12px;font-weight:600">ZIP missing</span>';
 				} else {
 					echo '<button class="button pw-dep-action" data-slug="' . esc_attr($dep['slug']) . '" data-action="install">Install &amp; Activate</button>';
@@ -255,7 +271,16 @@ add_action('admin_footer', function () {
 			fd.append('dep_action', action);
 
 			return fetch(<?php echo wp_json_encode($ajax_url); ?>, {method:'POST', body:fd, credentials:'same-origin'})
-				.then(function(r){ return r.json(); })
+				.then(function(r){
+					return r.text().then(function(t){
+						try {
+							return JSON.parse(t);
+						} catch (e) {
+							var hint = (t && t.indexOf('<!DOCTYPE') === 0) ? 'Server returned a web page instead of JSON (often a login screen, fatal error, or plugin conflict).' : 'Invalid JSON from server.';
+							throw new Error(hint);
+						}
+					});
+				})
 				.then(function(data){
 					var row = document.querySelector('tr[data-pw-dep="'+slug+'"]');
 					if (!row) return data;
@@ -307,35 +332,79 @@ add_action('admin_footer', function () {
 	<?php
 });
 
+function pw_dep_ob_end_all() {
+	while ( ob_get_level() > 0 ) {
+		ob_end_clean();
+	}
+}
+
+/**
+ * After install, upgrader skins may print progress; discard so we only validate activation output (e.g. Rank Math).
+ */
+function pw_dep_ob_restart() {
+	pw_dep_ob_end_all();
+	ob_start();
+}
+
+/**
+ * Send JSON error (discard any buffered output first so response is valid JSON).
+ */
+function pw_dep_send_json_error_clean( $data ) {
+	pw_dep_ob_end_all();
+	wp_send_json_error( $data );
+}
+
+/**
+ * Send JSON success only if nothing meaningful was printed (avoids "Unexpected token '<'" in admin JS).
+ */
+function pw_dep_send_json_success_clean( $data ) {
+	$raw = '';
+	while ( ob_get_level() > 0 ) {
+		$raw .= (string) ob_get_clean();
+	}
+	$noise = trim( wp_strip_all_tags( $raw ) );
+	if ( $noise !== '' ) {
+		wp_send_json_error(
+			array(
+				'message' => __( 'Something printed output while activating (common with some SEO plugins). Use Plugins → Installed Plugins to activate, then return here.', 'portico-webworks' ),
+			)
+		);
+	}
+	wp_send_json_success( $data );
+}
+
 // ---------------------------------------------------------------------------
 // AJAX handler — install / activate a single dependency
 // ---------------------------------------------------------------------------
-add_action('wp_ajax_portico_dep_action', function () {
-	check_ajax_referer('portico_dep_action');
+add_action( 'wp_ajax_portico_dep_action', function () {
+	ob_start();
 
-	if (!pw_can_manage_deps() || !current_user_can('activate_plugins')) {
-		wp_send_json_error(array('message' => 'Insufficient permissions.'));
+	if ( ! check_ajax_referer( 'portico_dep_action', false, false ) ) {
+		pw_dep_send_json_error_clean( array( 'message' => __( 'Security check failed. Reload this page and try again.', 'portico-webworks' ) ) );
 	}
 
-	$slug   = isset($_POST['dep_slug']) ? sanitize_key($_POST['dep_slug']) : '';
-	$action = isset($_POST['dep_action']) ? sanitize_key($_POST['dep_action']) : '';
+	if ( ! pw_can_manage_deps() || ! current_user_can( 'activate_plugins' ) ) {
+		pw_dep_send_json_error_clean( array( 'message' => 'Insufficient permissions.' ) );
+	}
+
+	$slug = isset( $_POST['dep_slug'] ) ? sanitize_key( wp_unslash( $_POST['dep_slug'] ) ) : '';
 
 	$dep = null;
-	foreach (pw_get_dependencies() as $d) {
-		if ($d['slug'] === $slug) {
+	foreach ( pw_get_dependencies() as $d ) {
+		if ( $d['slug'] === $slug ) {
 			$dep = $d;
 			break;
 		}
 	}
 
-	if (!$dep) {
-		wp_send_json_error(array('message' => 'Unknown dependency.'));
+	if ( ! $dep ) {
+		pw_dep_send_json_error_clean( array( 'message' => 'Unknown dependency.' ) );
 	}
 
-	$status = pw_dep_status($dep);
+	$status = pw_dep_status( $dep );
 
-	if ($status === PW_DEP_ACTIVE) {
-		wp_send_json_success(array('message' => $dep['name'] . ' is already active.'));
+	if ( $status === PW_DEP_ACTIVE ) {
+		pw_dep_send_json_success_clean( array( 'message' => $dep['name'] . ' is already active.' ) );
 	}
 
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
@@ -344,35 +413,34 @@ add_action('wp_ajax_portico_dep_action', function () {
 	require_once ABSPATH . 'wp-admin/includes/file.php';
 	require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
-	// Install if not present.
-	if ($status === PW_DEP_NOT_INSTALLED) {
-		if ($dep['type'] === 'theme') {
-			$result = pw_install_theme($dep);
+	if ( $status === PW_DEP_NOT_INSTALLED ) {
+		if ( $dep['type'] === 'theme' ) {
+			$result = pw_install_theme( $dep );
 		} else {
-			$result = pw_install_plugin($dep);
+			$result = pw_install_plugin( $dep );
 		}
 
-		if (is_wp_error($result)) {
-			wp_send_json_error(array('message' => $result->get_error_message()));
+		if ( is_wp_error( $result ) ) {
+			pw_dep_send_json_error_clean( array( 'message' => $result->get_error_message() ) );
 		}
+		pw_dep_ob_restart();
 	}
 
-	// Activate.
-	if ($dep['type'] === 'theme') {
-		if (!current_user_can('switch_themes')) {
-			wp_send_json_error(array('message' => 'Insufficient permissions to switch themes.'));
+	if ( $dep['type'] === 'theme' ) {
+		if ( ! current_user_can( 'switch_themes' ) ) {
+			pw_dep_send_json_error_clean( array( 'message' => 'Insufficient permissions to switch themes.' ) );
 		}
-		switch_theme($dep['slug']);
-		wp_send_json_success(array('message' => $dep['name'] . ' activated.'));
+		switch_theme( $dep['slug'] );
+		pw_dep_send_json_success_clean( array( 'message' => $dep['name'] . ' activated.' ) );
 	}
 
-	$activate = activate_plugin($dep['file']);
-	if (is_wp_error($activate)) {
-		wp_send_json_error(array('message' => $activate->get_error_message()));
+	$activate = activate_plugin( $dep['file'], '', false, false );
+	if ( is_wp_error( $activate ) ) {
+		pw_dep_send_json_error_clean( array( 'message' => $activate->get_error_message() ) );
 	}
 
-	wp_send_json_success(array('message' => $dep['name'] . ' activated.'));
-});
+	pw_dep_send_json_success_clean( array( 'message' => $dep['name'] . ' activated.' ) );
+} );
 
 // ---------------------------------------------------------------------------
 // Installer helpers
@@ -420,6 +488,20 @@ function pw_install_theme($dep) {
 			return new WP_Error('zip_missing', $dep['name'] . ': bundled ZIP file not found at expected path.');
 		}
 		$result = $upgrader->install($dep['zip']);
+	} elseif ( $dep['source'] === 'github_release' ) {
+		$releases_url = isset( $dep['releases_url'] ) ? trim( (string) $dep['releases_url'] ) : '';
+		$asset        = isset( $dep['github_asset'] ) ? trim( (string) $dep['github_asset'] ) : '';
+		if ( $releases_url === '' || $asset === '' ) {
+			return new WP_Error( 'pw_dep_github', $dep['name'] . ': missing GitHub releases URL or asset name.' );
+		}
+		if ( ! function_exists( 'pw_github_get_latest_release_zip_by_asset' ) ) {
+			return new WP_Error( 'pw_dep_github', $dep['name'] . ': GitHub release helper not loaded.' );
+		}
+		$pkg = pw_github_get_latest_release_zip_by_asset( $releases_url, $asset );
+		if ( is_wp_error( $pkg ) ) {
+			return $pkg;
+		}
+		$result = $upgrader->install( $pkg['zip_url'] );
 	} else {
 		$api = themes_api('theme_information', array(
 			'slug'   => $dep['slug'],
