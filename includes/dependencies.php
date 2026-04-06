@@ -89,6 +89,14 @@ function pw_get_dependencies() {
 			'file'       => 'favicon-by-realfavicongenerator/favicon-by-realfavicongenerator.php',
 			'required'   => true,
 		),
+		array(
+			'name'       => 'SVG Support',
+			'slug'       => 'svg-support',
+			'type'       => 'plugin',
+			'source'     => 'repo',
+			'file'       => 'svg-support/svg-support.php',
+			'required'   => true,
+		),
 	);
 
 	return apply_filters( 'pw_dependencies', $deps );
@@ -155,14 +163,6 @@ add_action('pw_admin_notices', function () {
 	echo '<a href="' . esc_url($page_url) . '">Install required dependencies</a>.';
 	echo '</p></div>';
 });
-
-// ---------------------------------------------------------------------------
-// Register the Dependencies tab in the existing admin page
-// ---------------------------------------------------------------------------
-add_filter( 'pw_admin_tabs', function ( $tabs ) {
-	$tabs['dependencies'] = 'Dependencies';
-	return $tabs;
-} );
 
 // ---------------------------------------------------------------------------
 // Render the Dependencies tab content
