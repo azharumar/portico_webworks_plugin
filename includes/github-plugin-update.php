@@ -31,7 +31,7 @@ function pw_get_setting( $key, $default = null ) {
 const PW_GITHUB_PLUGIN_RELEASE_ZIP = 'portico_webworks_plugin.zip';
 
 /** Expected release asset name for the GeneratePress child / starter theme (must match GitHub release upload). */
-const PW_STARTER_THEME_RELEASE_ZIP = 'portico_webworks_starter_theme.zip';
+const PW_STARTER_THEME_RELEASE_ZIP = 'portico_webworks_theme.zip';
 
 /**
  * Normalize and validate a GitHub releases page URL; empty if invalid.
@@ -308,7 +308,7 @@ function pw_github_get_latest_release_package( $releases_url ) {
  * Latest release download URL for a named zip asset (theme, plugin, or other).
  *
  * @param string $releases_url GitHub releases page URL for the repository.
- * @param string $zip_basename Release asset filename, e.g. portico_webworks_starter_theme.zip.
+ * @param string $zip_basename Release asset filename, e.g. portico_webworks_theme.zip.
  * @return array{zip_url:string,tag_name:string}|WP_Error
  */
 function pw_github_get_latest_release_zip_by_asset( $releases_url, $zip_basename ) {
