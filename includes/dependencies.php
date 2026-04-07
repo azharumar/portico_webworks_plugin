@@ -356,6 +356,7 @@ add_action('pw_render_tab_dependencies', function () {
 	echo '<div class="pw-card" style="max-width:980px">';
 	echo '<div class="pw-card-head"><div class="pw-card-title">Required Dependencies</div>';
 	if ( $can_install ) {
+		echo '<button type="button" id="pw-dep-check-updates" class="button" style="font-size:12px;padding:4px 14px;margin-right:6px">Check updates</button>';
 		echo '<button type="button" id="pw-dep-update-all" class="button" style="font-size:12px;padding:4px 14px;margin-right:6px">Update all</button>';
 		echo '<button type="button" id="pw-dep-install-all" class="button button-primary" style="font-size:12px;padding:4px 14px">Install &amp; activate all</button>';
 	}
@@ -553,6 +554,23 @@ add_action('admin_footer', function () {
 				});
 			});
 		}
+
+		var checkUpdates = document.getElementById('pw-dep-check-updates');
+		if (checkUpdates) {
+			checkUpdates.addEventListener('click', function(){
+				checkUpdates.disabled = true;
+				checkUpdates.textContent = '<?php echo esc_js( __( 'Checking…', 'portico-webworks' ) ); ?>';
+				doAction('', 'check_updates', null).then(function(data){
+					if (!data || !data.success) {
+						checkUpdates.disabled = false;
+						checkUpdates.textContent = '<?php echo esc_js( __( 'Check updates', 'portico-webworks' ) ); ?>';
+					}
+				}).catch(function(){
+					checkUpdates.disabled = false;
+					checkUpdates.textContent = '<?php echo esc_js( __( 'Check updates', 'portico-webworks' ) ); ?>';
+				});
+			});
+		}
 	})();
 	</script>
 	<?php
@@ -615,6 +633,18 @@ add_action( 'wp_ajax_portico_dep_action', function () {
 
 	$slug       = isset( $_POST['dep_slug'] ) ? sanitize_key( wp_unslash( $_POST['dep_slug'] ) ) : '';
 	$dep_action = isset( $_POST['dep_action'] ) ? sanitize_key( wp_unslash( $_POST['dep_action'] ) ) : '';
+
+	if ( $dep_action === 'check_updates' ) {
+		foreach ( pw_get_dependencies() as $dep_item ) {
+			pw_dep_invalidate_remote_version_cache( $dep_item );
+		}
+		pw_dep_send_json_success_clean(
+			array(
+				'message' => __( 'Checked dependency updates.', 'portico-webworks' ),
+				'reload'  => true,
+			)
+		);
+	}
 
 	$dep = null;
 	foreach ( pw_get_dependencies() as $d ) {
