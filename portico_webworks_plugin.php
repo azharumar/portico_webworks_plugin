@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Portico Webworks Hotel Website Manager
  * Description: Installs and activates the Portico Webworks theme and plugin dependencies.
- * Version: 0.9.7
+ * Version: 0.9.8
  * Requires at least: 6.9.4
  * Requires PHP: 8.3
  * Author: Portico Webworks
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'PW_PLUGIN_FILE', __FILE__ );
 define( 'PW_PLUGIN_DIR', plugin_dir_path( PW_PLUGIN_FILE ) );
-define( 'PW_VERSION', '0.9.7' );
+define( 'PW_VERSION', '0.9.8' );
 
 function pw_plugin_activation() {
 	set_transient( 'pw_activation_settings_notice', 1, 300 );
@@ -28,3 +28,8 @@ require_once PW_PLUGIN_DIR . 'includes/admin-page.php';
 require_once PW_PLUGIN_DIR . 'includes/admin-shell-assets.php';
 require_once PW_PLUGIN_DIR . 'includes/github-plugin-update.php';
 require_once PW_PLUGIN_DIR . 'includes/dependencies.php';
+
+function pw_add_page_excerpt_support() {
+	add_post_type_support( 'page', 'excerpt' );
+}
+add_action( 'init', 'pw_add_page_excerpt_support' );

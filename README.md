@@ -10,6 +10,7 @@ Installs and activates the Portico Webworks theme/plugin stack from **WP Admin �
 
 **Changelog**
 
+- **0.9.8** (2026-04-08) — Enable **excerpt** support for Pages (`add_post_type_support`) for editor field and dynamic content (e.g. GenerateBlocks).
 - **0.9.7** (2026-04-07) — Dependencies: **Check updates** button clears cached remote versions for all dependencies and reloads the table.
 - **0.9.6** (2026-04-07) — Dependencies screen: **Update** / **Update all** for themes and repo plugins; remote version transient cache; invalidate cache after upgrade; **Install & activate all** runs one action per row (install → update → activate).
 - **0.9.5** (2026-04-07) — Starter theme release asset **`portico_webworks_theme.zip`** and slug **`portico_webworks_theme`** (matches [starter theme releases](https://github.com/azharumar/portico_webworks_starter_theme/releases)).
